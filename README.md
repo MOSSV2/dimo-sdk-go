@@ -18,7 +18,7 @@ go sdk for dimo，include file, model and contract operations
 ### download file/directory/model
 
 ```shell
-> cd example/downlaod
+> cd example/download
 > go build
 # if sk not set, will generate a new key, model means upload model or regualr file/dir
 > ./download --model=false --sk=<your secret key>  --name=<file name> --path=<your local file/dir path to save>
