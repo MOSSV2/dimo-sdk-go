@@ -27,13 +27,14 @@ func (mm *ModelCore) Deserialize(b []byte) error {
 
 type ModelMeta struct {
 	ModelCore
-	Score uint64
-	Price *big.Int
-	Owner common.Address
-	Type  string // stable-diffusion or others
-	Hash  string
-	Count int
-	Files map[string]string // name->content; if content is sha256, download it or put it
+	OnChain bool
+	Score   uint64
+	Price   *big.Int
+	Owner   common.Address
+	Type    string // stable-diffusion or others
+	Hash    string
+	Count   int
+	Files   map[string]string // name->content; if content is sha256, download it or put it
 }
 
 func (mmr *ModelMeta) Serialize() ([]byte, error) {

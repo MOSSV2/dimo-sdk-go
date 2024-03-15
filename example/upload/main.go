@@ -58,11 +58,6 @@ func UploadFile(sk *ecdsa.PrivateKey, fp string) error {
 		return err
 	}
 
-	sinfo, err := sdk.Info(sdk.ServerURL)
-	if err != nil {
-		return err
-	}
-
 	// charge from server
 	sdk.Login(sdk.ServerURL, au)
 
@@ -86,7 +81,7 @@ func UploadFile(sk *ecdsa.PrivateKey, fp string) error {
 
 	if !fi.IsDir() {
 		// upload to stream and submit to gateway
-		res, err := sdk.UploadToStream(sdk.ServerURL, au, fp)
+		res, submitter, err := sdk.UploadToStream(sdk.ServerURL, au, fp)
 		if err != nil {
 			return err
 		}
@@ -94,16 +89,7 @@ func UploadFile(sk *ecdsa.PrivateKey, fp string) error {
 		fmt.Printf("submit %s to chain\n", res.Name)
 
 		// submit meta to chain
-		err = contract.AddFile(sk, res.Name, res.FileCore)
-		if err != nil {
-			return err
-		}
-		err = contract.AddPiece(sk, res.Name, res.FileCore.Pieces)
-		if err != nil {
-			return err
-		}
-		// set proxy; let server submit
-		err = contract.SetFileProxy(sk, res.Name, sinfo.Name)
+		err = contract.AddFileAndPiece(sk, res.Name, res.FileCore, submitter)
 		if err != nil {
 			return err
 		}
@@ -118,21 +104,13 @@ func UploadFile(sk *ecdsa.PrivateKey, fp string) error {
 		if fi.IsDir() {
 			return nil
 		}
-		res, err := sdk.UploadToStream(sdk.ServerURL, au, fileName)
+		res, submitter, err := sdk.UploadToStream(sdk.ServerURL, au, fileName)
 		if err != nil {
 			return nil
 		}
 		fmt.Printf("upload %s, sha256: %s\n", fp, res.Name)
 		fmt.Printf("submit %s to chain\n", res.Name)
-		err = contract.AddFile(sk, res.Name, res.FileCore)
-		if err != nil {
-			return err
-		}
-		err = contract.AddPiece(sk, res.Name, res.FileCore.Pieces)
-		if err != nil {
-			return err
-		}
-		err = contract.SetFileProxy(sk, res.Name, sinfo.Name)
+		err = contract.AddFileAndPiece(sk, res.Name, res.FileCore, submitter)
 		if err != nil {
 			return err
 		}

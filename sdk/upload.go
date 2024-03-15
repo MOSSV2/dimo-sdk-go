@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand"
 	"mime/multipart"
 	"net"
 	"net/http"
@@ -22,11 +23,27 @@ import (
 	"github.com/schollz/progressbar/v3"
 )
 
-func UploadToStream(baseUrl string, auth types.Auth, filePath string) (types.FileReceipt, error) {
+func Disorder(array []types.EdgeReceipt) {
+	var temp types.EdgeReceipt
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	for i := len(array) - 1; i >= 0; i-- {
+		num := r.Intn(i + 1)
+		temp = array[i]
+		array[i] = array[num]
+		array[num] = temp
+	}
+}
+
+func UploadToStream(baseUrl string, auth types.Auth, filePath string) (types.FileReceipt, common.Address, error) {
 	var res types.FileReceipt
+	sinfo, err := Info(baseUrl)
+	if err != nil {
+		return res, common.Address{}, err
+	}
+
 	er, err := ListEdge(baseUrl, auth, types.StreamType)
 	if err != nil {
-		return res, err
+		return res, common.Address{}, err
 	}
 
 	logger.Debug("streams before: ", er.Edges)
@@ -64,21 +81,22 @@ func UploadToStream(baseUrl string, auth types.Auth, filePath string) (types.Fil
 		}
 
 		logger.Debug("upload meta: ", filePath, " to: ", baseUrl)
-		return UploadFileMeta(baseUrl, auth, em.Name, fr)
+		res, err := UploadFileMeta(baseUrl, auth, em.Name, fr)
+		return res, em.Name, err
 	}
 
 	fcws, err := UploadData(baseUrl, auth, filePath)
 	if err != nil {
-		return res, err
+		return res, common.Address{}, err
 	}
 
 	res.FileCore = fcws.FileCore
 
-	return res, nil
+	return res, sinfo.Name, nil
 }
 
 func UploadData(baseUrl string, auth types.Auth, filePath string) (types.FileCoreWithSize, error) {
-	logger.Debug("upload data: ", filePath, " to: ", baseUrl)
+	logger.Debug("upload: ", filePath, " to: ", baseUrl)
 	var res types.FileCoreWithSize
 	p, err := homedir.Expand(filePath)
 	if err != nil {

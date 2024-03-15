@@ -123,8 +123,9 @@ func (rc *ReplicaCore) Deserialize(b []byte) error {
 }
 
 type ReplicaInfo struct {
-	File    string
+	File    uint64
 	Piece   uint64
+	Index   int
 	Replica string
 	Sign    []byte
 	Store   common.Address

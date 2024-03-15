@@ -10,6 +10,7 @@ import (
 )
 
 const (
+	ClientType  = "client"
 	StoreType   = "store"
 	StreamType  = "stream"
 	ComputeType = "compute"

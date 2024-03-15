@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"math/rand"
 	"net"
 	"net/http"
 	"strconv"
@@ -34,17 +33,6 @@ func init() {
 const (
 	ServerURL = "http://52.220.254.5:8080"
 )
-
-func Disorder(array []types.EdgeReceipt) {
-	var temp types.EdgeReceipt
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	for i := len(array) - 1; i >= 0; i-- {
-		num := r.Intn(i + 1)
-		temp = array[i]
-		array[i] = array[num]
-		array[num] = temp
-	}
-}
 
 func DecodeAuth(authstr string) (types.Auth, error) {
 	au := types.Auth{}

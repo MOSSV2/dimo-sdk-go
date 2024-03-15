@@ -21,19 +21,17 @@ var (
 	DevChain   = "http://54.254.72.127:8501"
 	DevChainID = 222
 
-	DefaultGasPrice = 10
-	ReplicaPrice    = 1e14
+	DefaultGasPrice     = 10
+	DefaultReplicaPrice = 1e14 // 1GB*100day cost 1
+	DefaultStoreEpoch   = 301
+
+	DefaultGPUPrice = 1e16
+	DefaultGPUEpoch = 31
 
 	Base = common.HexToAddress("0x61Ea24745A3F7Bcbb67eD95B674fEcfbb331ABd0")
 
-	BankAddr  = common.HexToAddress("0x924465a7d33E0ed365E27907A629168BeBCEb99f")
-	TokenAddr = common.HexToAddress("0x4D5c61Cb0329Ee12D52df13C28648cAf69e1aCb2")
-	EpochAddr = common.HexToAddress("0x7A1aCF05Eb84e3854Af4A31a6ca471d4E01807f2")
-	NodeAddr  = common.HexToAddress("0x07b59a9F8045Dc7E8F213b443ee94BcB8B0f2841")
-	BLSAddr   = common.HexToAddress("0xa264f9Da18E7290FDe59Fe6342bE21d9447E3c41")
-	RoundAddr = common.HexToAddress("0xbA8dc3116DAAce8D49C45d9ba58A84f80091775D")
-	ProofAddr = common.HexToAddress("0x99D9eBfEC77d5dd7fD8AcA81b8338EF9853CeEFA")
-	FileAddr  = common.HexToAddress("0x9aeF84fC6e581471284c5b10f063AB2DEd05d2F6")
+	BankAddr  = common.HexToAddress("0xC0feac630243Bf969EfBc0D0B4A3734Af7901457")
+	TokenAddr = common.HexToAddress("0xB61D75B11465B6Dfe5186a0843c943932F2eF71B")
 )
 
 func MakeAuth(chainID *big.Int, hexSk string) (*bind.TransactOpts, error) {

@@ -25,8 +25,8 @@ type ModelResult struct {
 	IsPaid bool
 }
 
-type ModelServiceResult struct {
-	ModelServiceMeta
+type ServiceResult struct {
+	ServiceMeta
 	IsPaid bool
 }
 
@@ -34,12 +34,16 @@ type ListModelResult struct {
 	Models []ModelResult
 }
 
-type ListModelServiceResult struct {
-	Services []ModelServiceResult
+type ListServiceResult struct {
+	Services []ServiceResult
 }
 
 type ListPromptResult struct {
 	Prompts []PromptMeta
+}
+
+type ListGPUResult struct {
+	GPUs []GPUMeta
 }
 
 type NFTResult struct {

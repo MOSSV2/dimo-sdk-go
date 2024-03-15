@@ -14,7 +14,7 @@ const (
 	DsPrompt
 	DsNFT
 	DsModel
-	DsModelService
+	DsService
 	DsProxy
 	DsEdge
 	DsFile
@@ -23,6 +23,7 @@ const (
 	DsParam
 	DsStat
 	DsRepo
+	DsGPU
 )
 
 const (

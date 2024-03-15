@@ -3,39 +3,56 @@ package contract
 import (
 	"context"
 	"crypto/ecdsa"
+	"encoding/binary"
 	"encoding/hex"
 	"fmt"
 	"math/big"
 	"time"
 
-	"github.com/MOSSV2/dimo-sdk-go/contract/go/epoch"
-	"github.com/MOSSV2/dimo-sdk-go/contract/go/file"
-	"github.com/MOSSV2/dimo-sdk-go/contract/go/node"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/proof"
-	"github.com/MOSSV2/dimo-sdk-go/contract/go/token"
 	"github.com/MOSSV2/dimo-sdk-go/lib/log"
 	"github.com/MOSSV2/dimo-sdk-go/lib/types"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 var logger = log.Logger("contract")
 
+func Set(sk *ecdsa.PrivateKey, _typ string, ca common.Address) error {
+	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
+	defer cancle()
+	bi, err := NewBank(ctx)
+	if err != nil {
+		return err
+	}
+
+	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	if err != nil {
+		return err
+	}
+
+	tx, err := bi.Set(au, _typ, ca)
+	if err != nil {
+		return err
+	}
+
+	err = CheckTx(DevChain, tx.Hash())
+	if err != nil {
+		return err
+	}
+	fmt.Println(_typ, " set success to: ", ca.String())
+	return nil
+}
+
 func GetEpoch(sk *ecdsa.PrivateKey) (uint64, error) {
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()
-	client, err := ethclient.DialContext(ctx, DevChain)
+	ei, err := NewEpoch(ctx)
 	if err != nil {
 		return 0, err
 	}
 
 	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
-	if err != nil {
-		return 0, err
-	}
-
-	ei, err := epoch.NewEpoch(EpochAddr, client)
 	if err != nil {
 		return 0, err
 	}
@@ -49,23 +66,18 @@ func GetEpoch(sk *ecdsa.PrivateKey) (uint64, error) {
 		return 0, err
 	}
 
-	return ei.CurEpoch(&bind.CallOpts{From: au.From})
+	return ei.Current(&bind.CallOpts{From: au.From})
 }
 
 func RegisterNode(sk *ecdsa.PrivateKey, _typ uint8) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Minute)
 	defer cancle()
-	client, err := ethclient.DialContext(ctx, DevChain)
+	ni, err := NewNode(ctx)
 	if err != nil {
 		return err
 	}
 
 	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
-	if err != nil {
-		return err
-	}
-
-	ni, err := node.NewNode(NodeAddr, client)
 	if err != nil {
 		return err
 	}
@@ -76,7 +88,7 @@ func RegisterNode(sk *ecdsa.PrivateKey, _typ uint8) error {
 		return nil
 	}
 
-	ti, err := token.NewToken(TokenAddr, client)
+	ti, err := NewToken(ctx)
 	if err != nil {
 		return err
 	}
@@ -110,75 +122,74 @@ func RegisterNode(sk *ecdsa.PrivateKey, _typ uint8) error {
 	return ni.Check(&bind.CallOpts{From: au.From}, au.From, _typ)
 }
 
-func AddFile(sk *ecdsa.PrivateKey, _fn string, fc types.FileCore) error {
-	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
-	defer cancle()
-	client, err := ethclient.DialContext(ctx, DevChain)
+func AddFileAndPiece(sk *ecdsa.PrivateKey, _fn string, fc types.FileCore, _proxy common.Address) error {
+	_fi, err := AddFile(sk, _fn, fc)
 	if err != nil {
 		return err
 	}
 
-	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	err = AddPiece(sk, _fi, fc.Pieces)
 	if err != nil {
 		return err
 	}
 
-	fi, err := file.NewFile(FileAddr, client)
-	if err != nil {
-		return err
-	}
-
-	ce, err := GetEpoch(sk)
-	if err != nil {
-		return err
-	}
-
-	root, err := hex.DecodeString(fc.Hash)
-	if err != nil {
-		return err
-	}
-
-	_f := file.IFileFileBase{
-		Owner:  au.From,
-		Price:  big.NewInt(int64(ReplicaPrice)),
-		Size:   uint64(fc.Size),
-		Expire: ce + 100,
-		Root:   root,
-	}
-
-	logger.Debug("add file: ", _fn)
-	fb, err := fi.GetFile(&bind.CallOpts{From: au.From}, _fn)
-	if err == nil && fb.Expire > 0 {
-		logger.Debug("%s already has: %s", fb.Owner, _fn)
-		return fmt.Errorf("%s already has: %s", fb.Owner, _fn)
-	}
-
-	tx, err := fi.AddFile(au, _fn, _f)
-	if err != nil {
-		return err
-	}
-	err = CheckTx(DevChain, tx.Hash())
-	if err != nil {
-		return err
+	if _proxy != common.HexToAddress("0x0") {
+		err = SetFileAgent(sk, _fi, _proxy)
+		if err != nil {
+			return err
+		}
+		return PrePayFile(sk, _fi, int(fc.Policy.N))
 	}
 
 	return nil
 }
 
-func AddPiece(sk *ecdsa.PrivateKey, _fn string, pieces []string) error {
+func AddFile(sk *ecdsa.PrivateKey, _fn string, fc types.FileCore) (uint64, error) {
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()
-	client, err := ethclient.DialContext(ctx, DevChain)
+	fi, err := NewFile(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	if err != nil {
+		return 0, err
+	}
+
+	ce, err := GetEpoch(sk)
+	if err != nil {
+		return 0, err
+	}
+
+	logger.Debug("add file: ", _fn)
+	_, err = fi.GetFileIndex(&bind.CallOpts{From: au.From}, _fn)
+	if err == nil {
+		logger.Debug("already has: %s", _fn)
+		return 0, fmt.Errorf("already has: %s", _fn)
+	}
+
+	tx, err := fi.AddFile(au, _fn, big.NewInt(int64(DefaultReplicaPrice)), ce+uint64(DefaultStoreEpoch))
+	if err != nil {
+		return 0, err
+	}
+	err = CheckTx(DevChain, tx.Hash())
+	if err != nil {
+		return 0, err
+	}
+
+	return fi.GetFileIndex(&bind.CallOpts{From: au.From}, _fn)
+}
+
+func AddPiece(sk *ecdsa.PrivateKey, _fi uint64, pieces []string) error {
+	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
+	defer cancle()
+	fi, err := NewFile(ctx)
 	if err != nil {
 		return err
 	}
 
 	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
-	if err != nil {
-		return err
-	}
-
-	fi, err := file.NewFile(FileAddr, client)
 	if err != nil {
 		return err
 	}
@@ -197,8 +208,8 @@ func AddPiece(sk *ecdsa.PrivateKey, _fn string, pieces []string) error {
 		if end > len(pieces) {
 			end = len(pieces)
 		}
-		logger.Debug("add piece to: ", _fn)
-		tx, err := fi.AddPiece(au, _fn, piecebytes[i:end])
+		logger.Debug("add piece to: ", _fi)
+		tx, err := fi.AddPiece(au, _fi, piecebytes[i:end])
 		if err != nil {
 			return err
 		}
@@ -211,10 +222,10 @@ func AddPiece(sk *ecdsa.PrivateKey, _fn string, pieces []string) error {
 	return nil
 }
 
-func SetFileProxy(sk *ecdsa.PrivateKey, _fn string, _proxy common.Address) error {
+func SetFileAgent(sk *ecdsa.PrivateKey, _fi uint64, _proxy common.Address) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()
-	client, err := ethclient.DialContext(ctx, DevChain)
+	fi, err := NewFile(ctx)
 	if err != nil {
 		return err
 	}
@@ -224,36 +235,8 @@ func SetFileProxy(sk *ecdsa.PrivateKey, _fn string, _proxy common.Address) error
 		return err
 	}
 
-	fi, err := file.NewFile(FileAddr, client)
-	if err != nil {
-		return err
-	}
-
-	logger.Debug(_fn, " set proxy to: ", _proxy)
-	tx, err := fi.SetProxy(au, _fn, _proxy)
-	if err != nil {
-		return err
-	}
-	err = CheckTx(DevChain, tx.Hash())
-	if err != nil {
-		return err
-	}
-
-	logger.Debug(" allowrance to: ", _fn)
-	fb, err := GetFile(_fn)
-	if err != nil {
-		return err
-	}
-
-	val := new(big.Int).Mul(fb.Price, big.NewInt(int64(fb.Count*3)))
-	val.Mul(val, big.NewInt(int64(fb.Expire-fb.Start)))
-
-	ti, err := token.NewToken(TokenAddr, client)
-	if err != nil {
-		return err
-	}
-
-	tx, err = ti.IncreaseAllowance(au, BankAddr, val)
+	logger.Debug(_fi, " set agent to: ", _proxy)
+	tx, err := fi.SetAgent(au, _fi, _proxy)
 	if err != nil {
 		return err
 	}
@@ -265,14 +248,64 @@ func SetFileProxy(sk *ecdsa.PrivateKey, _fn string, _proxy common.Address) error
 	return nil
 }
 
-func AddReplica(sk *ecdsa.PrivateKey, _fn string, pIndex uint64, replica string, _sign []byte) error {
+func PrePayFile(sk *ecdsa.PrivateKey, _fi uint64, _n int) error {
+	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
+	defer cancle()
+
+	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	if err != nil {
+		return err
+	}
+
+	logger.Debug("allowrance to: ", _fi)
+	fb, err := GetFile(_fi)
+	if err != nil {
+		return err
+	}
+
+	val := new(big.Int).Mul(fb.Price, big.NewInt(int64(fb.Count)*int64(_n)))
+	val.Mul(val, big.NewInt(int64(fb.Expire-fb.Start)+1))
+
+	ti, err := NewToken(ctx)
+	if err != nil {
+		return err
+	}
+
+	tx, err := ti.IncreaseAllowance(au, BankAddr, val)
+	if err != nil {
+		return err
+	}
+	err = CheckTx(DevChain, tx.Hash())
+	if err != nil {
+		return err
+	}
+
+	logger.Debug("prepay to: ", _fi)
+	fi, err := NewFile(ctx)
+	if err != nil {
+		return err
+	}
+
+	tx, err = fi.PrePay(au, _fi, val)
+	if err != nil {
+		return err
+	}
+	err = CheckTx(DevChain, tx.Hash())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func AddReplica(sk *ecdsa.PrivateKey, _fi uint64, _pi uint64, replica string, _sign []byte) error {
 	rb, err := StringToSolByte(replica)
 	if err != nil {
 		return err
 	}
-	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Minute)
+	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Minute)
 	defer cancle()
-	client, err := ethclient.DialContext(ctx, DevChain)
+	fi, err := NewFile(ctx)
 	if err != nil {
 		return err
 	}
@@ -282,18 +315,9 @@ func AddReplica(sk *ecdsa.PrivateKey, _fn string, pIndex uint64, replica string,
 		return err
 	}
 
-	fi, err := file.NewFile(FileAddr, client)
+	fb, err := fi.GetFile(&bind.CallOpts{From: au.From}, _fi)
 	if err != nil {
 		return err
-	}
-
-	fb, err := fi.GetFile(&bind.CallOpts{From: au.From}, _fn)
-	if err != nil {
-		return err
-	}
-
-	if fb.Size == 0 {
-		return fmt.Errorf("no file: %s", _fn)
 	}
 
 	logger.Debug("add replica: ", replica)
@@ -306,7 +330,7 @@ func AddReplica(sk *ecdsa.PrivateKey, _fn string, pIndex uint64, replica string,
 		val := big.NewInt(int64(fb.Expire - ce))
 		val.Mul(val, fb.Price)
 
-		ti, err := token.NewToken(TokenAddr, client)
+		ti, err := NewToken(ctx)
 		if err != nil {
 			return err
 		}
@@ -321,7 +345,7 @@ func AddReplica(sk *ecdsa.PrivateKey, _fn string, pIndex uint64, replica string,
 		}
 	}
 
-	tx, err := fi.AddReplica(au, _fn, pIndex, rb, _sign)
+	tx, err := fi.AddReplica(au, _fi, _pi, rb, _sign)
 	if err != nil {
 		return err
 	}
@@ -336,17 +360,12 @@ func AddReplica(sk *ecdsa.PrivateKey, _fn string, pIndex uint64, replica string,
 func SubmitProof(sk *ecdsa.PrivateKey, _kp proof.IProofKZGProof) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()
-	client, err := ethclient.DialContext(ctx, DevChain)
+	pi, err := NewProof(ctx)
 	if err != nil {
 		return err
 	}
 
 	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
-	if err != nil {
-		return err
-	}
-
-	pi, err := proof.NewProof(ProofAddr, client)
 	if err != nil {
 		return err
 	}
@@ -364,10 +383,103 @@ func SubmitProof(sk *ecdsa.PrivateKey, _kp proof.IProofKZGProof) error {
 	return nil
 }
 
-func WithdrawFromFile(sk *ecdsa.PrivateKey, val *big.Int) error {
+func Settle(sk *ecdsa.PrivateKey, _epoch uint64) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()
-	client, err := ethclient.DialContext(ctx, DevChain)
+	fi, err := NewFile(ctx)
+	if err != nil {
+		return err
+	}
+	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	if err != nil {
+		return err
+	}
+
+	tx, err := fi.Settle(au, _epoch)
+	if err != nil {
+		return err
+	}
+
+	err = CheckTx(DevChain, tx.Hash())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func AddModel(sk *ecdsa.PrivateKey, mc types.ModelMeta) error {
+	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
+	defer cancle()
+	mi, err := NewModel(ctx)
+	if err != nil {
+		return err
+	}
+	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	if err != nil {
+		return err
+	}
+
+	rt, err := hex.DecodeString(mc.Hash)
+	if err != nil {
+		return err
+	}
+
+	var cnt [32]byte
+	binary.BigEndian.PutUint64(cnt[24:32], uint64(mc.Count))
+
+	tx, err := mi.Add(au, mc.Name, rt, cnt)
+	if err != nil {
+		return err
+	}
+
+	err = CheckTx(DevChain, tx.Hash())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func AddGPU(sk *ecdsa.PrivateKey, _gn string) error {
+	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
+	defer cancle()
+	gi, err := NewGPU(ctx)
+	if err != nil {
+		return err
+	}
+	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	if err != nil {
+		return err
+	}
+
+	tx, err := gi.Add(au, _gn)
+	if err != nil {
+		return err
+	}
+
+	err = CheckTx(DevChain, tx.Hash())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func AddAIService(sk *ecdsa.PrivateKey, msm types.ServiceMeta) error {
+	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Minute)
+	defer cancle()
+	ai, err := NewAIService(ctx)
+	if err != nil {
+		return err
+	}
+
+	gi, err := NewGPU(ctx)
+	if err != nil {
+		return err
+	}
+
+	mi, err := NewModel(ctx)
 	if err != nil {
 		return err
 	}
@@ -377,17 +489,176 @@ func WithdrawFromFile(sk *ecdsa.PrivateKey, val *big.Int) error {
 		return err
 	}
 
-	fi, err := file.NewFile(FileAddr, client)
+	_mi, err := mi.GetIndex(&bind.CallOpts{From: au.From}, msm.Model)
 	if err != nil {
 		return err
 	}
 
-	fsb, err := fi.GetStore(&bind.CallOpts{From: au.From}, au.From)
+	_gi, err := gi.GetIndex(&bind.CallOpts{From: au.From}, msm.GPU)
 	if err != nil {
 		return err
 	}
 
-	tx, err := fi.Withdraw(au, fsb.Profit.Revenue)
+	ce, err := GetEpoch(sk)
+	if err != nil {
+		return err
+	}
+
+	val := big.NewInt(int64(DefaultGPUPrice))
+	val.Mul(val, big.NewInt(int64(DefaultGPUEpoch)))
+
+	ti, err := NewToken(ctx)
+	if err != nil {
+		return err
+	}
+
+	tx, err := ti.IncreaseAllowance(au, BankAddr, val)
+	if err != nil {
+		return err
+	}
+	err = CheckTx(DevChain, tx.Hash())
+	if err != nil {
+		return err
+	}
+
+	tx, err = ai.Add(au, msm.Name, _mi, _gi, big.NewInt(int64(DefaultGPUPrice)), ce+uint64(DefaultGPUEpoch))
+	if err != nil {
+		return err
+	}
+
+	err = CheckTx(DevChain, tx.Hash())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ActivateAIService(sk *ecdsa.PrivateKey, sn, root string, pfbyte []byte) error {
+	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Minute)
+	defer cancle()
+	ai, err := NewAIService(ctx)
+	if err != nil {
+		return err
+	}
+
+	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	if err != nil {
+		return err
+	}
+
+	_ai, err := ai.GetIndex(&bind.CallOpts{From: au.From}, sn)
+	if err != nil {
+		return err
+	}
+
+	_rt, err := hex.DecodeString(root)
+	if err != nil {
+		return err
+	}
+
+	tx, err := ai.Activate(au, _ai, _rt, pfbyte)
+	if err != nil {
+		return err
+	}
+
+	err = CheckTx(DevChain, tx.Hash())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ShutdownAIService(sk *ecdsa.PrivateKey, _ai uint64) error {
+	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Minute)
+	defer cancle()
+	ai, err := NewAIService(ctx)
+	if err != nil {
+		return err
+	}
+
+	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	if err != nil {
+		return err
+	}
+
+	tx, err := ai.Shutdown(au, _ai)
+	if err != nil {
+		return err
+	}
+
+	err = CheckTx(DevChain, tx.Hash())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func GPUCheck(sk *ecdsa.PrivateKey) error {
+	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Minute)
+	defer cancle()
+	gi, err := NewGPU(ctx)
+	if err != nil {
+		return err
+	}
+
+	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	if err != nil {
+		return err
+	}
+
+	tx, err := gi.Check(au)
+	if err != nil {
+		return err
+	}
+
+	return CheckTx(DevChain, tx.Hash())
+}
+
+func GPUMint(sk *ecdsa.PrivateKey, _gi uint64, _salt []byte) error {
+	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Minute)
+	defer cancle()
+	gi, err := NewGPU(ctx)
+	if err != nil {
+		return err
+	}
+
+	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	if err != nil {
+		return err
+	}
+
+	tx, err := gi.Mint(au, _gi, _salt)
+	if err != nil {
+		return err
+	}
+
+	return CheckTx(DevChain, tx.Hash())
+}
+
+func Mint(sk *ecdsa.PrivateKey) error {
+	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
+	defer cancle()
+	gi, err := NewControl(ctx)
+	if err != nil {
+		return err
+	}
+
+	baddr, err := gi.Bank(&bind.CallOpts{From: Base})
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(baddr)
+
+	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	if err != nil {
+		return err
+	}
+
+	tx, err := gi.Mint(au, au.From, big.NewInt(100))
 	if err != nil {
 		return err
 	}

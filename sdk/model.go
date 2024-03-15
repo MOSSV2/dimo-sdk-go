@@ -171,11 +171,6 @@ func UploadModelFiles(url string, sk *ecdsa.PrivateKey, au types.Auth, fp string
 		return mrm, err
 	}
 
-	sinfo, err := Info(url)
-	if err != nil {
-		return mrm, err
-	}
-
 	Login(url, au)
 
 	for k, v := range mrm.Files {
@@ -186,20 +181,12 @@ func UploadModelFiles(url string, sk *ecdsa.PrivateKey, au types.Auth, fp string
 		}
 
 		sfp := path.Join(fp, k)
-		fr, err = UploadToStream(url, au, sfp)
+		fr, submitter, err := UploadToStream(url, au, sfp)
 		if err != nil {
 			return mrm, err
 		}
 
-		err = contract.AddFile(sk, fr.Name, fr.FileCore)
-		if err != nil {
-			return mrm, err
-		}
-		err = contract.AddPiece(sk, fr.Name, fr.FileCore.Pieces)
-		if err != nil {
-			return mrm, err
-		}
-		err = contract.SetFileProxy(sk, fr.Name, sinfo.Name)
+		err = contract.AddFileAndPiece(sk, fr.Name, fr.FileCore, submitter)
 		if err != nil {
 			return mrm, err
 		}
