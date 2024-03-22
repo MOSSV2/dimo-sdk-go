@@ -466,10 +466,10 @@ func AddGPU(sk *ecdsa.PrivateKey, _gn string) error {
 	return nil
 }
 
-func AddAIService(sk *ecdsa.PrivateKey, msm types.ServiceMeta) error {
+func AddSpace(sk *ecdsa.PrivateKey, msm types.SpaceMeta) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Minute)
 	defer cancle()
-	ai, err := NewAIService(ctx)
+	si, err := NewSpace(ctx)
 	if err != nil {
 		return err
 	}
@@ -521,7 +521,7 @@ func AddAIService(sk *ecdsa.PrivateKey, msm types.ServiceMeta) error {
 		return err
 	}
 
-	tx, err = ai.Add(au, msm.Name, _mi, _gi, big.NewInt(int64(DefaultGPUPrice)), ce+uint64(DefaultGPUEpoch))
+	tx, err = si.Add(au, msm.Name, _mi, _gi, big.NewInt(int64(DefaultGPUPrice)), ce+uint64(DefaultGPUEpoch))
 	if err != nil {
 		return err
 	}
@@ -534,10 +534,10 @@ func AddAIService(sk *ecdsa.PrivateKey, msm types.ServiceMeta) error {
 	return nil
 }
 
-func ActivateAIService(sk *ecdsa.PrivateKey, sn, root string, pfbyte []byte) error {
+func ActivateSpace(sk *ecdsa.PrivateKey, sn, root string, pfbyte []byte) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Minute)
 	defer cancle()
-	ai, err := NewAIService(ctx)
+	si, err := NewSpace(ctx)
 	if err != nil {
 		return err
 	}
@@ -547,7 +547,7 @@ func ActivateAIService(sk *ecdsa.PrivateKey, sn, root string, pfbyte []byte) err
 		return err
 	}
 
-	_ai, err := ai.GetIndex(&bind.CallOpts{From: au.From}, sn)
+	_ai, err := si.GetIndex(&bind.CallOpts{From: au.From}, sn)
 	if err != nil {
 		return err
 	}
@@ -557,7 +557,7 @@ func ActivateAIService(sk *ecdsa.PrivateKey, sn, root string, pfbyte []byte) err
 		return err
 	}
 
-	tx, err := ai.Activate(au, _ai, _rt, pfbyte)
+	tx, err := si.Activate(au, _ai, _rt, pfbyte)
 	if err != nil {
 		return err
 	}
@@ -570,10 +570,10 @@ func ActivateAIService(sk *ecdsa.PrivateKey, sn, root string, pfbyte []byte) err
 	return nil
 }
 
-func ShutdownAIService(sk *ecdsa.PrivateKey, _ai uint64) error {
+func ShutdownSpace(sk *ecdsa.PrivateKey, _ai uint64) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Minute)
 	defer cancle()
-	ai, err := NewAIService(ctx)
+	si, err := NewSpace(ctx)
 	if err != nil {
 		return err
 	}
@@ -583,7 +583,7 @@ func ShutdownAIService(sk *ecdsa.PrivateKey, _ai uint64) error {
 		return err
 	}
 
-	tx, err := ai.Shutdown(au, _ai)
+	tx, err := si.Shutdown(au, _ai)
 	if err != nil {
 		return err
 	}

@@ -25,8 +25,8 @@ type ModelResult struct {
 	IsPaid bool
 }
 
-type ServiceResult struct {
-	ServiceMeta
+type SpaceResult struct {
+	SpaceMeta
 	IsPaid bool
 }
 
@@ -34,8 +34,8 @@ type ListModelResult struct {
 	Models []ModelResult
 }
 
-type ListServiceResult struct {
-	Services []ServiceResult
+type ListSpaceResult struct {
+	Spaces []SpaceResult
 }
 
 type ListPromptResult struct {
@@ -83,6 +83,16 @@ type ListReplicaResult struct {
 
 type ListStatResult struct {
 	Stats []StatResult
+}
+
+type ListObjectResult struct {
+	IsTruncated bool
+
+	NextMarker string
+
+	Objects []ObjectInfo
+
+	Prefixes []string
 }
 
 type StatResult struct {

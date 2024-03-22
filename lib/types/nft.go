@@ -10,14 +10,14 @@ import (
 )
 
 type NFTMeta struct {
-	Name    string
-	Size    uint64
-	Type    string // png for image
-	Prompt  uint64
-	Model   string
-	Service string
-	Price   *big.Int
-	Owner   common.Address
+	Name   string
+	Size   uint64
+	Type   string // png for image
+	Prompt uint64
+	Model  string
+	Space  string
+	Price  *big.Int
+	Owner  common.Address
 }
 
 func (nm *NFTMeta) Serialize() ([]byte, error) {

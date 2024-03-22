@@ -11,7 +11,7 @@ import (
 type PromptMeta struct {
 	Type      string
 	Desc      string
-	Service   string
+	Space     string
 	Submitter common.Address
 	Serial    uint64
 }

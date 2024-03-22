@@ -15,7 +15,7 @@ func (pmp *MerkleProof) Deserialize(b []byte) error {
 	return cbor.Unmarshal(b, pmp)
 }
 
-type ServiceProof struct {
+type SpaceProof struct {
 	Leaf        uint64
 	PiecePath   [][]byte
 	ReplicaPath [][]byte
@@ -23,11 +23,11 @@ type ServiceProof struct {
 	Aux         []byte
 }
 
-func (msp *ServiceProof) Serialize() ([]byte, error) {
+func (msp *SpaceProof) Serialize() ([]byte, error) {
 	return cbor.Marshal(msp)
 }
 
-func (msp *ServiceProof) Deserialize(b []byte) error {
+func (msp *SpaceProof) Deserialize(b []byte) error {
 	return cbor.Unmarshal(b, msp)
 }
 

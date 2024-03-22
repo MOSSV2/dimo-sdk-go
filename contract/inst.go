@@ -3,8 +3,8 @@ package contract
 import (
 	"context"
 
-	"github.com/MOSSV2/dimo-sdk-go/contract/go/aiservice"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/bank"
+	"github.com/MOSSV2/dimo-sdk-go/contract/go/bls"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/control"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/epoch"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/file"
@@ -13,6 +13,7 @@ import (
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/node"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/proof"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/round"
+	"github.com/MOSSV2/dimo-sdk-go/contract/go/space"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/token"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -180,7 +181,7 @@ func NewModel(ctx context.Context) (*model.Model, error) {
 	return model.NewModel(maddr, client)
 }
 
-func NewAIService(ctx context.Context) (*aiservice.Aiservice, error) {
+func NewSpace(ctx context.Context) (*space.Space, error) {
 	client, err := ethclient.DialContext(ctx, DevChain)
 	if err != nil {
 		return nil, err
@@ -190,9 +191,26 @@ func NewAIService(ctx context.Context) (*aiservice.Aiservice, error) {
 	if err != nil {
 		return nil, err
 	}
-	aaddr, err := bi.Get(&bind.CallOpts{From: Base}, "aiservice")
+	aaddr, err := bi.Get(&bind.CallOpts{From: Base}, "space")
 	if err != nil {
 		return nil, err
 	}
-	return aiservice.NewAiservice(aaddr, client)
+	return space.NewSpace(aaddr, client)
+}
+
+func NewBLS(ctx context.Context) (*bls.BLS, error) {
+	client, err := ethclient.DialContext(ctx, DevChain)
+	if err != nil {
+		return nil, err
+	}
+
+	bi, err := bank.NewBank(BankAddr, client)
+	if err != nil {
+		return nil, err
+	}
+	aaddr, err := bi.Get(&bind.CallOpts{From: Base}, "bls")
+	if err != nil {
+		return nil, err
+	}
+	return bls.NewBLS(aaddr, client)
 }

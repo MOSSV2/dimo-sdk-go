@@ -10,8 +10,8 @@ import (
 	"github.com/MOSSV2/dimo-sdk-go/lib/types"
 )
 
-func Submit(baseUrl string, auth types.Auth, msm types.ServiceMeta) (types.ServiceMeta, error) {
-	var re types.ServiceMeta
+func Submit(baseUrl string, auth types.Auth, msm types.SpaceMeta) (types.SpaceMeta, error) {
+	var re types.SpaceMeta
 	mmb, err := json.Marshal(msm)
 	if err != nil {
 		return re, err
@@ -20,7 +20,7 @@ func Submit(baseUrl string, auth types.Auth, msm types.ServiceMeta) (types.Servi
 	form := url.Values{}
 	form.Set("txMsg", hex.EncodeToString(mmb))
 
-	res, err := doRequest(context.TODO(), baseUrl, "/api/submitService", auth, strings.NewReader(form.Encode()))
+	res, err := doRequest(context.TODO(), baseUrl, "/api/submitSpace", auth, strings.NewReader(form.Encode()))
 	if err != nil {
 		return re, err
 	}
@@ -33,36 +33,36 @@ func Submit(baseUrl string, auth types.Auth, msm types.ServiceMeta) (types.Servi
 	return re, nil
 }
 
-func ConfirmService(baseUrl string, auth types.Auth, sn, sroot string, pf []byte) error {
+func ConfirmSpace(baseUrl string, auth types.Auth, sn, sroot string, pf []byte) error {
 	form := url.Values{}
 	form.Set("name", sn)
 	form.Set("root", sroot)
 	form.Set("proof", hex.EncodeToString(pf))
 
-	_, err := doRequest(context.TODO(), baseUrl, "/api/confirmService", auth, strings.NewReader(form.Encode()))
+	_, err := doRequest(context.TODO(), baseUrl, "/api/confirmSpace", auth, strings.NewReader(form.Encode()))
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func UpdateService(baseUrl string, auth types.Auth, sn string) error {
+func UpdateSpace(baseUrl string, auth types.Auth, sn string) error {
 	form := url.Values{}
 	form.Set("name", sn)
 
-	_, err := doRequest(context.TODO(), baseUrl, "/api/updateService", auth, strings.NewReader(form.Encode()))
+	_, err := doRequest(context.TODO(), baseUrl, "/api/updateSpace", auth, strings.NewReader(form.Encode()))
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func GetService(baseUrl string, auth types.Auth, name string) (types.ServiceResult, error) {
-	res := types.ServiceResult{}
+func GetSpace(baseUrl string, auth types.Auth, name string) (types.SpaceResult, error) {
+	res := types.SpaceResult{}
 	form := url.Values{}
 	form.Set("name", name)
 
-	resByte, err := doRequest(context.TODO(), baseUrl, "/api/getService", auth, strings.NewReader(form.Encode()))
+	resByte, err := doRequest(context.TODO(), baseUrl, "/api/getSpace", auth, strings.NewReader(form.Encode()))
 	if err != nil {
 		return res, err
 	}
@@ -75,8 +75,8 @@ func GetService(baseUrl string, auth types.Auth, name string) (types.ServiceResu
 	return res, nil
 }
 
-func ListService(baseUrl string, auth types.Auth, filter string) (types.ListServiceResult, error) {
-	res := types.ListServiceResult{}
+func ListSpace(baseUrl string, auth types.Auth, filter string) (types.ListSpaceResult, error) {
+	res := types.ListSpaceResult{}
 	opt := types.Options{
 		UserDefined: make(map[string]string),
 	}
@@ -90,7 +90,7 @@ func ListService(baseUrl string, auth types.Auth, filter string) (types.ListServ
 	form := url.Values{}
 	form.Set("option", hex.EncodeToString(optyByte))
 
-	resByte, err := doRequest(context.TODO(), baseUrl, "/api/listService", auth, strings.NewReader(form.Encode()))
+	resByte, err := doRequest(context.TODO(), baseUrl, "/api/listSpace", auth, strings.NewReader(form.Encode()))
 	if err != nil {
 		return res, err
 	}
@@ -100,6 +100,6 @@ func ListService(baseUrl string, auth types.Auth, filter string) (types.ListServ
 		return res, err
 	}
 
-	logger.Debug("service list: ", res)
+	logger.Debug("space list: ", res)
 	return res, nil
 }

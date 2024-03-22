@@ -9,14 +9,14 @@ import (
 	"github.com/fxamacker/cbor/v2"
 )
 
-type ServiceStat struct {
+type SpaceStat struct {
 	OnChain bool
 	Stat    uint8     // 0 init, 1. active
 	Last    time.Time // heartbeat
 }
 
-type ServiceMeta struct {
-	ServiceStat
+type SpaceMeta struct {
+	SpaceStat
 	Name     string // hash(ModelName|Owner|Runner)
 	Model    string
 	GPU      string
@@ -27,19 +27,19 @@ type ServiceMeta struct {
 	Creation time.Time
 }
 
-func (msm *ServiceMeta) Serialize() ([]byte, error) {
+func (msm *SpaceMeta) Serialize() ([]byte, error) {
 	return cbor.Marshal(msm)
 }
 
-func (msm *ServiceMeta) Deserialize(b []byte) error {
+func (msm *SpaceMeta) Deserialize(b []byte) error {
 	return cbor.Unmarshal(b, msm)
 }
 
-type IService interface {
-	Submit(ctx context.Context, addr common.Address, ms ServiceMeta) (ServiceMeta, error)
+type ISpace interface {
+	Submit(ctx context.Context, addr common.Address, ms SpaceMeta) (SpaceMeta, error)
 	Confirm(ctx context.Context, addr common.Address, ms, root string, pf []byte) error
 	Update(ctx context.Context, addr common.Address, name string) error
 	Buy(ctx context.Context, addr common.Address, name string) error
-	Get(ctx context.Context, addr common.Address, name string) (ServiceResult, error)
-	List(ctx context.Context, addr common.Address, opt Options) ([]ServiceResult, error)
+	Get(ctx context.Context, addr common.Address, name string) (SpaceResult, error)
+	List(ctx context.Context, addr common.Address, opt Options) ([]SpaceResult, error)
 }

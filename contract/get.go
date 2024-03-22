@@ -6,14 +6,23 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/MOSSV2/dimo-sdk-go/contract/go/aiservice"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/file"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/gpu"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/model"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/proof"
+	"github.com/MOSSV2/dimo-sdk-go/contract/go/space"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 )
+
+func GetInstAddr(ctx context.Context, typ string) (common.Address, error) {
+	bi, err := NewBank(ctx)
+	if err != nil {
+		return common.Address{}, err
+	}
+
+	return bi.Get(&bind.CallOpts{From: Base}, typ)
+}
 
 func GetOrder(count uint64) (uint64, error) {
 	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Second)
@@ -208,12 +217,12 @@ func GetRevenue(addr common.Address, typ string) (*big.Int, error) {
 			return res, err
 		}
 		return gi.BalanceOf(&bind.CallOpts{From: addr}, addr)
-	case "aiservice":
-		ai, err := NewAIService(ctx)
+	case "space":
+		si, err := NewSpace(ctx)
 		if err != nil {
 			return res, err
 		}
-		return ai.BalanceOf(&bind.CallOpts{From: addr}, addr)
+		return si.BalanceOf(&bind.CallOpts{From: addr}, addr)
 	default:
 		return res, fmt.Errorf("unsupported")
 	}
@@ -289,22 +298,22 @@ func GetModelInfo(_mi uint64) (model.IModelInfo, error) {
 	return mi.GetModel(&bind.CallOpts{From: Base}, _mi)
 }
 
-func GetAIServiceIndex(_mn string) (uint64, error) {
+func GetSpaceIndex(_mn string) (uint64, error) {
 	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancle()
-	ai, err := NewAIService(ctx)
+	si, err := NewSpace(ctx)
 	if err != nil {
 		return 0, err
 	}
-	return ai.GetIndex(&bind.CallOpts{From: Base}, _mn)
+	return si.GetIndex(&bind.CallOpts{From: Base}, _mn)
 }
 
-func GetAIServiceInfo(_mi uint64) (aiservice.IAIServiceInfo, error) {
+func GetSpaceInfo(_mi uint64) (space.ISpaceInfo, error) {
 	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancle()
-	ai, err := NewAIService(ctx)
+	si, err := NewSpace(ctx)
 	if err != nil {
-		return aiservice.IAIServiceInfo{}, err
+		return space.ISpaceInfo{}, err
 	}
-	return ai.GetService(&bind.CallOpts{From: Base}, _mi)
+	return si.GetSpace(&bind.CallOpts{From: Base}, _mi)
 }

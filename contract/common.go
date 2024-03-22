@@ -20,6 +20,8 @@ import (
 var (
 	DevChain   = "http://54.254.72.127:8501"
 	DevChainID = 222
+	//DevChain   = "http://unibase-996197.ap-southeast-1.elb.amazonaws.com"
+	//DevChainID = 42069
 
 	DefaultGasPrice     = 10
 	DefaultReplicaPrice = 1e14 // 1GB*100day cost 1
@@ -30,8 +32,8 @@ var (
 
 	Base = common.HexToAddress("0x61Ea24745A3F7Bcbb67eD95B674fEcfbb331ABd0")
 
-	BankAddr  = common.HexToAddress("0xC0feac630243Bf969EfBc0D0B4A3734Af7901457")
-	TokenAddr = common.HexToAddress("0xB61D75B11465B6Dfe5186a0843c943932F2eF71B")
+	BankAddr  = common.HexToAddress("0x7c8Db973AAbdF2cd46458A75173901e2279b5EF6")
+	TokenAddr = common.HexToAddress("0x7F1203D88edEEFeDFd426670184E10821C6A39ad")
 )
 
 func MakeAuth(chainID *big.Int, hexSk string) (*bind.TransactOpts, error) {
@@ -51,7 +53,7 @@ func makeAuth(chainID *big.Int, sk *ecdsa.PrivateKey) (*bind.TransactOpts, error
 	}
 
 	auth.Value = big.NewInt(0)
-	auth.GasPrice = big.NewInt(int64(DefaultGasPrice))
+	//auth.GasPrice = big.NewInt(int64(DefaultGasPrice))
 	return auth, nil
 }
 
@@ -106,8 +108,8 @@ func Transfer(ep string, sk *ecdsa.PrivateKey, toAddr common.Address, value *big
 	defer client.Close()
 
 	fromAddr := utils.ECDSAToAddr(sk)
-	fmt.Println("from has: ", BalanceOf(ep, fromAddr))
-	fmt.Println("to has: ", BalanceOf(ep, toAddr))
+	fmt.Println("from has: ", fromAddr, BalanceOf(ep, fromAddr))
+	fmt.Println("to has: ", toAddr, BalanceOf(ep, toAddr))
 
 	nonce, err := client.PendingNonceAt(ctx, fromAddr)
 	if err != nil {
