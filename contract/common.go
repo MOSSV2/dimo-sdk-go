@@ -18,10 +18,12 @@ import (
 )
 
 var (
-	DevChain   = "http://54.254.72.127:8501"
-	DevChainID = 222
-	//DevChain   = "http://unibase-996197.ap-southeast-1.elb.amazonaws.com"
-	//DevChainID = 42069
+	//DevChain   = "http://54.254.72.127:8501"
+	//DevChainID = 222
+	DevChain   = "http://unibase-sepolia-2052362516.ap-southeast-1.elb.amazonaws.com"
+	DevChainID = 42069
+
+	L1Bridge = common.HexToAddress("0x6C0192A83005b0a7c9Daf0b8631b9A01D779967e")
 
 	DefaultGasPrice     = 10
 	DefaultReplicaPrice = 1e14 // 1GB*100day cost 1
