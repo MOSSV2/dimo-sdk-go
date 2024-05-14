@@ -1,6 +1,7 @@
 package bls
 
 import (
+	"encoding/binary"
 	"fmt"
 	"hash"
 
@@ -81,25 +82,42 @@ func (c *Commitment) Raw() []byte {
 var _ types.IChallenge = (*Challenge)(nil)
 
 type Challenge struct {
-	typ        int
-	RandomInt  int
-	RandomByte []byte
-	Sum        G1
-	Digests    []G1
+	typ     int
+	Random  []byte
+	Sum     G1
+	Digests []G1
 }
 
-func NewChallenge(r []byte) types.IChallenge {
-	chal := &Challenge{
-		RandomByte: r,
-		Digests:    make([]G1, 0, 1),
+func NewChallenge(r []byte, in ...int) types.IChallenge {
+	if len(r) != 32 {
+		panic("invalid random length, should be 32")
 	}
+	buf := make([]byte, 32+8*len(in))
+	copy(buf, r)
+	for i := range in {
+		binary.BigEndian.PutUint64(buf[32+i*8:32+(i+1)*8], uint64(in[i]))
+	}
+
+	chal := &Challenge{
+		typ:     1,
+		Random:  buf,
+		Digests: make([]G1, 0, 1),
+	}
+
+	if len(buf) == 48 {
+		chal.typ = 2
+	}
+
 	return chal
 }
 
 func NewPointChallenge(val int) types.IChallenge {
+	buf := make([]byte, 8)
+	binary.BigEndian.PutUint64(buf, uint64(val))
 	chal := &Challenge{
-		RandomInt: val,
-		Digests:   make([]G1, 0, 1),
+		typ:     3,
+		Random:  buf,
+		Digests: make([]G1, 0, 1),
 	}
 	return chal
 }
@@ -123,56 +141,4 @@ func (ch *Challenge) Commitment() types.ICommitment {
 	return &Commitment{
 		ch.Sum,
 	}
-}
-
-type MultiProof struct {
-	H            G1
-	ClaimedValue []Fr
-}
-
-var _ types.IProof = (*Proof)(nil)
-
-type Proof struct {
-	// H quotient polynomial (f - f(r)))/(x-r)
-	H G1
-
-	// ClaimedValue purported value
-	ClaimedValue Fr
-}
-
-func NewProof(buf []byte) (*Proof, error) {
-	pf := Proof{}
-	if len(buf) != ProofSize {
-		return nil, fmt.Errorf("wrong size: %d, need %d", len(buf), ProofSize)
-	}
-
-	pf.ClaimedValue.SetBytes(buf[:FrSize])
-	_, err := pf.H.SetBytes(buf[FrSize : FrSize+G1Size])
-	if err != nil {
-		return nil, err
-	}
-	return &pf, nil
-}
-
-func (pf *Proof) Type() int {
-	return 1
-}
-
-func (pf *Proof) Add(ip types.IProof) error {
-	pr, ok := ip.(*Proof)
-	if !ok {
-		return fmt.Errorf("wrong proof1")
-	}
-	pf.ClaimedValue.Add(&pf.ClaimedValue, &pr.ClaimedValue)
-	pf.H.Add(&pf.H, &pr.H)
-	return nil
-}
-
-func (pf *Proof) Serialize() []byte {
-	buf := make([]byte, FrSize+G1Size)
-	copy(buf[:FrSize], pf.ClaimedValue.Marshal())
-	hbyte := pf.H.Bytes()
-	copy(buf[FrSize:FrSize+G1Size], hbyte[:])
-
-	return buf
 }

@@ -2,6 +2,7 @@ package bls
 
 import (
 	"bytes"
+	"encoding/binary"
 	"fmt"
 	"io"
 	"math/big"
@@ -53,7 +54,7 @@ func (ppk *PointPublicKey) GenProof(ic types.IChallenge, typ int, d []byte) (typ
 		return nil, fmt.Errorf("invalid data size: zero")
 	}
 
-	rnd := int(chal.RandomInt)
+	rnd := int(binary.BigEndian.Uint64(chal.Random))
 	shards := Split(typ, d)
 	if len(shards) > MaxShard {
 		return nil, fmt.Errorf("data size too large")
@@ -102,7 +103,7 @@ func (pvk *PointVerifyKey) VerifyProof(ic types.IChallenge, ip types.IProof) err
 		return fmt.Errorf("wrong proof")
 	}
 
-	rnd := int(chal.RandomInt)
+	rnd := int(binary.BigEndian.Uint64(chal.Random))
 	if rnd > pvk.N {
 		return fmt.Errorf("invalid challenge random")
 	}
@@ -143,6 +144,12 @@ func (pvk *PointVerifyKey) VerifyProof(ic types.IChallenge, ip types.IProof) err
 
 	return nil
 }
+
+type MultiProof struct {
+	H            G1
+	ClaimedValue []Fr
+}
+
 func (ppk *PointPublicKey) GenParamProof(randoms []int) (*MultiProof, error) {
 	shards := make([]Fr, ppk.N)
 	for i := 0; i < ppk.N; i++ {
@@ -322,8 +329,6 @@ func (pvk *PointVerifyKey) Deserialize(res []byte) error {
 	pvk.N = len(pvk.G2) - 1
 	return nil
 }
-
-var _ types.IPublicKey = (*PointPublicKey)(nil)
 
 type PointPublicKey struct {
 	N      int

@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/MOSSV2/dimo-sdk-go/lib/types"
 	"github.com/MOSSV2/dimo-sdk-go/lib/utils"
 
 	"github.com/consensys/gnark-crypto/ecc/bls12-377/fr"
@@ -134,6 +135,68 @@ func TestKZG(t *testing.T) {
 	t.Log("data sha256: ", hex.EncodeToString(h.Sum(nil)))
 }
 
+func TestProof4(t *testing.T) {
+	pk := GenKZGKey(MaxShard, big.NewInt(123456789))
+	vk := &VerifyKey{
+		&pk.Vk,
+	}
+	ic, ip := genMoveProof(pk)
+	nt := time.Now()
+	err := vk.VerifyProof(ic, ip)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log("move proof:", time.Since(nt))
+}
+
+func genMoveProof(pk *PublicKey) (types.IChallenge, types.IProof) {
+	fileSize := MaxSize / 4
+
+	rnd := GenRandom(32)
+	data := GenRandom(fileSize)
+
+	offset1 := MaxShard / 2
+	offset2 := MaxShard * 3 / 4
+	ic := NewChallenge(rnd, offset1, offset2)
+
+	pf, err := pk.GenProof(ic, UnPadSize, data)
+	if err != nil {
+		panic(err)
+	}
+
+	c1, err := pk.GenCommitment(UnPadSize, data, 0)
+	if err != nil {
+		panic(err)
+	}
+
+	c2, err := pk.GenCommitment(UnPadSize, data, offset1)
+	if err != nil {
+		panic(err)
+	}
+
+	c3, err := pk.GenCommitment(UnPadSize, data, offset2)
+	if err != nil {
+		panic(err)
+	}
+
+	err = ic.Add(c1)
+	if err != nil {
+		panic(err)
+	}
+
+	err = ic.Add(c2)
+	if err != nil {
+		panic(err)
+	}
+
+	err = ic.Add(c3)
+	if err != nil {
+		panic(err)
+	}
+
+	return ic, pf
+}
+
 func TestKZGDec(t *testing.T) {
 	pk := GenKZGKey(MaxShard, big.NewInt(12345678))
 
@@ -141,13 +204,13 @@ func TestKZGDec(t *testing.T) {
 	data := utils.RandomBytes(1 * MaxSize)
 
 	nt := time.Now()
-	cval, err := pk.GenCommitment(MaxShard, rnd)
+	cval, err := pk.GenCommitment(MaxShard, rnd, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Log("cost:", time.Since(nt))
 
-	c, err := pk.GenCommitment(UnPadSize, data)
+	c, err := pk.GenCommitment(UnPadSize, data, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -207,7 +270,7 @@ func TestKZGSloth(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	c, err := pk.GenCommitment(PadSize, pdata)
+	c, err := pk.GenCommitment(PadSize, pdata, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -508,4 +571,16 @@ func TestHash(t *testing.T) {
 	}
 
 	t.Fatal("cost: ", time.Since(nt))
+}
+
+func GenRandom(len int) []byte {
+	res := make([]byte, len)
+	for i := 0; i < len; i += 7 {
+		val := rand.Int63()
+		for j := 0; i+j < len && j < 7; j++ {
+			res[i+j] = byte(val)
+			val >>= 8
+		}
+	}
+	return res
 }

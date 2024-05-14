@@ -176,7 +176,7 @@ type IPublicKey interface {
 	VerifyKey() IVerifyKey
 
 	GenCommitments(int, io.Reader) ([]ICommitment, error)
-	GenCommitment(int, []byte) (ICommitment, error)
+	GenCommitment(int, []byte, int) (ICommitment, error)
 	GenProofs(IChallenge, int, io.Reader) ([]IProof, error)
 	GenProof(IChallenge, int, []byte) (IProof, error)
 
