@@ -216,7 +216,7 @@ func (pk *PublicKey) Deserialize(buf []byte) error {
 func GenKZGKey(num uint64, seed *big.Int) *PublicKey {
 	kzgSRS, err := kzg.NewSRS(num, seed)
 	if err != nil {
-		return nil
+		panic(err)
 	}
 
 	pk := &PublicKey{
