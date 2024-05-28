@@ -16,50 +16,8 @@ import (
 	"github.com/MOSSV2/dimo-sdk-go/lib/utils"
 
 	"github.com/consensys/gnark-crypto/ecc/bls12-377/fr"
-	"github.com/consensys/gnark-crypto/ecc/bls12-377/kzg"
 	"github.com/consensys/gnark-crypto/ecc/bw6-761/fr/mimc"
-	"github.com/ethereum/go-ethereum/common"
 )
-
-func TestAdd(t *testing.T) {
-	pk, err := kzg.NewSRS(10, big.NewInt(12345678))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	for i := 0; i < 2; i++ {
-		x := pk.Pk.G1[i].X.Bytes()
-		xl := common.LeftPadBytes(x[:16], 32)
-		xr := common.LeftPadBytes(x[16:], 32)
-		fmt.Println(common.Bytes2Hex(xl))
-		fmt.Println(common.Bytes2Hex(xr))
-		xl = append(xl, xr...)
-		y := pk.Pk.G1[i].Y.Bytes()
-		yl := common.LeftPadBytes(y[:16], 32)
-		yr := common.LeftPadBytes(y[16:], 32)
-		fmt.Println(common.Bytes2Hex(yl))
-		fmt.Println(common.Bytes2Hex(yr))
-		xl = append(xl, yl...)
-		xl = append(xl, yr...)
-		fmt.Println(len(xl))
-		fmt.Printf("0x%s\n", common.Bytes2Hex(xl))
-	}
-
-	pk.Pk.G1[0].Add(&pk.Pk.G1[0], &pk.Pk.G1[1])
-	for i := 0; i < 1; i++ {
-		x := pk.Pk.G1[i].X.Bytes()
-		xl := common.LeftPadBytes(x[:16], 32)
-		xr := common.LeftPadBytes(x[16:], 32)
-		xl = append(xl, xr...)
-		y := pk.Pk.G1[i].Y.Bytes()
-		yl := common.LeftPadBytes(y[:16], 32)
-		yr := common.LeftPadBytes(y[16:], 32)
-		xl = append(xl, yl...)
-		xl = append(xl, yr...)
-		fmt.Printf("0x%s\n", common.Bytes2Hex(xl))
-	}
-
-}
 
 func TestKZG(t *testing.T) {
 	pk := GenKZGKey(MaxShard/8, big.NewInt(12345678))
@@ -78,7 +36,7 @@ func TestKZG(t *testing.T) {
 	}
 
 	rnd := utils.RandomBytes(32)
-	data := utils.RandomBytes(1 * MaxSize / 8)
+	data := utils.RandomBytes(30)
 
 	r := bytes.NewReader(data)
 

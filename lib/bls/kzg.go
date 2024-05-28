@@ -40,17 +40,22 @@ func (pk *PublicKey) GenCommitments(slen int, r io.Reader) ([]types.ICommitment,
 }
 
 func (pk *PublicKey) GenCommitment(slen int, d []byte, offset int) (types.ICommitment, error) {
+	if len(d) == 32 && slen > 32 {
+		return pk.genCommitmentInTree(slen, d)
+	}
+
 	if len(d) == 0 {
 		return nil, fmt.Errorf("zero size")
 	}
 
-	if len(d) == 32 && slen > 32 {
-		return pk.genCommitment(slen, d)
+	shards := Split(slen, d)
+	if len(shards) > MaxShard {
+		return nil, fmt.Errorf("invalid data shards %d: too large", len(shards))
 	}
 
-	shards := Split(slen, d)
-	if len(shards) > MaxShard || len(shards) < MinShard {
-		return nil, fmt.Errorf("invalid data shards %d: too large or short", len(shards))
+	if len(shards) < MinShard {
+		var fr Fr
+		shards = append(shards, fr)
 	}
 
 	srs := kzg.ProvingKey{
@@ -65,9 +70,13 @@ func (pk *PublicKey) GenCommitment(slen int, d []byte, offset int) (types.ICommi
 }
 
 // for commit tree
-func (pk *PublicKey) genCommitment(slen int, v []byte) (types.ICommitment, error) {
+func (pk *PublicKey) genCommitmentInTree(slen int, v []byte) (types.ICommitment, error) {
 	if len(v) != 32 {
 		return nil, fmt.Errorf("zero size")
+	}
+
+	if slen < 2 {
+		return nil, fmt.Errorf("small slen")
 	}
 
 	shards := make([]Fr, slen)

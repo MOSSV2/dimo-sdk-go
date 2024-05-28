@@ -64,7 +64,7 @@ func (pf *MoveProof) Serialize() []byte {
 	return buf
 }
 
-func (pk *PublicKey) GenProof2(ic types.IChallenge, typ int, d []byte) (*MoveProof, error) {
+func (pk *PublicKey) GenProof2(ic types.IChallenge, slen int, d []byte) (*MoveProof, error) {
 	chal, ok := ic.(*Challenge)
 	if !ok {
 		return nil, fmt.Errorf("invalid chal")
@@ -74,11 +74,19 @@ func (pk *PublicKey) GenProof2(ic types.IChallenge, typ int, d []byte) (*MovePro
 		return nil, fmt.Errorf("invalid chal random length")
 	}
 
-	if len(d) > MaxSize || len(d) == 0 {
-		return nil, fmt.Errorf("invalid data size: zero or too large")
+	if len(d) == 0 {
+		return nil, fmt.Errorf("invalid data size: zero")
 	}
 
-	shards := Split(typ, d)
+	shards := Split(slen, d)
+	if len(shards) > MaxShard {
+		return nil, fmt.Errorf("invalid data shards %d: too large", len(shards))
+	}
+
+	if len(shards) < MinShard {
+		var fr Fr
+		shards = append(shards, fr)
+	}
 
 	var fr_r Fr
 	fr_r.SetBytes(chal.Random[:32])

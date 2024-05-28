@@ -61,11 +61,19 @@ func (pk *PublicKey) GenProof1(ic types.IChallenge, typ int, d []byte) (*Proof, 
 	if !ok {
 		return nil, fmt.Errorf("invalid chal")
 	}
-	if len(d) > MaxSize || len(d) == 0 {
-		return nil, fmt.Errorf("invalid data size: zero or too large")
+	if len(d) == 0 {
+		return nil, fmt.Errorf("invalid data size: zero")
 	}
 
 	shards := Split(typ, d)
+	if len(shards) > MaxShard {
+		return nil, fmt.Errorf("invalid data shards %d: too large", len(shards))
+	}
+
+	if len(shards) < MinShard {
+		var fr Fr
+		shards = append(shards, fr)
+	}
 
 	var fr_r Fr
 	fr_r.SetBytes(chal.Random)

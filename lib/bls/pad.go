@@ -18,13 +18,6 @@ func Pad(in []byte) []byte {
 	out[PadSize*(cnt-1)] = PadByte
 	copy(out[PadSize*(cnt-1)+1+rest:PadSize*cnt], in[UnPadSize*(cnt-1):])
 
-	// one element is not enough, padding it
-	if cnt == 1 {
-		padding := make([]byte, PadSize)
-		padding[0] = PadByte
-		out = append(out, padding...)
-	}
-
 	return out
 }
 

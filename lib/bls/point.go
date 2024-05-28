@@ -21,12 +21,17 @@ func (ppk *PointPublicKey) GenCommitments(slen int, r io.Reader) ([]types.ICommi
 
 func (ppk *PointPublicKey) GenCommitment(slen int, d []byte) (types.ICommitment, error) {
 	if len(d) == 0 {
-		return nil, fmt.Errorf("invalid data size: zero")
+		return nil, fmt.Errorf("zero size")
 	}
 
 	shards := Split(slen, d)
 	if len(shards) > MaxShard {
-		return nil, fmt.Errorf("data size too large")
+		return nil, fmt.Errorf("invalid data shards %d: too large", len(shards))
+	}
+
+	if len(shards) < MinShard {
+		var fr Fr
+		shards = append(shards, fr)
 	}
 
 	srs := kzg.ProvingKey{
@@ -42,27 +47,33 @@ func (ppk *PointPublicKey) GenCommitment(slen int, d []byte) (types.ICommitment,
 	}, nil
 }
 
-func (ppk *PointPublicKey) GenProofs(ic types.IChallenge, typ int, r io.Reader) ([]types.IProof, error) {
+func (ppk *PointPublicKey) GenProofs(ic types.IChallenge, slen int, r io.Reader) ([]types.IProof, error) {
 	return nil, fmt.Errorf("unsupported method")
 }
 
-func (ppk *PointPublicKey) GenProof(ic types.IChallenge, typ int, d []byte) (types.IProof, error) {
+func (ppk *PointPublicKey) GenProof(ic types.IChallenge, slen int, d []byte) (types.IProof, error) {
 	chal, ok := ic.(*Challenge)
 	if !ok {
 		return nil, fmt.Errorf("invalid chal")
 	}
 
 	if len(d) == 0 {
-		return nil, fmt.Errorf("invalid data size: zero")
+		return nil, fmt.Errorf("zero size")
+	}
+
+	shards := Split(slen, d)
+	if len(shards) > MaxShard {
+		return nil, fmt.Errorf("invalid data shards %d: too large", len(shards))
 	}
 
 	rnd := int(binary.BigEndian.Uint64(chal.Random))
-	shards := Split(typ, d)
-	if len(shards) > MaxShard {
-		return nil, fmt.Errorf("data size too large")
-	}
 	if rnd >= len(shards) {
 		return nil, fmt.Errorf("random too large")
+	}
+
+	if len(shards) < MinShard {
+		var fr Fr
+		shards = append(shards, fr)
 	}
 
 	res := &Proof{
@@ -160,12 +171,12 @@ func (ppk *PointPublicKey) GenParamProof(randoms []int) (*MultiProof, error) {
 	return ppk.genMultiProof(randoms, shards)
 }
 
-func (ppk *PointPublicKey) GenMultiProof(randoms []int, typ int, d []byte) (*MultiProof, error) {
+func (ppk *PointPublicKey) GenMultiProof(randoms []int, slen int, d []byte) (*MultiProof, error) {
 	if len(d) == 0 {
 		return nil, fmt.Errorf("invalid data size: zero")
 	}
 
-	shards := Split(typ, d)
+	shards := Split(slen, d)
 	if len(shards) > ppk.N {
 		return nil, fmt.Errorf("data size too large")
 	}
