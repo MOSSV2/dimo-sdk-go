@@ -3,6 +3,7 @@ package types
 import (
 	"context"
 	"io"
+	"math/big"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -11,7 +12,6 @@ import (
 
 type Policy struct {
 	N, K int8
-	Hash int8 // which hash type
 }
 
 type FileCore struct {
@@ -35,7 +35,6 @@ func (frc *FileCore) Deserialize(b []byte) error {
 
 type FileReceipt struct {
 	FileCore
-	StoredOn [][]common.Address
 }
 
 func (fr *FileReceipt) Serialize() ([]byte, error) {
@@ -61,14 +60,11 @@ func (fcws *FileCoreWithSize) Deserialize(b []byte) error {
 }
 
 type PieceCore struct {
-	OnChain  bool
-	Hash     int8 // 0 means sha256
-	Name     string
-	Size     int64  // raw size
-	File     string // belongs to which file
-	Index    uint64
-	Creation time.Time
-	Replicas []string // calulated by policy
+	Policy Policy
+	Name   string
+	Serial int64
+	Size   int64 // raw size
+	Price  *big.Int
 }
 
 func (pc *PieceCore) Serialize() ([]byte, error) {
@@ -81,6 +77,7 @@ func (pc *PieceCore) Deserialize(b []byte) error {
 
 type PieceReceipt struct {
 	PieceCore
+	Replicas []string
 	StoredOn []common.Address
 }
 
@@ -92,26 +89,11 @@ func (cr *PieceReceipt) Deserialize(b []byte) error {
 	return cbor.Unmarshal(b, cr)
 }
 
-type ReplicaCred struct {
-	Proof []byte
-	Sign  []byte
-}
-
-func (rs *ReplicaCred) Serialize() ([]byte, error) {
-	return cbor.Marshal(rs)
-}
-
-func (rs *ReplicaCred) Deserialize(b []byte) error {
-	return cbor.Unmarshal(b, rs)
-}
-
 type ReplicaCore struct {
-	ReplicaCred
-	OnChain  bool
 	Name     string // encoded
 	Size     int64  // stored size
 	Piece    string // belongs to which piece
-	Creation time.Time
+	Index    uint8
 	StoredOn common.Address
 }
 
