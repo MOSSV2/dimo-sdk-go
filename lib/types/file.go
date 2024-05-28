@@ -11,18 +11,16 @@ import (
 )
 
 type Policy struct {
-	N, K int8
+	N, K uint8
 }
 
 type FileCore struct {
-	OnChain  bool
-	Owner    common.Address
+	Policy   Policy
 	Name     string
 	Hash     string
-	Policy   Policy
 	Size     int64
+	Owner    common.Address
 	Creation time.Time
-	Pieces   []string
 }
 
 func (frc *FileCore) Serialize() ([]byte, error) {
@@ -35,6 +33,8 @@ func (frc *FileCore) Deserialize(b []byte) error {
 
 type FileReceipt struct {
 	FileCore
+	Pieces []string
+	Sizes  []int64
 }
 
 func (fr *FileReceipt) Serialize() ([]byte, error) {
@@ -45,25 +45,13 @@ func (fr *FileReceipt) Deserialize(b []byte) error {
 	return cbor.Unmarshal(b, fr)
 }
 
-type FileCoreWithSize struct {
-	FileCore
-	OnlyPiece bool
-	Sizes     []int64
-}
-
-func (fcws *FileCoreWithSize) Serialize() ([]byte, error) {
-	return cbor.Marshal(fcws)
-}
-
-func (fcws *FileCoreWithSize) Deserialize(b []byte) error {
-	return cbor.Unmarshal(b, fcws)
-}
-
 type PieceCore struct {
 	Policy Policy
 	Name   string
-	Serial int64
+	Serial uint64
 	Size   int64 // raw size
+	Start  uint64
+	Expire uint64
 	Price  *big.Int
 }
 
@@ -91,6 +79,7 @@ func (cr *PieceReceipt) Deserialize(b []byte) error {
 
 type ReplicaCore struct {
 	Name     string // encoded
+	Serial   uint64
 	Size     int64  // stored size
 	Piece    string // belongs to which piece
 	Index    uint8
@@ -115,7 +104,7 @@ type ReplicaInfo struct {
 }
 
 type IFile interface {
-	Put(context.Context, common.Address, io.Reader) (FileCoreWithSize, error)
+	Put(context.Context, common.Address, io.Reader) (FileReceipt, error)
 	Get(context.Context, string, io.Writer) (FileReceipt, error)
 	GetPiece(context.Context, string, io.Writer, Options) (PieceReceipt, error)
 	GetReplica(context.Context, string, Options) (ReplicaCore, error)
@@ -134,6 +123,16 @@ type IReplicaStore interface {
 	List(context.Context, common.Address, Options) ([]ReplicaCore, error)
 
 	GenProof(context.Context, string, []byte, int) ([]byte, error)
+}
+
+type IPieceStore interface {
+	PutPiece(context.Context, PieceCore) error
+	UpdatePiece(context.Context, string, uint64) error
+	GetPiece(context.Context, string, io.Writer, Options) (PieceReceipt, error)
+
+	PutReplica(context.Context, ReplicaCore, []byte) error
+	UpdateReplica(context.Context, string, uint64) error
+	GetReplica(context.Context, string, io.Writer, Options) (ReplicaCore, error)
 }
 
 type ICommitment interface {

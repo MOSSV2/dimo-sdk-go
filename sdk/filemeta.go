@@ -12,7 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-func UploadFileMeta(baseUrl string, auth types.Auth, stream common.Address, fcws types.FileCoreWithSize) (types.FileReceipt, error) {
+func UploadFileMeta(baseUrl string, auth types.Auth, stream common.Address, fcws types.FileReceipt) (types.FileReceipt, error) {
 	var res types.FileReceipt
 
 	form := url.Values{}

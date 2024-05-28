@@ -83,7 +83,7 @@ func UploadToStream(baseUrl string, auth types.Auth, filePath string, name strin
 
 		if name != "" {
 			fr.Name = name
-			fr.OnlyPiece = true
+			//fr.OnlyPiece = true
 		}
 
 		logger.Debug("upload meta: ", filePath, " to: ", baseUrl)
@@ -100,7 +100,7 @@ func UploadToStream(baseUrl string, auth types.Auth, filePath string, name strin
 
 	if name != "" && fr.Name != name {
 		fr.Name = name
-		fr.OnlyPiece = true
+		//fr.OnlyPiece = true
 		logger.Debug("upload meta: ", filePath, " to: ", baseUrl)
 		res, err = UploadFileMeta(baseUrl, auth, sinfo.Name, fr)
 		return res, sinfo.Name, err
@@ -109,9 +109,9 @@ func UploadToStream(baseUrl string, auth types.Auth, filePath string, name strin
 	return res, sinfo.Name, err
 }
 
-func UploadData(baseUrl string, auth types.Auth, filePath string) (types.FileCoreWithSize, error) {
+func UploadData(baseUrl string, auth types.Auth, filePath string) (types.FileReceipt, error) {
 	logger.Debug("upload: ", filePath, " to: ", baseUrl)
-	var res types.FileCoreWithSize
+	var res types.FileReceipt
 	p, err := homedir.Expand(filePath)
 	if err != nil {
 		return res, err
