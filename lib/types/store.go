@@ -10,20 +10,18 @@ type DsType = byte
 
 const (
 	DsAccount DsType = 100 + iota
-	DsBalance
-	DsPrompt
-	DsNFT
-	DsModel
-	DsSpace
+	DsParam
+	DsStat
 	DsProxy
+	DsBalance
 	DsEdge
 	DsFile
 	DsPiece
 	DsReplica
-	DsParam
-	DsStat
-	DsRepo
+	DsModel
+	DsSpace
 	DsGPU
+	DsRepo
 	DsBucket
 	DsObject
 	DsNeedle

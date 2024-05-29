@@ -122,8 +122,8 @@ func RegisterNode(sk *ecdsa.PrivateKey, _typ uint8) error {
 	return ni.Check(&bind.CallOpts{From: au.From}, au.From, _typ)
 }
 
-func AddFileAndPiece(sk *ecdsa.PrivateKey, _fn string, fc types.FileCore, _proxy common.Address) error {
-	_fi, err := AddFile(sk, _fn, fc)
+func AddFileAndPiece(sk *ecdsa.PrivateKey, _fn string, fc types.FileReceipt, _proxy common.Address) error {
+	_fi, err := AddFile(sk, _fn, fc.FileCore)
 	if err != nil {
 		return err
 	}

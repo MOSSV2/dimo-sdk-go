@@ -1,6 +1,7 @@
 package bls
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"hash"
@@ -141,4 +142,61 @@ func (ch *Challenge) Commitment() types.ICommitment {
 	return &Commitment{
 		ch.Sum,
 	}
+}
+
+type EncodeWitness struct {
+	Root          G1
+	Commits       []G1 // n
+	MoveCommits   []G1 // k
+	LimitCommits  []G1 // k
+	Hs            []G1 // k
+	ClaimedValues []Fr // k
+}
+
+func NewEncodeWitness(n, k int) *EncodeWitness {
+	return &EncodeWitness{
+		Commits:       make([]G1, n),
+		MoveCommits:   make([]G1, k),
+		LimitCommits:  make([]G1, k),
+		Hs:            make([]G1, k),
+		ClaimedValues: make([]Fr, k),
+	}
+}
+
+func (ew *EncodeWitness) Serialize() []byte {
+	var w bytes.Buffer
+	enc := bls.NewEncoder(&w, bls.RawEncoding())
+	toEncode := []interface{}{
+		&ew.Root,
+		ew.Commits,
+		ew.MoveCommits,
+		ew.LimitCommits,
+		ew.Hs,
+		ew.ClaimedValues,
+	}
+	for _, v := range toEncode {
+		if err := enc.Encode(v); err != nil {
+			panic(err)
+		}
+	}
+
+	return w.Bytes()
+}
+
+func (ew *EncodeWitness) Deserialize(buf []byte) error {
+	dec := bls.NewDecoder(bytes.NewReader(buf), bls.NoSubgroupChecks())
+	toDecode := []interface{}{
+		&ew.Root,
+		ew.Commits,
+		ew.MoveCommits,
+		ew.LimitCommits,
+		ew.Hs,
+		ew.ClaimedValues,
+	}
+	for _, v := range toDecode {
+		if err := dec.Decode(v); err != nil {
+			return err
+		}
+	}
+	return nil
 }

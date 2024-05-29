@@ -20,6 +20,7 @@ type FileCore struct {
 	Hash     string
 	Size     int64
 	Owner    common.Address
+	Append   bool
 	Creation time.Time
 }
 
@@ -34,7 +35,6 @@ func (frc *FileCore) Deserialize(b []byte) error {
 type FileReceipt struct {
 	FileCore
 	Pieces []string
-	Sizes  []int64
 }
 
 func (fr *FileReceipt) Serialize() ([]byte, error) {
@@ -104,17 +104,14 @@ type ReplicaInfo struct {
 }
 
 type IFile interface {
-	Put(context.Context, common.Address, io.Reader) (FileReceipt, error)
-	Get(context.Context, string, io.Writer) (FileReceipt, error)
-	GetPiece(context.Context, string, io.Writer, Options) (PieceReceipt, error)
-	GetReplica(context.Context, string, Options) (ReplicaCore, error)
+	AddFile(context.Context, FileReceipt) error
+	GetFile(context.Context, string, Options) (FileReceipt, error)
+	GetPiece(context.Context, string, Options) (PieceReceipt, error)
+	GetReplica(context.Context, string, io.Writer, Options) (ReplicaCore, error)
 
 	ListFile(context.Context, common.Address, Options) ([]FileReceipt, error)
 	ListPiece(context.Context, common.Address, Options) ([]PieceReceipt, error)
 	ListReplica(context.Context, common.Address, Options) ([]ReplicaCore, error)
-
-	Request(context.Context, common.Address, string) (common.Address, error)
-	Confirm(context.Context, common.Address, ReplicaCore) error
 }
 
 type IReplicaStore interface {
@@ -126,13 +123,14 @@ type IReplicaStore interface {
 }
 
 type IPieceStore interface {
-	PutPiece(context.Context, PieceCore) error
-	UpdatePiece(context.Context, string, uint64) error
+	PutPiece(context.Context, PieceCore, bool) error
 	GetPiece(context.Context, string, io.Writer, Options) (PieceReceipt, error)
 
-	PutReplica(context.Context, ReplicaCore, []byte) error
-	UpdateReplica(context.Context, string, uint64) error
+	PutReplica(context.Context, ReplicaCore, []byte, bool) error
 	GetReplica(context.Context, string, io.Writer, Options) (ReplicaCore, error)
+
+	PutFile(context.Context, FileCore, []string, bool) error
+	GetFile(context.Context, string, Options) (FileReceipt, error)
 }
 
 type ICommitment interface {

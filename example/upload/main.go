@@ -89,7 +89,7 @@ func UploadFile(sk *ecdsa.PrivateKey, fp string) error {
 		fmt.Printf("submit %s to chain\n", res.Name)
 
 		// submit meta to chain
-		err = contract.AddFileAndPiece(sk, res.Name, res.FileCore, submitter)
+		err = contract.AddFileAndPiece(sk, res.Name, res, submitter)
 		if err != nil {
 			return err
 		}
@@ -110,7 +110,7 @@ func UploadFile(sk *ecdsa.PrivateKey, fp string) error {
 		}
 		fmt.Printf("upload %s, sha256: %s\n", fp, res.Name)
 		fmt.Printf("submit %s to chain\n", res.Name)
-		err = contract.AddFileAndPiece(sk, res.Name, res.FileCore, submitter)
+		err = contract.AddFileAndPiece(sk, res.Name, res, submitter)
 		if err != nil {
 			return err
 		}

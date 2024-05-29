@@ -189,7 +189,7 @@ func UploadModelFiles(url string, sk *ecdsa.PrivateKey, au types.Auth, fp string
 			return mrm, err
 		}
 
-		err = contract.AddFileAndPiece(sk, fr.Name, fr.FileCore, submitter)
+		err = contract.AddFileAndPiece(sk, fr.Name, fr, submitter)
 		if err != nil {
 			return mrm, err
 		}
