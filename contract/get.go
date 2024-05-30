@@ -66,7 +66,8 @@ func CheckNode(addr common.Address, _typ uint8) error {
 		return err
 	}
 
-	return ni.Check(&bind.CallOpts{From: addr}, addr, _typ)
+	_, err = ni.Check(&bind.CallOpts{From: addr}, addr, _typ)
+	return err
 }
 
 func GetFileIndex(_fn string) (uint64, error) {

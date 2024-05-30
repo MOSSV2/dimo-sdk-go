@@ -82,7 +82,7 @@ func RegisterNode(sk *ecdsa.PrivateKey, _typ uint8) error {
 		return err
 	}
 
-	err = ni.Check(&bind.CallOpts{From: au.From}, au.From, _typ)
+	_, err = ni.Check(&bind.CallOpts{From: au.From}, au.From, _typ)
 	if err == nil {
 		logger.Debug("already pledge")
 		return nil
@@ -119,7 +119,8 @@ func RegisterNode(sk *ecdsa.PrivateKey, _typ uint8) error {
 	if err != nil {
 		return err
 	}
-	return ni.Check(&bind.CallOpts{From: au.From}, au.From, _typ)
+	_, err = ni.Check(&bind.CallOpts{From: au.From}, au.From, _typ)
+	return err
 }
 
 func AddFileAndPiece(sk *ecdsa.PrivateKey, _fn string, fc types.FileReceipt, _proxy common.Address) error {
