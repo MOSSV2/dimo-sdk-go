@@ -78,6 +78,11 @@ func (cr *PieceReceipt) Deserialize(b []byte) error {
 	return cbor.Unmarshal(b, cr)
 }
 
+type PieceWitness struct {
+	Choose  uint8
+	Witness []byte
+}
+
 type ReplicaCore struct {
 	Name     string // encoded
 	Serial   uint64
@@ -93,6 +98,28 @@ func (rc *ReplicaCore) Serialize() ([]byte, error) {
 
 func (rc *ReplicaCore) Deserialize(b []byte) error {
 	return cbor.Unmarshal(b, rc)
+}
+
+type ReplicaInChain struct {
+	Name     string
+	Serial   uint64
+	Piece    uint64
+	Index    uint8
+	StoredOn common.Address
+	Witness  ReplicaWitness
+}
+
+type ReplicaWitness struct {
+	Index uint64
+	Proof []byte
+}
+
+func (rw *ReplicaWitness) Serialize() ([]byte, error) {
+	return cbor.Marshal(rw)
+}
+
+func (rw *ReplicaWitness) Deserialize(b []byte) error {
+	return cbor.Unmarshal(b, rw)
 }
 
 type ReplicaInfo struct {
@@ -126,9 +153,15 @@ type IReplicaStore interface {
 type IPieceStore interface {
 	PutPiece(context.Context, PieceCore, bool) error
 	GetPiece(context.Context, string, io.Writer, Options) (PieceReceipt, error)
+	GetPieceBySerial(context.Context, uint64) (string, error)
 
 	PutReplica(context.Context, ReplicaCore, []byte, bool) error
 	GetReplica(context.Context, string, io.Writer, Options) (ReplicaCore, error)
+	GetReplicaBySerial(context.Context, uint64) (string, error)
+	DeleteReplicaData(ctx context.Context, name string) error
+
+	PutReplicaWitness(context.Context, common.Address, ReplicaWitness) error
+	GetReplicaWitness(context.Context, common.Address, uint64) (ReplicaWitness, error)
 
 	PutFile(context.Context, FileCore, []string, bool) error
 	GetFile(context.Context, string, Options) (FileReceipt, error)
