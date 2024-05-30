@@ -52,6 +52,7 @@ type PieceCore struct {
 	Size   int64 // raw size
 	Start  uint64
 	Expire uint64
+	Owner  common.Address
 	Price  *big.Int
 }
 
