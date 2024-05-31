@@ -70,6 +70,34 @@ func CheckNode(addr common.Address, _typ uint8) error {
 	return err
 }
 
+func GetPieceSerial(_pn string) (uint64, error) {
+	pnb, err := G1StringInSolidity(_pn)
+	if err != nil {
+		return 0, err
+	}
+	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Second)
+	defer cancle()
+	gi, err := NewPiece(ctx)
+	if err != nil {
+		return 0, err
+	}
+	return gi.GetPIndex(&bind.CallOpts{From: Base}, pnb)
+}
+
+func GetReplicaSerial(_pn string) (uint64, error) {
+	pnb, err := G1StringInSolidity(_pn)
+	if err != nil {
+		return 0, err
+	}
+	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Second)
+	defer cancle()
+	gi, err := NewPiece(ctx)
+	if err != nil {
+		return 0, err
+	}
+	return gi.GetRIndex(&bind.CallOpts{From: Base}, pnb)
+}
+
 func GetPiece(_pi uint64) (piece.IPiecePieceInfo, error) {
 	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancle()

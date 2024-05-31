@@ -113,15 +113,6 @@ func (rc *ReplicaCore) Deserialize(b []byte) error {
 	return cbor.Unmarshal(b, rc)
 }
 
-type ReplicaInChain struct {
-	Name     string
-	Serial   uint64
-	Piece    uint64
-	Index    uint8
-	StoredOn common.Address
-	Witness  ReplicaWitness
-}
-
 type ReplicaWitness struct {
 	Index uint64
 	Proof []byte
@@ -135,13 +126,13 @@ func (rw *ReplicaWitness) Deserialize(b []byte) error {
 	return cbor.Unmarshal(b, rw)
 }
 
-type ReplicaInfo struct {
-	File    uint64
-	Piece   uint64
-	Index   int
-	Replica string
-	Sign    []byte
-	Store   common.Address
+type ReplicaInChain struct {
+	Name     string
+	Serial   uint64
+	Piece    uint64
+	Index    uint8
+	StoredOn common.Address
+	Witness  ReplicaWitness
 }
 
 type IFile interface {

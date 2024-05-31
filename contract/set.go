@@ -157,7 +157,7 @@ func AddPiece(sk *ecdsa.PrivateKey, pc types.PieceCore) error {
 		return err
 	}
 
-	pb, err := hex.DecodeString(pc.Name)
+	pb, err := G1StringInSolidity(pc.Name)
 	if err != nil {
 		return err
 	}
@@ -176,7 +176,7 @@ func AddPiece(sk *ecdsa.PrivateKey, pc types.PieceCore) error {
 }
 
 func AddReplica(sk *ecdsa.PrivateKey, rc types.ReplicaCore, pf []byte) error {
-	rb, err := StringToSolByte(rc.Name)
+	rb, err := G1StringInSolidity(rc.Name)
 	if err != nil {
 		return err
 	}
