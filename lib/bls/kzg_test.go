@@ -348,9 +348,10 @@ func TestSloth(t *testing.T) {
 		fr_r.SetRandom()
 		copy(data[i*32:(i+1)*32], fr_r.Marshal())
 	}
-	nt := time.Now()
+
 	enc := make([]byte, len(data))
 	copy(enc, data)
+	nt := time.Now()
 	err := SlothEncode(enc, rnd)
 	if err != nil {
 		t.Fatal(err)
@@ -376,9 +377,10 @@ func TestSlothV2(t *testing.T) {
 		fr_r.SetRandom()
 		copy(data[i*32:(i+1)*32], fr_r.Marshal())
 	}
-	nt := time.Now()
+
 	enc := make([]byte, len(data))
 	copy(enc, data)
+	nt := time.Now()
 	err := SlothEncodeV2(enc, rnd)
 	if err != nil {
 		t.Fatal(err)
@@ -541,4 +543,49 @@ func GenRandom(len int) []byte {
 		}
 	}
 	return res
+}
+
+// 4M: 10s vs 100 ms
+func TestReverse(t *testing.T) {
+	var fr, v Fr
+	fr.SetRandom()
+	v.SetRandom()
+	nt := time.Now()
+	for i := 0; i < 4*1024*1024; i++ {
+		v.Mul(&v, &fr)
+		//v.Div(&v, &fr)
+		fr.Add(&fr, &v)
+	}
+
+	t.Fatal("cost: ", time.Since(nt))
+}
+
+// 10s, 320ms
+func TestSlothV3(t *testing.T) {
+	rnd := utils.RandomBytes(32)
+	data := make([]byte, 32*4*1024*1024)
+	var fr_r Fr
+	for i := 0; i < 4*1024*1024; i++ {
+		fr_r.SetRandom()
+		copy(data[i*32:(i+1)*32], fr_r.Marshal())
+	}
+
+	enc := make([]byte, len(data))
+	copy(enc, data)
+	nt := time.Now()
+	err := SlothEncodeV3(enc, rnd)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log("enc v3 cost: ", time.Since(nt))
+	nt = time.Now()
+	err = SlothDecodeV3(enc, rnd)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log("dec v3 cost: ", time.Since(nt))
+	if !bytes.Equal(data, enc) {
+		t.Fatal("unequal")
+	}
+	t.Fatal()
 }
