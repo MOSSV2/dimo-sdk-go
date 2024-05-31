@@ -184,17 +184,24 @@ func UploadModelFiles(url string, sk *ecdsa.PrivateKey, au types.Auth, fp string
 		}
 
 		sfp := path.Join(fp, k)
-		fr, submitter, err := UploadToStream(url, au, sfp, "")
+		ff, streamer, err := UploadToStream(url, au, sfp, "")
 		if err != nil {
 			return mrm, err
 		}
 
-		err = contract.AddFileAndPiece(sk, fr.Name, fr, submitter)
+		pcs, err := CheckFileFull(ff)
 		if err != nil {
 			return mrm, err
 		}
 
-		fmt.Printf("uploaded %s, sha256: %s\n", sfp, fr.Name)
+		for _, pc := range pcs {
+			err = contract.AddPiece(sk, pc)
+			if err != nil {
+				return mrm, err
+			}
+		}
+
+		fmt.Printf("uploaded %s to %s, sha256: %s\n", sfp, streamer, fr.Name)
 		if k == archive.ShadowTar {
 			os.Remove(sfp)
 		}

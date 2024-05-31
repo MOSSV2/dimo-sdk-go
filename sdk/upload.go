@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"math/rand"
 	"mime/multipart"
 	"net"
 	"net/http"
@@ -24,24 +23,8 @@ import (
 	"github.com/schollz/progressbar/v3"
 )
 
-func Disorder(array []types.EdgeReceipt) {
-	var temp types.EdgeReceipt
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	for i := len(array) - 1; i >= 0; i-- {
-		num := r.Intn(i + 1)
-		temp = array[i]
-		array[i] = array[num]
-		array[num] = temp
-	}
-}
-
-func UploadToStream(baseUrl string, auth types.Auth, filePath string, name string) (types.FileReceipt, common.Address, error) {
-	var res types.FileReceipt
-	sinfo, err := Info(baseUrl)
-	if err != nil {
-		return res, common.Address{}, err
-	}
-
+func UploadToStream(baseUrl string, auth types.Auth, filePath string, name string) (types.FileFull, common.Address, error) {
+	var res types.FileFull
 	er, err := ListEdge(baseUrl, auth, types.StreamType)
 	if err != nil {
 		return res, common.Address{}, err
@@ -87,31 +70,16 @@ func UploadToStream(baseUrl string, auth types.Auth, filePath string, name strin
 		}
 
 		logger.Debug("upload meta: ", filePath, " to: ", baseUrl)
-		res, err := UploadFileMeta(baseUrl, auth, em.Name, fr)
-		return res, em.Name, err
+		err = UploadFileMeta(baseUrl, auth, fr.FileReceipt)
+		return fr, em.Name, err
 	}
 
-	fr, err := UploadData(baseUrl, auth, filePath)
-	if err != nil {
-		return res, common.Address{}, err
-	}
-
-	res.FileCore = fr.FileCore
-
-	if name != "" && fr.Name != name {
-		fr.Name = name
-		//fr.OnlyPiece = true
-		logger.Debug("upload meta: ", filePath, " to: ", baseUrl)
-		res, err = UploadFileMeta(baseUrl, auth, sinfo.Name, fr)
-		return res, sinfo.Name, err
-	}
-
-	return res, sinfo.Name, err
+	return res, common.Address{}, fmt.Errorf("no avail streamer")
 }
 
-func UploadData(baseUrl string, auth types.Auth, filePath string) (types.FileReceipt, error) {
+func UploadData(baseUrl string, auth types.Auth, filePath string) (types.FileFull, error) {
 	logger.Debug("upload: ", filePath, " to: ", baseUrl)
-	var res types.FileReceipt
+	var res types.FileFull
 	p, err := homedir.Expand(filePath)
 	if err != nil {
 		return res, err

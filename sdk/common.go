@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand"
 	"net"
 	"net/http"
 	"strconv"
@@ -33,6 +34,11 @@ func init() {
 const (
 	ServerURL = "http://52.220.254.5:8080"
 )
+
+func CheckFileFull(ff types.FileFull) ([]types.PieceCore, error) {
+	res := make([]types.PieceCore, len(ff.Pieces))
+	return res, nil
+}
 
 func DecodeAuth(authstr string) (types.Auth, error) {
 	au := types.Auth{}
@@ -251,4 +257,15 @@ func Get(ctx context.Context, baseUrl string, r io.Reader) ([]byte, error) {
 	}
 
 	return res, nil
+}
+
+func Disorder(array []types.EdgeReceipt) {
+	var temp types.EdgeReceipt
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	for i := len(array) - 1; i >= 0; i-- {
+		num := r.Intn(i + 1)
+		temp = array[i]
+		array[i] = array[num]
+		array[num] = temp
+	}
 }

@@ -6,11 +6,11 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/MOSSV2/dimo-sdk-go/contract/go/file"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/gpu"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/model"
-	"github.com/MOSSV2/dimo-sdk-go/contract/go/proof"
+	"github.com/MOSSV2/dimo-sdk-go/contract/go/piece"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/space"
+
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -24,25 +24,25 @@ func GetInstAddr(ctx context.Context, typ string) (common.Address, error) {
 	return bi.Get(&bind.CallOpts{From: Base}, typ)
 }
 
-func GetOrder(count uint64) (uint64, error) {
+func GetOrder(pcnt, count uint64) (uint8, error) {
 	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Second)
 	defer cancle()
 
-	ri, err := NewRound(ctx)
+	ri, err := NewEVerify(ctx)
 	if err != nil {
 		return 0, err
 	}
-	return ri.GetOrder(&bind.CallOpts{From: Base}, count)
+	return ri.GetOrder(&bind.CallOpts{From: Base}, pcnt, count)
 }
 
-func Choose(addr common.Address, seed [32]byte, count uint64, i uint64) (uint64, error) {
+func Choose(addr common.Address, seed [32]byte, pcnt, count uint64, i uint64) (uint64, error) {
 	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Second)
 	defer cancle()
-	ri, err := NewRound(ctx)
+	ri, err := NewEVerify(ctx)
 	if err != nil {
 		return 0, err
 	}
-	return ri.Choose(&bind.CallOpts{From: Base}, addr, seed, count, i)
+	return ri.Choose(&bind.CallOpts{From: Base}, addr, seed, pcnt, count, i)
 }
 
 func GetEpochInfo(_epoch uint64) (*big.Int, [32]byte, error) {
@@ -70,134 +70,71 @@ func CheckNode(addr common.Address, _typ uint8) error {
 	return err
 }
 
-func GetFileIndex(_fn string) (uint64, error) {
+func GetPiece(_pi uint64) (piece.IPiecePieceInfo, error) {
 	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancle()
-	fi, err := NewFile(ctx)
+	fi, err := NewPiece(ctx)
 	if err != nil {
-		return 0, err
+		return piece.IPiecePieceInfo{}, err
 	}
-	_fi, err := fi.GetFileIndex(&bind.CallOpts{From: Base}, _fn)
+	pb, err := fi.GetPiece(&bind.CallOpts{From: Base}, _pi)
 	if err != nil {
-		return 0, err
-	}
-	return _fi, nil
-}
-
-func IsFileAgent(_fi uint64, addr common.Address) error {
-	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Second)
-	defer cancle()
-	fi, err := NewFile(ctx)
-	if err != nil {
-		return err
-	}
-	is, err := fi.IsAgent(&bind.CallOpts{From: Base}, _fi, addr)
-	if err != nil {
-		return err
-	}
-	if !is {
-		return fmt.Errorf("not")
-	}
-	return nil
-}
-
-func GetFile(_fi uint64) (file.IFileFileInfo, error) {
-	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Second)
-	defer cancle()
-	fi, err := NewFile(ctx)
-	if err != nil {
-		return file.IFileFileInfo{}, err
-	}
-	fb, err := fi.GetFile(&bind.CallOpts{From: Base}, _fi)
-	if err != nil {
-		return file.IFileFileInfo{}, err
-	}
-	return fb, nil
-}
-
-func GetPiece(_fi uint64, _pi uint64) (file.IFilePieceInfo, error) {
-	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Second)
-	defer cancle()
-	fi, err := NewFile(ctx)
-	if err != nil {
-		return file.IFilePieceInfo{}, err
-	}
-	pb, err := fi.GetPiece(&bind.CallOpts{From: Base}, _fi, _pi)
-	if err != nil {
-		return file.IFilePieceInfo{}, err
+		return piece.IPiecePieceInfo{}, err
 	}
 	return pb, nil
 }
 
-func GetReplica(_ri uint64) (file.IFileReplicaInfo, error) {
+func GetReplica(_ri uint64) (piece.IPieceReplicaInfo, error) {
 	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancle()
-	fi, err := NewFile(ctx)
+	fi, err := NewPiece(ctx)
 	if err != nil {
-		return file.IFileReplicaInfo{}, err
+		return piece.IPieceReplicaInfo{}, err
 	}
 	pb, err := fi.GetReplica(&bind.CallOpts{From: Base}, _ri)
 	if err != nil {
-		return file.IFileReplicaInfo{}, err
+		return piece.IPieceReplicaInfo{}, err
 	}
 
 	return pb, nil
 }
 
-func GetStore(addr common.Address) (file.IFileStoreInfo, error) {
+func GetStore(addr common.Address) (piece.IPieceStoreInfo, error) {
 	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancle()
-	fi, err := NewFile(ctx)
+	fi, err := NewPiece(ctx)
 	if err != nil {
-		return file.IFileStoreInfo{}, err
+		return piece.IPieceStoreInfo{}, err
 	}
 	fss, err := fi.GetStore(&bind.CallOpts{From: addr}, addr)
 	if err != nil {
-		return file.IFileStoreInfo{}, err
+		return piece.IPieceStoreInfo{}, err
 	}
 	return fss, nil
 }
 
-func GetStoreStat(addr common.Address, _epoch uint64) (file.IFileStoreStat, error) {
+func GetStoreStat(addr common.Address, _epoch uint64) (piece.IPieceStoreStat, error) {
 	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancle()
-	fi, err := NewFile(ctx)
+	fi, err := NewPiece(ctx)
 	if err != nil {
-		return file.IFileStoreStat{}, err
+		return piece.IPieceStoreStat{}, err
 	}
 	fss, err := fi.GetSStat(&bind.CallOpts{From: addr}, addr, _epoch)
 	if err != nil {
-		return file.IFileStoreStat{}, err
-	}
-	if fss.Count == 0 {
-		return file.IFileStoreStat{}, fmt.Errorf("no storage")
+		return piece.IPieceStoreStat{}, err
 	}
 	return fss, nil
 }
 
-func GetStoreReplica(_a common.Address, _ri uint64) (string, error) {
+func GetStoreReplica(_a common.Address, _ri uint64) (uint64, error) {
 	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancle()
-	fi, err := NewFile(ctx)
+	fi, err := NewPiece(ctx)
 	if err != nil {
-		return "", err
+		return 0, err
 	}
-	pb, err := fi.GetSReplica(&bind.CallOpts{From: Base}, _a, _ri)
-	if err != nil {
-		return "", err
-	}
-
-	return SolByteToString(pb)
-}
-
-func GetEpochProof(addr common.Address, _epoch uint64) (proof.IProofEProof, error) {
-	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
-	defer cancle()
-	pi, err := NewProof(ctx)
-	if err != nil {
-		return proof.IProofEProof{}, err
-	}
-	return pi.GetEProof(&bind.CallOpts{From: addr}, addr, _epoch)
+	return fi.GetSRAt(&bind.CallOpts{From: Base}, _a, _ri)
 }
 
 func GetRevenue(addr common.Address, typ string) (*big.Int, error) {
@@ -206,12 +143,6 @@ func GetRevenue(addr common.Address, typ string) (*big.Int, error) {
 	defer cancle()
 
 	switch typ {
-	case "file":
-		fi, err := NewFile(ctx)
-		if err != nil {
-			return res, err
-		}
-		return fi.BalanceOf(&bind.CallOpts{From: addr}, addr)
 	case "gpu":
 		gi, err := NewGPU(ctx)
 		if err != nil {

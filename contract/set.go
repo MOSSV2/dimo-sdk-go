@@ -9,7 +9,6 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/MOSSV2/dimo-sdk-go/contract/go/proof"
 	"github.com/MOSSV2/dimo-sdk-go/lib/log"
 	"github.com/MOSSV2/dimo-sdk-go/lib/types"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -123,149 +122,26 @@ func RegisterNode(sk *ecdsa.PrivateKey, _typ uint8) error {
 	return err
 }
 
-func AddFileAndPiece(sk *ecdsa.PrivateKey, _fn string, fc types.FileReceipt, _proxy common.Address) error {
-	_fi, err := AddFile(sk, _fn, fc.FileCore)
-	if err != nil {
-		return err
-	}
-
-	err = AddPiece(sk, _fi, fc.Pieces)
-	if err != nil {
-		return err
-	}
-
-	if _proxy != common.HexToAddress("0x0") {
-		err = SetFileAgent(sk, _fi, _proxy)
-		if err != nil {
-			return err
-		}
-		return PrePayFile(sk, _fi, int(fc.Policy.N))
-	}
-
-	return nil
-}
-
-func AddFile(sk *ecdsa.PrivateKey, _fn string, fc types.FileCore) (uint64, error) {
+func AddPiece(sk *ecdsa.PrivateKey, pc types.PieceCore) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()
-	fi, err := NewFile(ctx)
+	fi, err := NewPiece(ctx)
 	if err != nil {
-		return 0, err
+		return err
 	}
 
 	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
 	if err != nil {
-		return 0, err
+		return err
 	}
 
 	ce, err := GetEpoch(sk)
 	if err != nil {
-		return 0, err
-	}
-
-	logger.Debug("add file: ", _fn)
-	_, err = fi.GetFileIndex(&bind.CallOpts{From: au.From}, _fn)
-	if err == nil {
-		logger.Debug("already has: %s", _fn)
-		return 0, fmt.Errorf("already has: %s", _fn)
-	}
-
-	tx, err := fi.AddFile(au, _fn, big.NewInt(int64(DefaultReplicaPrice)), ce+uint64(DefaultStoreEpoch))
-	if err != nil {
-		return 0, err
-	}
-	err = CheckTx(DevChain, tx.Hash())
-	if err != nil {
-		return 0, err
-	}
-
-	return fi.GetFileIndex(&bind.CallOpts{From: au.From}, _fn)
-}
-
-func AddPiece(sk *ecdsa.PrivateKey, _fi uint64, pieces []string) error {
-	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
-	defer cancle()
-	fi, err := NewFile(ctx)
-	if err != nil {
 		return err
 	}
 
-	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
-	if err != nil {
-		return err
-	}
-
-	piecebytes := make([][]byte, 0, len(pieces))
-	for i := 0; i < len(pieces); i++ {
-		pb, err := StringToSolByte(pieces[i])
-		if err != nil {
-			return err
-		}
-		piecebytes = append(piecebytes, pb)
-	}
-
-	for i := 0; i < len(pieces); i += 128 {
-		end := i + 128
-		if end > len(pieces) {
-			end = len(pieces)
-		}
-		logger.Debug("add piece to: ", _fi)
-		tx, err := fi.AddPiece(au, _fi, piecebytes[i:end])
-		if err != nil {
-			return err
-		}
-		err = CheckTx(DevChain, tx.Hash())
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func SetFileAgent(sk *ecdsa.PrivateKey, _fi uint64, _proxy common.Address) error {
-	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
-	defer cancle()
-	fi, err := NewFile(ctx)
-	if err != nil {
-		return err
-	}
-
-	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
-	if err != nil {
-		return err
-	}
-
-	logger.Debug(_fi, " set agent to: ", _proxy)
-	tx, err := fi.SetAgent(au, _fi, _proxy)
-	if err != nil {
-		return err
-	}
-	err = CheckTx(DevChain, tx.Hash())
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func PrePayFile(sk *ecdsa.PrivateKey, _fi uint64, _n int) error {
-	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
-	defer cancle()
-
-	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
-	if err != nil {
-		return err
-	}
-
-	logger.Debug("allowrance to: ", _fi)
-	fb, err := GetFile(_fi)
-	if err != nil {
-		return err
-	}
-
-	val := new(big.Int).Mul(fb.Price, big.NewInt(int64(fb.Count)*int64(_n)))
-	val.Mul(val, big.NewInt(int64(fb.Expire-fb.Start)+1))
+	val := big.NewInt(int64(pc.Expire - ce))
+	val.Mul(val, pc.Price)
 
 	ti, err := NewToken(ctx)
 	if err != nil {
@@ -281,13 +157,13 @@ func PrePayFile(sk *ecdsa.PrivateKey, _fi uint64, _n int) error {
 		return err
 	}
 
-	logger.Debug("prepay to: ", _fi)
-	fi, err := NewFile(ctx)
+	pb, err := hex.DecodeString(pc.Name)
 	if err != nil {
 		return err
 	}
 
-	tx, err = fi.PrePay(au, _fi, val)
+	logger.Debug("add piece")
+	tx, err = fi.AddPiece(au, pb, pc.Price, uint64(pc.Size), pc.Expire, pc.Policy.N, pc.Policy.K)
 	if err != nil {
 		return err
 	}
@@ -299,14 +175,14 @@ func PrePayFile(sk *ecdsa.PrivateKey, _fi uint64, _n int) error {
 	return nil
 }
 
-func AddReplica(sk *ecdsa.PrivateKey, _fi uint64, _pi uint64, replica string, _sign []byte) error {
-	rb, err := StringToSolByte(replica)
+func AddReplica(sk *ecdsa.PrivateKey, rc types.ReplicaCore, pf []byte) error {
+	rb, err := StringToSolByte(rc.Name)
 	if err != nil {
 		return err
 	}
 	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Minute)
 	defer cancle()
-	fi, err := NewFile(ctx)
+	fi, err := NewPiece(ctx)
 	if err != nil {
 		return err
 	}
@@ -316,37 +192,7 @@ func AddReplica(sk *ecdsa.PrivateKey, _fi uint64, _pi uint64, replica string, _s
 		return err
 	}
 
-	fb, err := fi.GetFile(&bind.CallOpts{From: au.From}, _fi)
-	if err != nil {
-		return err
-	}
-
-	logger.Debug("add replica: ", replica)
-	if fb.Owner == au.From {
-		ce, err := GetEpoch(sk)
-		if err != nil {
-			return err
-		}
-
-		val := big.NewInt(int64(fb.Expire - ce))
-		val.Mul(val, fb.Price)
-
-		ti, err := NewToken(ctx)
-		if err != nil {
-			return err
-		}
-
-		tx, err := ti.IncreaseAllowance(au, BankAddr, val)
-		if err != nil {
-			return err
-		}
-		err = CheckTx(DevChain, tx.Hash())
-		if err != nil {
-			return err
-		}
-	}
-
-	tx, err := fi.AddReplica(au, _fi, _pi, rb, _sign)
+	tx, err := fi.AddReplica(au, rb, 0, rc.Index, pf)
 	if err != nil {
 		return err
 	}
@@ -358,10 +204,10 @@ func AddReplica(sk *ecdsa.PrivateKey, _fi uint64, _pi uint64, replica string, _s
 	return nil
 }
 
-func SubmitProof(sk *ecdsa.PrivateKey, _kp proof.IProofKZGProof) error {
+func SubmitProof(sk *ecdsa.PrivateKey, _ep uint64, _com []byte, pf []byte) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()
-	pi, err := NewProof(ctx)
+	pi, err := NewEProof(ctx)
 	if err != nil {
 		return err
 	}
@@ -371,7 +217,7 @@ func SubmitProof(sk *ecdsa.PrivateKey, _kp proof.IProofKZGProof) error {
 		return err
 	}
 
-	tx, err := pi.Submit(au, _kp)
+	tx, err := pi.Submit(au, _ep, _com, pf)
 	if err != nil {
 		return err
 	}
@@ -387,7 +233,7 @@ func SubmitProof(sk *ecdsa.PrivateKey, _kp proof.IProofKZGProof) error {
 func Settle(sk *ecdsa.PrivateKey, _epoch uint64) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()
-	fi, err := NewFile(ctx)
+	fi, err := NewPiece(ctx)
 	if err != nil {
 		return err
 	}
@@ -505,8 +351,8 @@ func AddSpace(sk *ecdsa.PrivateKey, msm types.SpaceMeta) error {
 		return err
 	}
 
-	val := big.NewInt(int64(DefaultGPUPrice))
-	val.Mul(val, big.NewInt(int64(DefaultGPUEpoch)))
+	val := big.NewInt(int64(DefaultSpacePrice))
+	val.Mul(val, big.NewInt(int64(DefaultSpaceEpoch)))
 
 	ti, err := NewToken(ctx)
 	if err != nil {
@@ -522,7 +368,7 @@ func AddSpace(sk *ecdsa.PrivateKey, msm types.SpaceMeta) error {
 		return err
 	}
 
-	tx, err = si.Add(au, msm.Name, _mi, _gi, big.NewInt(int64(DefaultGPUPrice)), ce+uint64(DefaultGPUEpoch))
+	tx, err = si.Add(au, msm.Name, _mi, _gi, big.NewInt(int64(DefaultSpacePrice)), ce+uint64(DefaultSpaceEpoch))
 	if err != nil {
 		return err
 	}

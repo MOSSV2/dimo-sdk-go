@@ -85,14 +85,21 @@ func UploadFile(sk *ecdsa.PrivateKey, fp string) error {
 		if err != nil {
 			return err
 		}
-		fmt.Printf("upload %s, sha256: %s\n", fp, res.Name)
-		fmt.Printf("submit %s to chain\n", res.Name)
-
-		// submit meta to chain
-		err = contract.AddFileAndPiece(sk, res.Name, res, submitter)
+		pcs, err := sdk.CheckFileFull(res)
 		if err != nil {
 			return err
 		}
+		fmt.Printf("upload %s to %s, sha256: %s\n", fp, submitter, res.Name)
+		fmt.Printf("submit %s to chain\n", res.Name)
+
+		// submit meta to chain
+		for _, pc := range pcs {
+			err = contract.AddPiece(sk, pc)
+			if err != nil {
+				return err
+			}
+		}
+
 		return nil
 	}
 
@@ -108,11 +115,20 @@ func UploadFile(sk *ecdsa.PrivateKey, fp string) error {
 		if err != nil {
 			return nil
 		}
-		fmt.Printf("upload %s, sha256: %s\n", fp, res.Name)
-		fmt.Printf("submit %s to chain\n", res.Name)
-		err = contract.AddFileAndPiece(sk, res.Name, res, submitter)
+		pcs, err := sdk.CheckFileFull(res)
 		if err != nil {
 			return err
+		}
+
+		fmt.Printf("upload %s to %s, sha256: %s\n", fp, submitter, res.Name)
+		fmt.Printf("submit %s to chain\n", res.Name)
+
+		// submit meta to chain
+		for _, pc := range pcs {
+			err = contract.AddPiece(sk, pc)
+			if err != nil {
+				return err
+			}
 		}
 		return nil
 	})

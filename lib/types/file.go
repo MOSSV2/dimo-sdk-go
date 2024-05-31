@@ -45,6 +45,19 @@ func (fr *FileReceipt) Deserialize(b []byte) error {
 	return cbor.Unmarshal(b, fr)
 }
 
+type FileFull struct {
+	FileReceipt
+	Proofs [][]byte
+}
+
+func (ff *FileFull) Serialize() ([]byte, error) {
+	return cbor.Marshal(ff)
+}
+
+func (ff *FileFull) Deserialize(b []byte) error {
+	return cbor.Unmarshal(b, ff)
+}
+
 type PieceCore struct {
 	Policy Policy
 	Name   string

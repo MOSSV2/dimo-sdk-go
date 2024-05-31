@@ -9,6 +9,7 @@ import (
 
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/token"
 	"github.com/MOSSV2/dimo-sdk-go/lib/utils"
+
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -20,22 +21,25 @@ import (
 var (
 	//DevChain   = "http://54.254.72.127:8501"
 	//DevChainID = 222
-	DevChain   = "http://unibase-sepolia-2052362516.ap-southeast-1.elb.amazonaws.com"
-	DevChainID = 42069
+	DevChain     = "http://unibase-sepolia-2052362516.ap-southeast-1.elb.amazonaws.com"
+	DevChainID   = 42069
+	DevBlockTime = 2 // seconds/block
+	//http://unibasechain-scan-405529765.ap-southeast-1.elb.amazonaws.com/
 
-	L1Bridge = common.HexToAddress("0x6C0192A83005b0a7c9Daf0b8631b9A01D779967e")
-
+	// Epoch = 5760 blocks; 7.5 epoch/day; should be less
 	DefaultGasPrice     = 10
 	DefaultReplicaPrice = 1e14 // 1GB*100day cost 1
 	DefaultStoreEpoch   = 301
 
-	DefaultGPUPrice = 1e16
-	DefaultGPUEpoch = 31
+	DefaultSpacePrice = 1e10
+	DefaultSpaceEpoch = 201
+
+	L1Bridge = common.HexToAddress("0x6C0192A83005b0a7c9Daf0b8631b9A01D779967e")
 
 	Base = common.HexToAddress("0x61Ea24745A3F7Bcbb67eD95B674fEcfbb331ABd0")
 
-	BankAddr  = common.HexToAddress("0x7c8Db973AAbdF2cd46458A75173901e2279b5EF6")
-	TokenAddr = common.HexToAddress("0x7F1203D88edEEFeDFd426670184E10821C6A39ad")
+	BankAddr  = common.HexToAddress("0x221E94E910Ce182E1A8d71ffEABFB991B822aAe4")
+	TokenAddr = common.HexToAddress("0xAb2505D73472964a36359635E43449FEC0D90BA0")
 )
 
 func MakeAuth(chainID *big.Int, hexSk string) (*bind.TransactOpts, error) {
@@ -56,6 +60,16 @@ func makeAuth(chainID *big.Int, sk *ecdsa.PrivateKey) (*bind.TransactOpts, error
 
 	auth.Value = big.NewInt(0)
 	//auth.GasPrice = big.NewInt(int64(DefaultGasPrice))
+	client, err := ethclient.Dial(DevChain)
+	if err != nil {
+		return nil, err
+	}
+	header, err := client.HeaderByNumber(context.TODO(), nil)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println("basefee has: ", header.BaseFee)
+	auth.GasPrice = header.BaseFee
 	return auth, nil
 }
 
@@ -68,6 +82,18 @@ func GetTransactionReceipt(endPoint string, hash common.Hash) (*types.Receipt, e
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
 	return client.TransactionReceipt(ctx, hash)
+}
+
+func GetTransaction(hash common.Hash) (*types.Transaction, error) {
+	client, err := ethclient.Dial(DevChain)
+	if err != nil {
+		return nil, err
+	}
+	defer client.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+	res, _, err := client.TransactionByHash(ctx, hash)
+	return res, err
 }
 
 func CheckTx(endPoint string, txHash common.Hash) error {
@@ -123,7 +149,16 @@ func Transfer(ep string, sk *ecdsa.PrivateKey, toAddr common.Address, value *big
 		return err
 	}
 
+	fmt.Println("gasprice has: ", gasPrice)
+
+	header, err := client.HeaderByNumber(ctx, nil)
+	if err != nil {
+		return err
+	}
+	fmt.Println("basefee has: ", header.BaseFee)
+
 	gasLimit := uint64(23000)
+	gasPrice = header.BaseFee
 
 	tx := types.NewTransaction(nonce, toAddr, value, gasLimit, gasPrice, nil)
 

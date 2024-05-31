@@ -8,32 +8,19 @@ import (
 	"strings"
 
 	"github.com/MOSSV2/dimo-sdk-go/lib/types"
-	"github.com/ethereum/go-ethereum/common"
 )
 
-func UploadFileMeta(baseUrl string, auth types.Auth, stream common.Address, fcws types.FileReceipt) (types.FileReceipt, error) {
-	var res types.FileReceipt
+func UploadFileMeta(baseUrl string, auth types.Auth, fcws types.FileReceipt) error {
 
 	form := url.Values{}
-	form.Set("stream", stream.Hex())
 	fcwsb, err := json.Marshal(fcws)
 	if err != nil {
-		return res, err
+		return err
 	}
-
 	form.Set("meta", hex.EncodeToString(fcwsb))
 
-	resByte, err := doRequest(context.TODO(), baseUrl, "/api/uploadFileMeta", auth, strings.NewReader(form.Encode()))
-	if err != nil {
-		return res, err
-	}
-
-	err = json.Unmarshal(resByte, &res)
-	if err != nil {
-		return res, err
-	}
-
-	return res, nil
+	_, err = doRequest(context.TODO(), baseUrl, "/api/uploadFileMeta", auth, strings.NewReader(form.Encode()))
+	return err
 }
 
 func GetReplicaReceipt(baseUrl string, auth types.Auth, name string) (types.ReplicaCore, error) {
