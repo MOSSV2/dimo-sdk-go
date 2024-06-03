@@ -18,6 +18,10 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
+const (
+	RSn6k4VKRoot = "3650428508153686157034035414147932798405819303943208314159993659326749570844"
+)
+
 var (
 	//DevChain   = "http://54.254.72.127:8501"
 	//DevChainID = 222
