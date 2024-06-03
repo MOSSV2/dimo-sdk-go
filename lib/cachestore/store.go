@@ -135,10 +135,11 @@ func (ks *CacheStore) Get(ctx context.Context, name string, w io.Writer, opt typ
 			if opt.UserDefined["unpad"] != "" {
 				usize, err := strconv.Atoi(opt.UserDefined["unpad"])
 				if err == nil {
-					data, err = bls.Unpad(data, usize)
+					data, err = bls.Unpad(data)
 					if err != nil {
 						return types.ReplicaCore{}, err
 					}
+					data = data[:usize]
 				}
 			}
 			start := 0

@@ -196,7 +196,7 @@ func TestKZGDec(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	updata, err := Unpad(pdata, MaxSize)
+	updata, err := Unpad(pdata)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -258,7 +258,7 @@ func TestKZGSloth(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	updata, err := Unpad(pdata, MaxSize)
+	updata, err := Unpad(pdata)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -274,16 +274,13 @@ func TestPad(t *testing.T) {
 	nt := time.Now()
 	end := Pad(data)
 	t.Log("pad cost: ", time.Since(nt), len(end))
-	dec, err := Unpad(end, fsize)
+	dec, err := Unpad(end)
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Log("unpad cost: ", time.Since(nt), len(dec))
 
-	if len(dec) != fsize {
-		t.Fatal("size wrong")
-	}
-	if !bytes.Equal(data, dec) {
+	if !bytes.Equal(data, dec[:fsize]) {
 		t.Fatal("unequal data")
 	}
 	t.Fatal()
@@ -320,7 +317,7 @@ func TestEncrypt(t *testing.T) {
 		t.Fatal("unequal data")
 	}
 
-	updata, err := Unpad(enc, fsize)
+	updata, err := Unpad(enc)
 	if err != nil {
 		t.Fatal(err)
 	}
