@@ -209,7 +209,7 @@ func UploadModelFiles(url string, sk *ecdsa.PrivateKey, au types.Auth, fp string
 	return mrm, nil
 }
 
-func DownloadModel(url, rootDir string, au types.Auth, mrm types.ModelMeta, ks types.IReplicaStore) error {
+func DownloadModel(url, rootDir string, au types.Auth, mrm types.ModelMeta, ks types.IPieceStore) error {
 	has := Exists(rootDir)
 	if !has {
 		err := os.MkdirAll(rootDir, 0755)

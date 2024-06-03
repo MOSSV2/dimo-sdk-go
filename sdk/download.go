@@ -132,9 +132,9 @@ func DownloadReplicaFromStream(baseUrl string, auth types.Auth, name string, add
 	return nil, fmt.Errorf("fail")
 }
 
-func DownloadPieceAndSave(baseUrl string, auth types.Auth, com string, ks types.IReplicaStore) error {
+func DownloadPieceAndSave(baseUrl string, auth types.Auth, com string, ks types.IPieceStore) error {
 	if ks != nil {
-		_, err := ks.Get(context.TODO(), com, nil, types.Options{})
+		_, err := ks.GetPiece(context.TODO(), com, nil, types.Options{})
 		if err == nil {
 			return nil
 		}
@@ -150,12 +150,12 @@ func DownloadPieceAndSave(baseUrl string, auth types.Auth, com string, ks types.
 		if err != nil {
 			return err
 		}
-		ks.Put(context.TODO(), pr.PieceCore, resByte)
+		ks.PutPiece(context.TODO(), pr.PieceCore, resByte, true)
 	}
 	return nil
 }
 
-func CheckFile(baseUrl string, auth types.Auth, name string, ks types.IReplicaStore) error {
+func CheckFile(baseUrl string, auth types.Auth, name string, ks types.IPieceStore) error {
 	fr, err := GetFileReceipt(baseUrl, auth, name)
 	if err != nil {
 		return err
@@ -171,7 +171,7 @@ func CheckFile(baseUrl string, auth types.Auth, name string, ks types.IReplicaSt
 	return nil
 }
 
-func CheckFileParallel(baseUrl string, auth types.Auth, name string, parallel int, ks types.IReplicaStore) error {
+func CheckFileParallel(baseUrl string, auth types.Auth, name string, parallel int, ks types.IPieceStore) error {
 	logger.Debug("download piece in parallel: ", parallel)
 	fr, err := GetFileReceipt(baseUrl, auth, name)
 	if err != nil {
@@ -186,7 +186,7 @@ func CheckFileParallel(baseUrl string, auth types.Auth, name string, parallel in
 			return err
 		}
 		wg.Add(1)
-		go func(com string, ks types.IReplicaStore) {
+		go func(com string, ks types.IPieceStore) {
 			defer sm.Release(1)
 			defer wg.Done()
 
@@ -198,25 +198,16 @@ func CheckFileParallel(baseUrl string, auth types.Auth, name string, parallel in
 	return nil
 }
 
-func Download(baseUrl string, auth types.Auth, name string, ks types.IReplicaStore, w io.Writer) error {
+func Download(baseUrl string, auth types.Auth, name string, ks types.IPieceStore, w io.Writer) error {
 	fr, err := GetFileReceipt(baseUrl, auth, name)
 	if err != nil {
 		return err
 	}
 
 	for _, com := range fr.Pieces {
-		pr, err := GetPieceReceipt(baseUrl, auth, com)
-		if err != nil {
-			return err
-		}
-
 		if ks != nil {
 			var b bytes.Buffer
-			_, err := ks.Get(context.TODO(), com, &b, types.Options{
-				UserDefined: map[string]string{
-					"unpad": strconv.FormatInt(pr.Size, 10),
-				},
-			})
+			_, err := ks.GetPiece(context.TODO(), com, &b, types.Options{})
 			if err == nil {
 				w.Write(b.Bytes())
 				continue
@@ -233,7 +224,7 @@ func Download(baseUrl string, auth types.Auth, name string, ks types.IReplicaSto
 			if err != nil {
 				return err
 			}
-			ks.Put(context.TODO(), pr.PieceCore, resByte)
+			ks.PutPiece(context.TODO(), pr.PieceCore, resByte, true)
 		}
 
 		w.Write(resByte)
@@ -242,7 +233,7 @@ func Download(baseUrl string, auth types.Auth, name string, ks types.IReplicaSto
 	return nil
 }
 
-func DownloadParallel(baseUrl string, auth types.Auth, name string, parallel int, ks types.IReplicaStore, w io.Writer) error {
+func DownloadParallel(baseUrl string, auth types.Auth, name string, parallel int, ks types.IPieceStore, w io.Writer) error {
 	if ks != nil {
 		err := CheckFileParallel(baseUrl, auth, name, parallel, ks)
 		if err != nil {
@@ -254,7 +245,7 @@ func DownloadParallel(baseUrl string, auth types.Auth, name string, parallel int
 }
 
 // todo: handle size > piece size
-func DownloadWSize(baseUrl string, auth types.Auth, name string, ks types.IReplicaStore, w io.Writer, start, size int64) error {
+func DownloadWSize(baseUrl string, auth types.Auth, name string, ks types.IPieceStore, w io.Writer, start, size int64) error {
 	logger.Debugf("download file %s %d %d ", name, start, size)
 	fr, err := GetFileReceipt(baseUrl, auth, name)
 	if err != nil {
@@ -282,13 +273,7 @@ func DownloadWSize(baseUrl string, auth types.Auth, name string, ks types.IRepli
 
 		if ks != nil {
 			var b bytes.Buffer
-			_, err := ks.Get(context.TODO(), com, &b, types.Options{
-				UserDefined: map[string]string{
-					"unpad": strconv.FormatInt(pr.Size, 10),
-					"start": strconv.FormatInt(pstart, 10),
-					"size":  strconv.FormatInt(size, 10),
-				},
-			})
+			_, err := ks.GetPiece(context.TODO(), com, &b, types.Options{})
 			if err == nil {
 				_, err = w.Write(b.Bytes())
 				return err
@@ -301,14 +286,13 @@ func DownloadWSize(baseUrl string, auth types.Auth, name string, ks types.IRepli
 		}
 
 		if ks != nil {
-			_, err = ks.Put(context.TODO(), pr.PieceCore, resByte)
+			err = ks.PutPiece(context.TODO(), pr.PieceCore, resByte, true)
 			if err != nil {
 				return err
 			}
 			var b bytes.Buffer
-			_, err = ks.Get(context.TODO(), com, &b, types.Options{
+			_, err = ks.GetPiece(context.TODO(), com, &b, types.Options{
 				UserDefined: map[string]string{
-					"unpad": strconv.FormatInt(pr.Size, 10),
 					"start": strconv.FormatInt(pstart, 10),
 					"size":  strconv.FormatInt(size, 10),
 				},

@@ -11,9 +11,9 @@ import (
 	"path/filepath"
 	"time"
 
-	cacheStore "github.com/MOSSV2/dimo-sdk-go/lib/cachestore"
 	"github.com/MOSSV2/dimo-sdk-go/lib/key"
 	"github.com/MOSSV2/dimo-sdk-go/lib/kv"
+	"github.com/MOSSV2/dimo-sdk-go/lib/piece"
 	"github.com/MOSSV2/dimo-sdk-go/lib/simplefs"
 	"github.com/MOSSV2/dimo-sdk-go/sdk"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -127,10 +127,7 @@ func DownloadFile(sk *ecdsa.PrivateKey, fname, fp string) error {
 		return err
 	}
 
-	ks, err := cacheStore.New(au.Addr, ds, fs)
-	if err != nil {
-		return err
-	}
+	ks := piece.New(ds, fs)
 
 	// download 8 in parallel
 	err = sdk.DownloadParallel(sdk.ServerURL, au, fp, 8, ks, fi)
@@ -188,10 +185,7 @@ func DownloadModel(sk *ecdsa.PrivateKey, name, fp string) error {
 		return err
 	}
 
-	ks, err := cacheStore.New(au.Addr, ds, fs)
-	if err != nil {
-		return err
-	}
+	ks := piece.New(ds, fs)
 
 	mrm, err := sdk.GetModel(sdk.ServerURL, au, name)
 	if err != nil {

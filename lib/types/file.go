@@ -146,23 +146,16 @@ type IFile interface {
 	ListReplica(context.Context, common.Address, Options) ([]ReplicaCore, error)
 }
 
-type IReplicaStore interface {
-	Put(context.Context, PieceCore, []byte) (ReplicaCore, error)
-	Get(context.Context, string, io.Writer, Options) (ReplicaCore, error)
-	List(context.Context, common.Address, Options) ([]ReplicaCore, error)
-
-	GenProof(context.Context, string, []byte, int) ([]byte, error)
-}
-
 type IPieceStore interface {
-	PutPiece(context.Context, PieceCore, bool) error
+	PutPiece(context.Context, PieceCore, []byte, bool) error
 	GetPiece(context.Context, string, io.Writer, Options) (PieceReceipt, error)
 	GetPieceBySerial(context.Context, uint64) (string, error)
 
 	PutReplica(context.Context, ReplicaCore, []byte, bool) error
 	GetReplica(context.Context, string, io.Writer, Options) (ReplicaCore, error)
 	GetReplicaBySerial(context.Context, uint64) (string, error)
-	DeleteReplicaData(ctx context.Context, name string) error
+
+	DeleteData(ctx context.Context, name string) error
 
 	PutReplicaWitness(context.Context, common.Address, ReplicaWitness) error
 	GetReplicaWitness(context.Context, common.Address, uint64) (ReplicaWitness, error)
