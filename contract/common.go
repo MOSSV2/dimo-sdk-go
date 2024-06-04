@@ -23,10 +23,10 @@ const (
 )
 
 var (
-	//DevChain   = "http://54.254.72.127:8501"
-	//DevChainID = 222
-	DevChain     = "http://unibase-sepolia-2052362516.ap-southeast-1.elb.amazonaws.com"
-	DevChainID   = 42069
+	DevChain   = "http://54.254.72.127:8501"
+	DevChainID = 222
+	//DevChain     = "http://unibase-sepolia-2052362516.ap-southeast-1.elb.amazonaws.com"
+	//DevChainID   = 42069
 	DevBlockTime = 2 // seconds/block
 	//http://unibasechain-scan-405529765.ap-southeast-1.elb.amazonaws.com/
 
@@ -42,8 +42,8 @@ var (
 
 	Base = common.HexToAddress("0x61Ea24745A3F7Bcbb67eD95B674fEcfbb331ABd0")
 
-	BankAddr  = common.HexToAddress("0x221E94E910Ce182E1A8d71ffEABFB991B822aAe4")
-	TokenAddr = common.HexToAddress("0xAb2505D73472964a36359635E43449FEC0D90BA0")
+	BankAddr  = common.HexToAddress("0xDA976D1B21103f847ABCd7f644E84d45203A5C5F")
+	TokenAddr = common.HexToAddress("0x6c579D5eF7846E2c6cE255Adc2E0BEF1411fEB5c")
 )
 
 func MakeAuth(chainID *big.Int, hexSk string) (*bind.TransactOpts, error) {
@@ -162,7 +162,7 @@ func Transfer(ep string, sk *ecdsa.PrivateKey, toAddr common.Address, value *big
 	fmt.Println("basefee has: ", header.BaseFee)
 
 	gasLimit := uint64(23000)
-	gasPrice = header.BaseFee
+	//gasPrice = header.BaseFee
 
 	tx := types.NewTransaction(nonce, toAddr, value, gasLimit, gasPrice, nil)
 

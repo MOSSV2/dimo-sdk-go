@@ -120,7 +120,7 @@ func (r *RS) Check(buf [][]byte, val [][]byte, needcheck []int) error {
 			}
 		}
 
-	case 48:
+	case 48, 96:
 		vec := make([]bls.G1, r.Data)
 		for i := 0; i < r.Data; i++ {
 			_, err := vec[i].SetBytes(buf[i])
@@ -131,25 +131,31 @@ func (r *RS) Check(buf [][]byte, val [][]byte, needcheck []int) error {
 
 		var temp bls.G1
 		bigval := new(big.Int)
-		for i := 0; i < len(needcheck); i++ {
-			if needcheck[i] >= r.Total {
-				return fmt.Errorf("index %d should less than %d", needcheck[i], r.Total)
+		for i, row := range needcheck {
+			if row >= r.Total {
+				return fmt.Errorf("index %d should less than %d", row, r.Total)
 			}
 
-			if needcheck[i] < r.Data {
-				return fmt.Errorf("index %d should larger than %d", needcheck[i], r.Data)
+			if row < r.Data {
+				return fmt.Errorf("index %d should larger than %d", row, r.Data)
 			}
+
 			var res bls.G1
 			for j := 0; j < r.Data; j++ {
-				r.Matrix[needcheck[i]*r.Data+j].BigInt(bigval)
+				r.Matrix[row*r.Data+j].BigInt(bigval)
 				temp.ScalarMultiplication(&vec[j], bigval)
 				res.Add(&res, &temp)
 			}
-			resb := res.Bytes()
-			if !bytes.Equal(val[i], resb[:]) {
-				return fmt.Errorf("unequal val at: %d", needcheck[i])
+			var to bls.G1
+			_, err := to.SetBytes(val[i])
+			if err != nil {
+				return err
+			}
+			if !to.Equal(&res) {
+				return fmt.Errorf("unequal val at: %d", row)
 			}
 		}
+
 	default:
 		return fmt.Errorf("unsupported data length: %d", len(buf[0]))
 	}

@@ -123,6 +123,7 @@ func RegisterNode(sk *ecdsa.PrivateKey, _typ uint8) error {
 }
 
 func AddPiece(sk *ecdsa.PrivateKey, pc types.PieceCore) error {
+	logger.Debug("add piece: ", pc)
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()
 	fi, err := NewPiece(ctx)
@@ -140,7 +141,19 @@ func AddPiece(sk *ecdsa.PrivateKey, pc types.PieceCore) error {
 		return err
 	}
 
-	val := big.NewInt(int64(pc.Expire - ce))
+	if pc.Expire == 0 {
+		pc.Start = ce
+		pc.Expire = ce + uint64(DefaultStoreEpoch) + 1
+	}
+	if pc.Price == nil {
+		pc.Price = new(big.Int).SetInt64(int64(DefaultReplicaPrice))
+	}
+
+	_size := 1 + (pc.Size-1)/(31*int64(pc.Policy.K))
+
+	_size = (1 + (_size-1)/(32*1024)) * int64(pc.Policy.N)
+
+	val := big.NewInt(int64(pc.Expire-pc.Start) * _size)
 	val.Mul(val, pc.Price)
 
 	ti, err := NewToken(ctx)
@@ -162,7 +175,7 @@ func AddPiece(sk *ecdsa.PrivateKey, pc types.PieceCore) error {
 		return err
 	}
 
-	logger.Debug("add piece")
+	fmt.Println("add piece: ", pc)
 	tx, err = fi.AddPiece(au, pb, pc.Price, uint64(pc.Size), pc.Expire, pc.Policy.N, pc.Policy.K)
 	if err != nil {
 		return err
@@ -192,7 +205,16 @@ func AddReplica(sk *ecdsa.PrivateKey, rc types.ReplicaCore, pf []byte) error {
 		return err
 	}
 
-	tx, err := fi.AddReplica(au, rb, 0, rc.Index, pf)
+	pbyte, err := G1StringInSolidity(rc.Piece)
+	if err != nil {
+		return err
+	}
+	_pi, err := fi.GetPIndex(&bind.CallOpts{From: au.From}, pbyte)
+	if err != nil {
+		return err
+	}
+
+	tx, err := fi.AddReplica(au, rb, _pi, rc.Index, pf)
 	if err != nil {
 		return err
 	}

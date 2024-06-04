@@ -1,22 +1,14 @@
 package contract
 
 import (
-	"bytes"
 	"context"
 	"crypto/ecdsa"
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"log"
 	"math/big"
 	"os"
 	"testing"
 	"time"
-
-	"github.com/MOSSV2/dimo-sdk-go/lib/bls"
-	"github.com/MOSSV2/dimo-sdk-go/lib/lighthash"
-	"github.com/MOSSV2/dimo-sdk-go/lib/merkle"
-	"github.com/MOSSV2/dimo-sdk-go/lib/types"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -156,40 +148,6 @@ func makeAccount() (*ecdsa.PrivateKey, common.Address) {
 	//common.Bytes2Hex(skbyte)
 
 	return privk, addr
-}
-
-func generateFile(val string, count int) (string, types.FileReceipt, []string) {
-	res := types.FileReceipt{
-		Pieces: make([]string, 0, 1),
-	}
-	replicas := make([]string, 0, count)
-
-	pk := bls.GenKZGKey(10, big.NewInt(123456789))
-
-	ph := sha256.New()
-	for i := 0; i < count; i++ {
-		data := []byte(val)
-		data = append(data, byte(i))
-
-		ph.Write(data)
-
-		b := bls.Pad(data)
-		root, err := merkle.ReaderRoot(bytes.NewReader(b), lighthash.New(), bls.PadSize)
-		if err != nil {
-			panic(err)
-		}
-		res.Pieces = append(res.Pieces, hex.EncodeToString(root))
-		res.Size += 101
-		ic, err := pk.GenCommitment(32, b, 0)
-		if err != nil {
-			panic(err)
-		}
-		replicas = append(replicas, hex.EncodeToString(ic.Serialize()))
-	}
-
-	name := ph.Sum(nil)
-	res.Hash = hex.EncodeToString(name)
-	return hex.EncodeToString(name), res, replicas
 }
 
 func TestBlock(t *testing.T) {
