@@ -37,6 +37,13 @@ const (
 
 func CheckFileFull(ff types.FileFull) ([]types.PieceCore, error) {
 	res := make([]types.PieceCore, len(ff.Pieces))
+	for i := 0; i < len(ff.Pieces); i++ {
+		res[i] = types.PieceCore{
+			Policy: ff.Policy,
+			Name:   ff.Pieces[i],
+			Size:   ff.PieceSizes[i],
+		}
+	}
 	return res, nil
 }
 

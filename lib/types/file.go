@@ -20,8 +20,8 @@ type FileCore struct {
 	Hash     string
 	Size     int64
 	Owner    common.Address
-	Append   bool
 	Creation time.Time
+	Append   bool
 }
 
 func (frc *FileCore) Serialize() ([]byte, error) {
@@ -34,7 +34,8 @@ func (frc *FileCore) Deserialize(b []byte) error {
 
 type FileReceipt struct {
 	FileCore
-	Pieces []string
+	Streamer []common.Address
+	Pieces   []string
 }
 
 func (fr *FileReceipt) Serialize() ([]byte, error) {
@@ -47,7 +48,8 @@ func (fr *FileReceipt) Deserialize(b []byte) error {
 
 type FileFull struct {
 	FileReceipt
-	Proofs [][]byte
+	Proofs     [][]byte
+	PieceSizes []int64
 }
 
 func (ff *FileFull) Serialize() ([]byte, error) {

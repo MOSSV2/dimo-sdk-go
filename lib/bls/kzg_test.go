@@ -586,3 +586,13 @@ func TestSlothV3(t *testing.T) {
 	}
 	t.Fatal()
 }
+
+func TestMarshal(t *testing.T) {
+	ew := NewEncodeWitness(6, 4)
+	ewb := ew.Serialize()
+	new := new(EncodeWitness)
+	err := new.Deserialize(ewb)
+	if err != nil {
+		t.Fatal(err)
+	}
+}

@@ -81,7 +81,7 @@ func UploadFile(sk *ecdsa.PrivateKey, fp string) error {
 
 	if !fi.IsDir() {
 		// upload to stream and submit to gateway
-		res, submitter, err := sdk.UploadToStream(sdk.ServerURL, au, fp, "")
+		res, submitter, err := sdk.Upload(sdk.ServerURL, au, fp, "")
 		if err != nil {
 			return err
 		}
@@ -111,7 +111,7 @@ func UploadFile(sk *ecdsa.PrivateKey, fp string) error {
 		if fi.IsDir() {
 			return nil
 		}
-		res, submitter, err := sdk.UploadToStream(sdk.ServerURL, au, fileName, "")
+		res, submitter, err := sdk.Upload(sdk.ServerURL, au, fileName, "")
 		if err != nil {
 			return nil
 		}

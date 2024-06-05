@@ -151,7 +151,6 @@ func AddPiece(sk *ecdsa.PrivateKey, pc types.PieceCore) error {
 	}
 
 	_size := 1 + (pc.Size-1)/(31*int64(pc.Policy.K))
-
 	_size = (1 + (_size-1)/(32*1024)) * int64(pc.Policy.N)
 
 	val := big.NewInt(int64(pc.Expire-pc.Start) * _size)

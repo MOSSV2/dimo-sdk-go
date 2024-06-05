@@ -187,11 +187,11 @@ func (ew *EncodeWitness) Deserialize(buf []byte) error {
 	dec := bls.NewDecoder(bytes.NewReader(buf), bls.NoSubgroupChecks())
 	toDecode := []interface{}{
 		&ew.Root,
-		ew.Commits,
-		ew.MoveCommits,
-		ew.LimitCommits,
-		ew.Hs,
-		ew.ClaimedValues,
+		&ew.Commits,
+		&ew.MoveCommits,
+		&ew.LimitCommits,
+		&ew.Hs,
+		&ew.ClaimedValues,
 	}
 	for _, v := range toDecode {
 		if err := dec.Decode(v); err != nil {

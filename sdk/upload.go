@@ -23,7 +23,7 @@ import (
 	"github.com/schollz/progressbar/v3"
 )
 
-func UploadToStream(baseUrl string, auth types.Auth, filePath string, name string) (types.FileFull, common.Address, error) {
+func Upload(baseUrl string, auth types.Auth, filePath string, name string) (types.FileFull, common.Address, error) {
 	var res types.FileFull
 	er, err := ListEdge(baseUrl, auth, types.StreamType)
 	if err != nil {

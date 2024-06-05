@@ -18,8 +18,8 @@ import (
 	"golang.org/x/sync/semaphore"
 )
 
-func DownloadPiece(baseUrl string, auth types.Auth, name string) ([]byte, error) {
-	logger.Debug("download: ", name, " from: ", baseUrl)
+func DownloadPiece(baseUrl string, auth types.Auth, name string, streamer common.Address) ([]byte, error) {
+	logger.Debug("download piece: ", name, " from: ", baseUrl)
 	pr, err := GetPieceReceipt(baseUrl, auth, name)
 	if err != nil {
 		return nil, err
@@ -30,7 +30,27 @@ func DownloadPiece(baseUrl string, auth types.Auth, name string) ([]byte, error)
 	need := make([]int, 0, pr.Policy.K)
 	survived := make([]int, 0, pr.Policy.K)
 	for i, rep := range pr.Replicas {
-		val, err := DownloadReplicaFromStream(baseUrl, auth, rep, pr.StoredOn[i])
+		if rep == "" {
+			logger.Warnf("piece %s %d is not stored", pr.Name, i)
+			continue
+		}
+		suc++
+	}
+	if suc < int(pr.Policy.K) {
+		er, err := GetEdge(baseUrl, auth, streamer)
+		if err != nil {
+			return nil, err
+		}
+		baseUrl = er.ExposeURL
+		pr, err = GetPieceReceipt(baseUrl, auth, name)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	suc = 0
+	for i, rep := range pr.Replicas {
+		val, err := DownloadReplica(baseUrl, auth, rep, pr.StoredOn[i])
 		if err != nil {
 			if i < int(pr.Policy.K) {
 				need = append(need, i)
@@ -95,6 +115,7 @@ func DownloadReplica(baseUrl string, auth types.Auth, name string, addr common.A
 func DownloadReplicaOrigin(baseUrl string, auth types.Auth, name string) ([]byte, error) {
 	form := url.Values{}
 	form.Set("name", name)
+	form.Set("type", "replica")
 
 	logger.Debug("download replica: ", name, " at:", baseUrl)
 	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Minute)
@@ -132,7 +153,7 @@ func DownloadReplicaFromStream(baseUrl string, auth types.Auth, name string, add
 	return nil, fmt.Errorf("fail")
 }
 
-func DownloadPieceAndSave(baseUrl string, auth types.Auth, com string, ks types.IPieceStore) error {
+func DownloadPieceAndSave(baseUrl string, auth types.Auth, com string, ks types.IPieceStore, streamer common.Address) error {
 	if ks != nil {
 		_, err := ks.GetPiece(context.TODO(), com, nil, types.Options{})
 		if err == nil {
@@ -140,7 +161,7 @@ func DownloadPieceAndSave(baseUrl string, auth types.Auth, com string, ks types.
 		}
 	}
 
-	resByte, err := DownloadPiece(baseUrl, auth, com)
+	resByte, err := DownloadPiece(baseUrl, auth, com, streamer)
 	if err != nil {
 		return err
 	}
@@ -161,8 +182,8 @@ func CheckFile(baseUrl string, auth types.Auth, name string, ks types.IPieceStor
 		return err
 	}
 
-	for _, com := range fr.Pieces {
-		err = DownloadPieceAndSave(baseUrl, auth, com, ks)
+	for i, com := range fr.Pieces {
+		err = DownloadPieceAndSave(baseUrl, auth, com, ks, fr.Streamer[i])
 		if err != nil {
 			return err
 		}
@@ -180,7 +201,7 @@ func CheckFileParallel(baseUrl string, auth types.Auth, name string, parallel in
 
 	var wg sync.WaitGroup
 	sm := semaphore.NewWeighted(int64(parallel))
-	for _, com := range fr.Pieces {
+	for i, com := range fr.Pieces {
 		err := sm.Acquire(context.TODO(), 1)
 		if err != nil {
 			return err
@@ -190,7 +211,7 @@ func CheckFileParallel(baseUrl string, auth types.Auth, name string, parallel in
 			defer sm.Release(1)
 			defer wg.Done()
 
-			DownloadPieceAndSave(baseUrl, auth, com, ks)
+			DownloadPieceAndSave(baseUrl, auth, com, ks, fr.Streamer[i])
 		}(com, ks)
 	}
 	wg.Wait()
@@ -204,7 +225,7 @@ func Download(baseUrl string, auth types.Auth, name string, ks types.IPieceStore
 		return err
 	}
 
-	for _, com := range fr.Pieces {
+	for i, com := range fr.Pieces {
 		if ks != nil {
 			var b bytes.Buffer
 			_, err := ks.GetPiece(context.TODO(), com, &b, types.Options{})
@@ -214,7 +235,7 @@ func Download(baseUrl string, auth types.Auth, name string, ks types.IPieceStore
 			}
 		}
 
-		resByte, err := DownloadPiece(baseUrl, auth, com)
+		resByte, err := DownloadPiece(baseUrl, auth, com, fr.Streamer[i])
 		if err != nil {
 			return err
 		}
@@ -254,7 +275,7 @@ func DownloadWSize(baseUrl string, auth types.Auth, name string, ks types.IPiece
 
 	sstart := int64(0)
 	pstart := int64(0)
-	for _, com := range fr.Pieces {
+	for i, com := range fr.Pieces {
 		pr, err := GetPieceReceipt(baseUrl, auth, com)
 		if err != nil {
 			return err
@@ -280,7 +301,7 @@ func DownloadWSize(baseUrl string, auth types.Auth, name string, ks types.IPiece
 			}
 		}
 
-		resByte, err := DownloadPiece(baseUrl, auth, com)
+		resByte, err := DownloadPiece(baseUrl, auth, com, fr.Streamer[i])
 		if err != nil {
 			return err
 		}
