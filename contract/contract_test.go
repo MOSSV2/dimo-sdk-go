@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/MOSSV2/dimo-sdk-go/lib/bls"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -171,5 +172,21 @@ func TestBlock(t *testing.T) {
 			t.Fatal(err)
 		}
 		t.Log(bk)
+	}
+}
+
+func TestMarshal(t *testing.T) {
+	var g bls.G1
+	g.ScalarMultiplicationBase(big.NewInt(10))
+
+	gsbyte := G1InSolidity(g)
+	gr, err := SolidityToG1(gsbyte)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(g.String())
+	fmt.Println(gr.String())
+	if !g.Equal(&gr) {
+		t.Fatal("unequal")
 	}
 }

@@ -11,6 +11,7 @@ import (
 
 	"github.com/MOSSV2/dimo-sdk-go/lib/log"
 	"github.com/MOSSV2/dimo-sdk-go/lib/types"
+
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 )

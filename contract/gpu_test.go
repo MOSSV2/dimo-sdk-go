@@ -10,6 +10,7 @@ import (
 
 	"github.com/MOSSV2/dimo-sdk-go/lib/types"
 	"github.com/MOSSV2/dimo-sdk-go/lib/utils"
+
 	"github.com/ethereum/go-ethereum/crypto"
 )
 

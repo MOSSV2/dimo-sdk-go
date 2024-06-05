@@ -80,7 +80,7 @@ func (k *pieceStore) GetReplicaBySerial(ctx context.Context, serial uint64) (str
 }
 
 func (k *pieceStore) GetReplica(ctx context.Context, name string, w io.Writer, opt types.Options) (types.ReplicaCore, error) {
-	logger.Debug("GetPiece: ", name, opt)
+	logger.Debug("GetReplica: ", name, opt)
 	res := new(types.ReplicaCore)
 
 	dsKey := types.NewKey(types.DsReplica, name)
@@ -118,7 +118,7 @@ func (k *pieceStore) GetReplica(ctx context.Context, name string, w io.Writer, o
 }
 
 func (k *pieceStore) PutReplicaWitness(ctx context.Context, addr common.Address, rc types.ReplicaWitness) error {
-	logger.Debug("PutReplicaWitness: ", addr, rc)
+	logger.Debug("PutReplicaWitness: ", addr, rc.Index)
 
 	dsKey := types.NewKey(types.DsReplica, addr.String(), rc.Index)
 
@@ -154,6 +154,7 @@ func (k *pieceStore) GetReplicaWitness(ctx context.Context, addr common.Address,
 }
 
 func (k *pieceStore) DeleteData(ctx context.Context, name string) error {
+	logger.Debug("DeleteData: ", name)
 	dskey := types.NewKey(types.DsFile, name)
 	return k.fs.Delete(dskey)
 }

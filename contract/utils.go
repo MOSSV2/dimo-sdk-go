@@ -8,6 +8,11 @@ import (
 	"github.com/MOSSV2/dimo-sdk-go/lib/bls"
 )
 
+func G1ToString(g bls.G1) string {
+	gbyte := g.Bytes()
+	return hex.EncodeToString(gbyte[:])
+}
+
 func G1InSolidity(g bls.G1) []byte {
 	val := new(big.Int)
 	g.X.BigInt(val)
@@ -39,12 +44,12 @@ func SolidityToG1(buf []byte) (bls.G1, error) {
 		return res, fmt.Errorf("short g1")
 	}
 
-	val := new(big.Int)
-	ToValue(buf[:48])
+	val := ToValue(buf[:48])
 	res.X.SetBigInt(val)
 
-	ToValue(buf[48:96])
+	val = ToValue(buf[48:96])
 	res.Y.SetBigInt(val)
+
 	return res, nil
 }
 
@@ -63,7 +68,7 @@ func ToBytes(fc int, val *big.Int) []byte {
 }
 
 func ToValue(buf []byte) *big.Int {
-	base := new(big.Int).Lsh(big.NewInt(1), 64)
+	base := big.NewInt(1)
 	tmp := new(big.Int)
 	res := new(big.Int)
 

@@ -1,7 +1,6 @@
 package contract
 
 import (
-	"encoding/hex"
 	"fmt"
 	"math/big"
 
@@ -58,7 +57,7 @@ func HandleAddPiece(log etypes.Log, cabi abi.ABI) (types.PieceCore, error) {
 	if err != nil {
 		return pc, err
 	}
-	pc.Name = hex.EncodeToString(g1.Marshal())
+	pc.Name = G1ToString(g1)
 	pc.Price = inputs[1].(*big.Int)
 	pc.Size = int64(inputs[2].(uint64))
 	pc.Expire = inputs[3].(uint64)
@@ -117,7 +116,7 @@ func HandleAddReplica(log etypes.Log, cabi abi.ABI) (types.ReplicaInChain, error
 	if err != nil {
 		return rc, err
 	}
-	rc.Name = hex.EncodeToString(g1.Marshal())
+	rc.Name = G1ToString(g1)
 	rc.Piece = inputs[1].(uint64)
 	rc.Index = inputs[2].(uint8)
 	rc.Witness.Proof = inputs[3].([]byte)
