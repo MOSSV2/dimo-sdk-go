@@ -39,11 +39,13 @@ func DownloadPiece(baseUrl string, auth types.Auth, name string, streamer common
 	if suc < int(pr.Policy.K) {
 		er, err := GetEdge(baseUrl, auth, streamer)
 		if err != nil {
+			logger.Warnf("%s is not online: %s", streamer, err)
 			return nil, err
 		}
 		baseUrl = er.ExposeURL
 		pr, err = GetPieceReceipt(baseUrl, auth, name)
 		if err != nil {
+			logger.Warn("get piece: ", err)
 			return nil, err
 		}
 	}
@@ -183,7 +185,7 @@ func CheckFile(baseUrl string, auth types.Auth, name string, ks types.IPieceStor
 	}
 
 	for i, com := range fr.Pieces {
-		err = DownloadPieceAndSave(baseUrl, auth, com, ks, fr.Streamer[i])
+		err = DownloadPieceAndSave(baseUrl, auth, com, ks, fr.Streams[i])
 		if err != nil {
 			return err
 		}
@@ -211,7 +213,7 @@ func CheckFileParallel(baseUrl string, auth types.Auth, name string, parallel in
 			defer sm.Release(1)
 			defer wg.Done()
 
-			DownloadPieceAndSave(baseUrl, auth, com, ks, fr.Streamer[i])
+			DownloadPieceAndSave(baseUrl, auth, com, ks, fr.Streams[i])
 		}(com, ks)
 	}
 	wg.Wait()
@@ -235,7 +237,7 @@ func Download(baseUrl string, auth types.Auth, name string, ks types.IPieceStore
 			}
 		}
 
-		resByte, err := DownloadPiece(baseUrl, auth, com, fr.Streamer[i])
+		resByte, err := DownloadPiece(baseUrl, auth, com, fr.Streams[i])
 		if err != nil {
 			return err
 		}
@@ -301,7 +303,7 @@ func DownloadWSize(baseUrl string, auth types.Auth, name string, ks types.IPiece
 			}
 		}
 
-		resByte, err := DownloadPiece(baseUrl, auth, com, fr.Streamer[i])
+		resByte, err := DownloadPiece(baseUrl, auth, com, fr.Streams[i])
 		if err != nil {
 			return err
 		}

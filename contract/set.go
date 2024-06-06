@@ -214,6 +214,10 @@ func AddReplica(sk *ecdsa.PrivateKey, rc types.ReplicaCore, pf []byte) error {
 		return err
 	}
 
+	if _pi == 0 {
+		return fmt.Errorf("%s is not on chain", rc.Piece)
+	}
+
 	tx, err := fi.AddReplica(au, rb, _pi, rc.Index, pf)
 	if err != nil {
 		return err
@@ -252,7 +256,7 @@ func SubmitProof(sk *ecdsa.PrivateKey, _ep uint64, _com []byte, pf []byte) error
 	return nil
 }
 
-func Settle(sk *ecdsa.PrivateKey, _epoch uint64) error {
+func Settle(sk *ecdsa.PrivateKey, _money *big.Int) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()
 	fi, err := NewPiece(ctx)
@@ -264,7 +268,7 @@ func Settle(sk *ecdsa.PrivateKey, _epoch uint64) error {
 		return err
 	}
 
-	tx, err := fi.Settle(au, _epoch)
+	tx, err := fi.Settle(au, _money)
 	if err != nil {
 		return err
 	}

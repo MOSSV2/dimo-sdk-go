@@ -34,8 +34,8 @@ func (frc *FileCore) Deserialize(b []byte) error {
 
 type FileReceipt struct {
 	FileCore
-	Streamer []common.Address
-	Pieces   []string
+	Streams []common.Address
+	Pieces  []string
 }
 
 func (fr *FileReceipt) Serialize() ([]byte, error) {
