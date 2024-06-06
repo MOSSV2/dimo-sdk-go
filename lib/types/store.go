@@ -18,6 +18,7 @@ const (
 	DsFile
 	DsPiece
 	DsReplica
+	DsEpoch
 	DsModel
 	DsSpace
 	DsGPU

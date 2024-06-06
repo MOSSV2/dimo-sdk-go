@@ -175,6 +175,25 @@ func TestBlock(t *testing.T) {
 	}
 }
 
+func TestChoose(t *testing.T) {
+	_, addr := makeAccount()
+
+	seed := [32]byte{100}
+	count := 10
+	pcnt := 0
+	for i := 0; i < 20; i++ {
+		ci, err := choose(addr, seed, uint64(count), uint64(pcnt), uint64(i))
+		if err != nil {
+			t.Fatal(err)
+		}
+		nci := Choose(addr, seed, uint64(count), uint64(pcnt), uint64(i))
+		if ci != nci {
+			t.Fatal("unequal at:", i, ci, nci)
+		}
+	}
+
+}
+
 func TestMarshal(t *testing.T) {
 	var g bls.G1
 	g.ScalarMultiplicationBase(big.NewInt(10))

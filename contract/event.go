@@ -11,6 +11,31 @@ import (
 	etypes "github.com/ethereum/go-ethereum/core/types"
 )
 
+func HandleSetEpoch(log etypes.Log, cabi abi.ABI) (types.EpochInfo, error) {
+	ei := types.EpochInfo{}
+
+	evInfo, ok := cabi.Events["SetEpoch"]
+	if !ok {
+		return ei, fmt.Errorf("no event 'SetEpoch' in ABI")
+	}
+
+	ld, err := cabi.Unpack(evInfo.Name, log.Data)
+	if err != nil {
+		return ei, err
+	}
+	if len(ld) != 1 {
+		return ei, fmt.Errorf("invalid log data length")
+	}
+	ei.Epoch = ld[0].(uint64)
+	bh, seed, err := GetEpochInfo(ei.Epoch)
+	if err != nil {
+		return ei, err
+	}
+	ei.Height = bh
+	ei.Seed = seed
+	return ei, nil
+}
+
 func HandleAddPiece(log etypes.Log, cabi abi.ABI) (types.PieceCore, error) {
 	pc := types.PieceCore{}
 

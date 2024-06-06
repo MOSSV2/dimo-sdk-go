@@ -2,6 +2,7 @@ package contract
 
 import (
 	"context"
+	"encoding/binary"
 	"fmt"
 	"math/big"
 	"time"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 )
 
 func GetInstAddr(ctx context.Context, typ string) (common.Address, error) {
@@ -35,14 +37,29 @@ func GetOrder(pcnt, count uint64) (uint8, error) {
 	return ri.GetOrder(&bind.CallOpts{From: Base}, pcnt, count)
 }
 
-func Choose(addr common.Address, seed [32]byte, pcnt, count uint64, i uint64) (uint64, error) {
+func choose(addr common.Address, seed [32]byte, count, pcnt uint64, i uint64) (uint64, error) {
 	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Second)
 	defer cancle()
 	ri, err := NewEVerify(ctx)
 	if err != nil {
 		return 0, err
 	}
-	return ri.Choose(&bind.CallOpts{From: Base}, addr, seed, pcnt, count, i)
+	return ri.Choose(&bind.CallOpts{From: Base}, addr, seed, count, pcnt, i)
+}
+
+func Choose(addr common.Address, seed [32]byte, count, pcnt uint64, index uint64) uint64 {
+	if pcnt+index < count {
+		return pcnt + index
+	}
+	buf := make([]byte, 8)
+	binary.BigEndian.PutUint64(buf, index)
+	if pcnt > 0 {
+		buf = crypto.Keccak256(seed[:], addr.Bytes(), buf)
+		res := new(big.Int).SetBytes(buf)
+		res.Mod(res, big.NewInt(int64(pcnt)))
+		return res.Uint64()
+	}
+	return pcnt
 }
 
 func GetEpochInfo(_epoch uint64) (*big.Int, [32]byte, error) {
@@ -171,6 +188,18 @@ func GetRevenue(addr common.Address, typ string) (*big.Int, error) {
 	defer cancle()
 
 	switch typ {
+	case "piece":
+		gi, err := NewPiece(ctx)
+		if err != nil {
+			return res, err
+		}
+		si, err := gi.GetStore(&bind.CallOpts{From: addr}, addr)
+		if err != nil {
+			return res, err
+		}
+
+		res.Set(si.Revenue)
+		return res, nil
 	case "gpu":
 		gi, err := NewGPU(ctx)
 		if err != nil {
