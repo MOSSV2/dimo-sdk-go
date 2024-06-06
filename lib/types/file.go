@@ -2,6 +2,7 @@ package types
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"math/big"
 	"time"
@@ -11,7 +12,17 @@ import (
 )
 
 type Policy struct {
-	N, K uint8
+	N uint8
+	K uint8
+}
+
+func (p Policy) Check() error {
+	switch {
+	case p.N == 6 && p.K == 4:
+	default:
+		return fmt.Errorf("unsupported rs policy: %d %d", p.N, p.K)
+	}
+	return nil
 }
 
 type FileCore struct {

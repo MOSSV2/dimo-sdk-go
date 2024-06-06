@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strconv"
 	"strings"
 	"time"
 
@@ -23,7 +24,7 @@ import (
 	"github.com/schollz/progressbar/v3"
 )
 
-func Upload(baseUrl string, auth types.Auth, filePath string, name string) (types.FileFull, common.Address, error) {
+func Upload(baseUrl string, auth types.Auth, policy types.Policy, filePath string, name string) (types.FileFull, common.Address, error) {
 	var res types.FileFull
 	er, err := ListEdge(baseUrl, auth, types.StreamType)
 	if err != nil {
@@ -56,7 +57,7 @@ func Upload(baseUrl string, auth types.Auth, filePath string, name string) (type
 		if em.Type != types.StreamType {
 			continue
 		}
-		fr, err := UploadData(em.ExposeURL, auth, filePath)
+		fr, err := UploadData(em.ExposeURL, auth, policy, filePath)
 		if err != nil {
 			logger.Debug("upload: ", filePath, " to: ", em.ExposeURL, " fail: ", err)
 			if !strings.Contains(err.Error(), "already has file") {
@@ -77,7 +78,7 @@ func Upload(baseUrl string, auth types.Auth, filePath string, name string) (type
 	return res, common.Address{}, fmt.Errorf("no avail streamer")
 }
 
-func UploadData(baseUrl string, auth types.Auth, filePath string) (types.FileFull, error) {
+func UploadData(baseUrl string, auth types.Auth, policy types.Policy, filePath string) (types.FileFull, error) {
 	logger.Debug("upload: ", filePath, " to: ", baseUrl)
 	var res types.FileFull
 	p, err := homedir.Expand(filePath)
@@ -92,6 +93,16 @@ func UploadData(baseUrl string, auth types.Auth, filePath string) (types.FileFul
 	go func() {
 		defer ipw.Close()
 		defer mwriter.Close()
+
+		err = mwriter.WriteField("rsn", strconv.Itoa(int(policy.N)))
+		if err != nil {
+			return
+		}
+
+		err = mwriter.WriteField("rsk", strconv.Itoa(int(policy.K)))
+		if err != nil {
+			return
+		}
 
 		part, err := mwriter.CreateFormFile("file", p)
 		if err != nil {

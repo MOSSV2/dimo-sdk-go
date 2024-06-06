@@ -209,12 +209,12 @@ func CheckFileParallel(baseUrl string, auth types.Auth, name string, parallel in
 			return err
 		}
 		wg.Add(1)
-		go func(com string, ks types.IPieceStore) {
+		go func(ni int, com string, ks types.IPieceStore) {
 			defer sm.Release(1)
 			defer wg.Done()
 
-			DownloadPieceAndSave(baseUrl, auth, com, ks, fr.Streams[i])
-		}(com, ks)
+			DownloadPieceAndSave(baseUrl, auth, com, ks, fr.Streams[ni])
+		}(i, com, ks)
 	}
 	wg.Wait()
 

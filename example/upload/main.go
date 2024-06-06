@@ -13,6 +13,7 @@ import (
 
 	"github.com/MOSSV2/dimo-sdk-go/contract"
 	"github.com/MOSSV2/dimo-sdk-go/lib/key"
+	"github.com/MOSSV2/dimo-sdk-go/lib/types"
 	"github.com/MOSSV2/dimo-sdk-go/sdk"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/mitchellh/go-homedir"
@@ -79,9 +80,14 @@ func UploadFile(sk *ecdsa.PrivateKey, fp string) error {
 		return err
 	}
 
+	policy := types.Policy{
+		N: 6,
+		K: 4,
+	}
+
 	if !fi.IsDir() {
 		// upload to stream and submit to gateway
-		res, submitter, err := sdk.Upload(sdk.ServerURL, au, fp, "")
+		res, submitter, err := sdk.Upload(sdk.ServerURL, au, policy, fp, "")
 		if err != nil {
 			return err
 		}
@@ -111,7 +117,7 @@ func UploadFile(sk *ecdsa.PrivateKey, fp string) error {
 		if fi.IsDir() {
 			return nil
 		}
-		res, submitter, err := sdk.Upload(sdk.ServerURL, au, fileName, "")
+		res, submitter, err := sdk.Upload(sdk.ServerURL, au, policy, fileName, "")
 		if err != nil {
 			return nil
 		}
