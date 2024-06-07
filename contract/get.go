@@ -26,7 +26,7 @@ func GetInstAddr(ctx context.Context, typ string) (common.Address, error) {
 	return bi.Get(&bind.CallOpts{From: Base}, typ)
 }
 
-func GetOrder(pcnt, count uint64) (uint8, error) {
+func getOrder(count, pcnt uint64) (uint8, error) {
 	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Second)
 	defer cancle()
 
@@ -34,7 +34,35 @@ func GetOrder(pcnt, count uint64) (uint8, error) {
 	if err != nil {
 		return 0, err
 	}
-	return ri.GetOrder(&bind.CallOpts{From: Base}, pcnt, count)
+	return ri.GetOrder(&bind.CallOpts{From: Base}, count, pcnt)
+}
+
+func GetOrder(count, pcnt uint64) (uint8, uint64) {
+	if count == 0 {
+		return 0, 0
+	}
+	total := uint64(8)
+	order := uint8(1)
+	for total < count {
+		total *= 8
+		order += 1
+	}
+	if order > 4 {
+		total /= 8
+		order -= 1
+	}
+
+	if order > 6 {
+		total /= 8
+		order -= 1
+	}
+
+	for total < count-pcnt {
+		total *= 8
+		order += 1
+	}
+
+	return order, total
 }
 
 func choose(addr common.Address, seed [32]byte, count, pcnt uint64, i uint64) (uint64, error) {

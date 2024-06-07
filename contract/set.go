@@ -9,6 +9,7 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/MOSSV2/dimo-sdk-go/lib/bls"
 	"github.com/MOSSV2/dimo-sdk-go/lib/log"
 	"github.com/MOSSV2/dimo-sdk-go/lib/types"
 
@@ -189,6 +190,7 @@ func AddPiece(sk *ecdsa.PrivateKey, pc types.PieceCore) error {
 }
 
 func AddReplica(sk *ecdsa.PrivateKey, rc types.ReplicaCore, pf []byte) error {
+	logger.Debug("add replica: ", rc)
 	rb, err := G1StringInSolidity(rc.Name)
 	if err != nil {
 		return err
@@ -218,6 +220,7 @@ func AddReplica(sk *ecdsa.PrivateKey, rc types.ReplicaCore, pf []byte) error {
 		return fmt.Errorf("%s is not on chain", rc.Piece)
 	}
 
+	fmt.Println("add replica: ", rc)
 	tx, err := fi.AddReplica(au, rb, _pi, rc.Index, pf)
 	if err != nil {
 		return err
@@ -230,7 +233,144 @@ func AddReplica(sk *ecdsa.PrivateKey, rc types.ReplicaCore, pf []byte) error {
 	return nil
 }
 
-func SubmitProof(sk *ecdsa.PrivateKey, _ep uint64, _com []byte, pf []byte) error {
+func ChallengeRS(sk *ecdsa.PrivateKey, _pn, _rn string, _pri uint8) error {
+	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
+	defer cancle()
+
+	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	if err != nil {
+		return err
+	}
+
+	ti, err := NewToken(ctx)
+	if err != nil {
+		return err
+	}
+
+	tx, err := ti.IncreaseAllowance(au, BankAddr, big.NewInt(int64(DefaultPenalty)))
+	if err != nil {
+		return err
+	}
+	err = CheckTx(DevChain, tx.Hash())
+	if err != nil {
+		return err
+	}
+
+	rsp, err := NewRSProof(ctx)
+	if err != nil {
+		return err
+	}
+	pname, err := G1StringInSolidity(_pn)
+	if err != nil {
+		return err
+	}
+
+	rname, err := G1StringInSolidity(_rn)
+	if err != nil {
+		return err
+	}
+
+	tx, err = rsp.Challenge(au, pname, rname, _pri)
+	if err != nil {
+		return err
+	}
+
+	err = CheckTx(DevChain, tx.Hash())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ProveRS(sk *ecdsa.PrivateKey, _pn, _rn string, _pri uint8, _pf []byte) error {
+	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
+	defer cancle()
+	rsp, err := NewRSProof(ctx)
+	if err != nil {
+		return err
+	}
+
+	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	if err != nil {
+		return err
+	}
+
+	pname, err := G1StringInSolidity(_pn)
+	if err != nil {
+		return err
+	}
+
+	rname, err := G1StringInSolidity(_rn)
+	if err != nil {
+		return err
+	}
+
+	tx, err := rsp.Prove(au, pname, rname, _pri, _pf)
+	if err != nil {
+		return err
+	}
+
+	err = CheckTx(DevChain, tx.Hash())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CheckRSChallenge(sk *ecdsa.PrivateKey, _pn, _rn string, _pri uint8) error {
+	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
+	defer cancle()
+	rsp, err := NewRSProof(ctx)
+	if err != nil {
+		return err
+	}
+
+	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	if err != nil {
+		return err
+	}
+
+	pname, err := G1StringInSolidity(_pn)
+	if err != nil {
+		return err
+	}
+
+	rname, err := G1StringInSolidity(_rn)
+	if err != nil {
+		return err
+	}
+
+	piece, err := NewPiece(ctx)
+	if err != nil {
+		return err
+	}
+
+	_pi, err := piece.GetPIndex(&bind.CallOpts{From: au.From}, pname)
+	if err != nil {
+		return err
+	}
+
+	_ri, err := piece.GetRIndex(&bind.CallOpts{From: au.From}, rname)
+	if err != nil {
+		return err
+	}
+
+	tx, err := rsp.Check(au, _pi, _ri, _pri)
+	if err != nil {
+		return err
+	}
+
+	err = CheckTx(DevChain, tx.Hash())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func SubmitProof(sk *ecdsa.PrivateKey, _ep uint64, _pf bls.EpochProof) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()
 	pi, err := NewEProof(ctx)
@@ -243,7 +383,71 @@ func SubmitProof(sk *ecdsa.PrivateKey, _ep uint64, _com []byte, pf []byte) error
 		return err
 	}
 
-	tx, err := pi.Submit(au, _ep, _com, pf)
+	_sum := G1InSolidity(_pf.Sum)
+	_pfb := G1InSolidity(_pf.H)
+	_frb := FrInSolidity(_pf.ClaimedValue)
+	_pfb = append(_pfb, _frb...)
+
+	tx, err := pi.Submit(au, _ep, _sum, _pfb)
+	if err != nil {
+		return err
+	}
+
+	err = CheckTx(DevChain, tx.Hash())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ChallengeKZG(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64) error {
+	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
+	defer cancle()
+	pi, err := NewEProof(ctx)
+	if err != nil {
+		return err
+	}
+
+	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	if err != nil {
+		return err
+	}
+
+	tx, err := pi.ChalKZG(au, addr, _ep)
+	if err != nil {
+		return err
+	}
+
+	err = CheckTx(DevChain, tx.Hash())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ProveKZG(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64, _wroot []byte, _pf []byte) error {
+	if len(_wroot) != 32 {
+		return fmt.Errorf("invalid witness root length")
+	}
+
+	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
+	defer cancle()
+	pi, err := NewEProof(ctx)
+	if err != nil {
+		return err
+	}
+
+	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	if err != nil {
+		return err
+	}
+
+	var _wt [32]byte
+	copy(_wt[:], _wroot)
+
+	tx, err := pi.ProveKZG(au, addr, _ep, _wt, _pf)
 	if err != nil {
 		return err
 	}

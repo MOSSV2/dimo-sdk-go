@@ -42,6 +42,8 @@ var (
 	DefaultSpacePrice = 1e10
 	DefaultSpaceEpoch = 201
 
+	DefaultPenalty = 1e17
+
 	L1Bridge = common.HexToAddress("0x6C0192A83005b0a7c9Daf0b8631b9A01D779967e")
 
 	Base = common.HexToAddress("0x61Ea24745A3F7Bcbb67eD95B674fEcfbb331ABd0")
@@ -109,12 +111,8 @@ func CheckTx(endPoint string, txHash common.Hash) error {
 	var receipt *types.Receipt
 	var err error
 
-	t := 3
 	for i := 0; i < 10; i++ {
-		if i != 0 {
-			t = 3 * i
-		}
-		time.Sleep(time.Duration(t) * time.Second)
+		time.Sleep(time.Duration(3*(i+1)) * time.Second)
 		receipt, err = GetTransactionReceipt(endPoint, txHash)
 		if err == nil {
 			break

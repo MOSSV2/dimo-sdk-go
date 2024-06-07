@@ -53,6 +53,13 @@ func SolidityToG1(buf []byte) (bls.G1, error) {
 	return res, nil
 }
 
+func FrInSolidity(g bls.Fr) []byte {
+	val := new(big.Int)
+	g.BigInt(val)
+	res := ToBytes(6, val)
+	return res
+}
+
 func ToBytes(fc int, val *big.Int) []byte {
 	base := new(big.Int).Lsh(big.NewInt(1), 64)
 	tmpb := new(big.Int).Set(val)

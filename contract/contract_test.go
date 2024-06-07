@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"math/big"
+	"math/rand"
 	"os"
 	"testing"
 	"time"
@@ -191,7 +192,21 @@ func TestChoose(t *testing.T) {
 			t.Fatal("unequal at:", i, ci, nci)
 		}
 	}
+}
 
+func TestOrder(t *testing.T) {
+	for i := 0; i < 100; i++ {
+		count := rand.Uint64() / 2
+		pcnt := rand.Int63n(int64(count))
+		ci, err := getOrder(uint64(count), uint64(pcnt))
+		if err != nil {
+			t.Fatal(err)
+		}
+		nci, _ := GetOrder(uint64(count), uint64(pcnt))
+		if ci != nci {
+			t.Fatal("unequal at:", i, ci, nci)
+		}
+	}
 }
 
 func TestMarshal(t *testing.T) {
@@ -207,5 +222,17 @@ func TestMarshal(t *testing.T) {
 	fmt.Println(gr.String())
 	if !g.Equal(&gr) {
 		t.Fatal("unequal")
+	}
+}
+
+func TestReceipt(t *testing.T) {
+	tx := common.HexToHash("0xc789d7c4174ec125b97a3194c9278a7968b4ee7a4c67cae241ad7d7fd2f38d59")
+	receipt, err := GetTransactionReceipt(DevChain, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, log := range receipt.Logs {
+		fmt.Println(log)
 	}
 }
