@@ -3,13 +3,16 @@ package contract
 import (
 	"context"
 	"crypto/ecdsa"
+	"encoding/hex"
 	"fmt"
 	"math/big"
+	"strings"
 	"time"
 
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/token"
 	"github.com/MOSSV2/dimo-sdk-go/lib/utils"
 
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -124,12 +127,108 @@ func CheckTx(endPoint string, txHash common.Hash) error {
 	}
 	fmt.Println("gas cost: ", receipt.GasUsed)
 	if receipt.Status == 0 { // 0 means fail
+		err = AnalyzeTransactionFailure(txHash)
+		fmt.Println("tx revert: ", err)
 		if receipt.GasUsed != receipt.CumulativeGasUsed {
 			return fmt.Errorf("%s transaction exceed gas limit", txHash)
 		}
 		return fmt.Errorf("%s transaction mined but execution failed, check your input", txHash)
 	}
 	return nil
+}
+
+func AnalyzeTransactionFailure(txHash common.Hash) error {
+	client, err := ethclient.Dial(DevChain)
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+	tx, isPending, err := client.TransactionByHash(context.Background(), txHash)
+	if err != nil {
+		return fmt.Errorf("failed to get transaction by hash: %v", err)
+	}
+
+	if isPending {
+		return fmt.Errorf("transaction is still pending")
+	}
+
+	// 获取交易回执
+	receipt, err := client.TransactionReceipt(context.Background(), txHash)
+	if err != nil {
+		return fmt.Errorf("failed to get transaction receipt: %v", err)
+	}
+
+	// 获取失败的合约调用信息
+	callMsg := ethereum.CallMsg{
+		From:     getFrom(tx),
+		To:       tx.To(),
+		Gas:      tx.Gas(),
+		GasPrice: tx.GasPrice(),
+		Value:    tx.Value(),
+		Data:     tx.Data(),
+	}
+
+	_, err = client.CallContract(context.Background(), callMsg, receipt.BlockNumber)
+	if err != nil {
+		errData := err.Error()
+		if strings.HasPrefix(errData, "execution reverted") {
+			errorMessage := parseRevertReason(errData)
+			return fmt.Errorf("revert reason: %s", errorMessage)
+		}
+		return fmt.Errorf("contract call error: %v", err)
+	} else {
+		return fmt.Errorf("no revert reason found, check gas limit or other issues")
+	}
+}
+
+func getFrom(tx *types.Transaction) common.Address {
+	getSigner := func(trans *types.Transaction) types.Signer {
+		v, _, _ := trans.RawSignatureValues()
+		var isProtectedV bool
+		for loop := true; loop; loop = false {
+			if v.BitLen() <= 8 {
+				vv := v.Uint64()
+				isProtectedV = vv != 27 && vv != 28
+				break
+			}
+			isProtectedV = true
+		}
+		if v.Sign() != 0 && isProtectedV {
+			var chainId *big.Int
+			for loop := true; loop; loop = false {
+				if v.BitLen() <= 64 {
+					vv := v.Uint64()
+					if vv == 27 || vv == 28 {
+						chainId = new(big.Int)
+						break
+					}
+					chainId = new(big.Int).SetUint64((vv - 35) / 2)
+					break
+				}
+				nv := new(big.Int).Sub(v, big.NewInt(35))
+				chainId = nv.Div(nv, big.NewInt(2))
+			}
+			return types.NewEIP155Signer(chainId)
+		} else {
+			return types.HomesteadSigner{}
+		}
+	}
+	signer := getSigner(tx)
+	from, err := types.Sender(signer, tx)
+	if err != nil {
+		return common.Address{}
+	}
+	return from
+}
+
+func parseRevertReason(errData string) string {
+	if len(errData) > 138 {
+		reason := errData[138:]
+		if reasonBytes, err := hex.DecodeString(reason); err == nil {
+			return string(reasonBytes)
+		}
+	}
+	return "unknown revert reason"
 }
 
 func Transfer(ep string, sk *ecdsa.PrivateKey, toAddr common.Address, value *big.Int) error {

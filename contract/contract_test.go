@@ -232,7 +232,15 @@ func TestReceipt(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	if receipt.Status == 1 {
+		fmt.Println("tx success")
+		return
+	}
+
 	for _, log := range receipt.Logs {
 		fmt.Println(log)
 	}
+
+	err = AnalyzeTransactionFailure(tx)
+	fmt.Println("tx fail: ", err)
 }
