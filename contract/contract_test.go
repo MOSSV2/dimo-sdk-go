@@ -226,12 +226,15 @@ func TestMarshal(t *testing.T) {
 }
 
 func TestReceipt(t *testing.T) {
-	tx := common.HexToHash("0xc789d7c4174ec125b97a3194c9278a7968b4ee7a4c67cae241ad7d7fd2f38d59")
+	tx := common.HexToHash("0xa781ef9b7d27821e727e5ae6fb2a2a1bfac9668df78dbec689c3621ca794643c")
 	receipt, err := GetTransactionReceipt(DevChain, tx)
 	if err != nil {
 		t.Fatal(err)
 	}
 
+	fmt.Println("tx receipt: ", receipt)
+
+	fmt.Println("tx status: ", receipt.Status)
 	if receipt.Status == 1 {
 		fmt.Println("tx success")
 		return

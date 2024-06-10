@@ -3,6 +3,7 @@ package bls
 import (
 	"bytes"
 	"crypto/sha256"
+	"encoding/binary"
 	"encoding/hex"
 	"fmt"
 	"io"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/MOSSV2/dimo-sdk-go/lib/types"
 	"github.com/MOSSV2/dimo-sdk-go/lib/utils"
+	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/consensys/gnark-crypto/ecc/bls12-377/fr"
 	"github.com/consensys/gnark-crypto/ecc/bw6-761/fr/mimc"
@@ -592,6 +594,35 @@ func TestMarshal(t *testing.T) {
 	ewb := ew.Serialize()
 	new := new(EncodeWitness)
 	err := new.Deserialize(ewb)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestAcc(t *testing.T) {
+	pk := GenKZGKey(MaxShard/1024, big.NewInt(123456789))
+
+	seed := GenRandom(32)
+	ap := NewAccProof(pk)
+	for i := 0; i < 30; i++ {
+		fslen := rand.Intn(MaxSize / 1024)
+		data := GenRandom(fslen)
+		data = Pad(data)
+		ic, err := pk.GenCommitment(32, data, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+		com := hex.EncodeToString(ic.Serialize())
+		coeByte := make([]byte, 8)
+		binary.BigEndian.PutUint64(coeByte, uint64(i))
+		coeByte = crypto.Keccak256(seed[:], coeByte)
+		err = ap.Add(data, 32, com, coeByte)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	_, err := ap.GenProof(seed)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -114,8 +114,10 @@ func CheckTx(endPoint string, txHash common.Hash) error {
 	var receipt *types.Receipt
 	var err error
 
+	t := 0
 	for i := 0; i < 10; i++ {
-		time.Sleep(time.Duration(3*(i+1)) * time.Second)
+		t = 2*t + 1
+		time.Sleep(time.Duration(t) * time.Second)
 		receipt, err = GetTransactionReceipt(endPoint, txHash)
 		if err == nil {
 			break

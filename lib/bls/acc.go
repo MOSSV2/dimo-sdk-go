@@ -68,7 +68,7 @@ func (ap *AccProof) Add(d []byte, slen int, com string, coeByte []byte) error {
 		ap.elements = append(ap.elements, padding...)
 	}
 
-	for i := 0; i < len(ap.elements); i++ {
+	for i := 0; i < len(shards); i++ {
 		ap.elements[i].Add(&ap.elements[i], &shards[i])
 	}
 
@@ -76,6 +76,11 @@ func (ap *AccProof) Add(d []byte, slen int, com string, coeByte []byte) error {
 }
 
 func (ap *AccProof) GenProof(rnd []byte) (EpochProof, error) {
+	ep := EpochProof{}
+	fmt.Println("element length: ", len(ap.elements))
+	if len(ap.elements) == 0 {
+		return ep, fmt.Errorf("empty shards")
+	}
 	if len(ap.elements) < MinShard {
 		var fr Fr
 		ap.elements = append(ap.elements, fr)
@@ -88,7 +93,6 @@ func (ap *AccProof) GenProof(rnd []byte) (EpochProof, error) {
 		G1: ap.pk.Pk.G1,
 	}
 
-	ep := EpochProof{}
 	op, err := kzg.Open(ap.elements, fr_r, srs)
 	if err != nil {
 		return ep, err
