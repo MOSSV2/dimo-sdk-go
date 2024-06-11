@@ -36,6 +36,31 @@ func HandleSetEpoch(log etypes.Log, cabi abi.ABI) (types.EpochInfo, error) {
 	return ei, nil
 }
 
+func HandleChallengeRS(log etypes.Log, cabi abi.ABI) (types.ChallenegRSInfo, error) {
+	ei := types.ChallenegRSInfo{}
+
+	evInfo, ok := cabi.Events["Challenge"]
+	if !ok {
+		return ei, fmt.Errorf("no event 'SetEpoch' in ABI")
+	}
+
+	if len(log.Topics) != 2 {
+		return ei, fmt.Errorf("invalid log topic length")
+	}
+	ei.Store = common.HexToAddress(log.Topics[1].Hex())
+
+	ld, err := cabi.Unpack(evInfo.Name, log.Data)
+	if err != nil {
+		return ei, err
+	}
+	if len(ld) != 2 {
+		return ei, fmt.Errorf("invalid log data length")
+	}
+	ei.Piece = ld[0].(uint64)
+	ei.Replica = ld[1].(uint64)
+	return ei, nil
+}
+
 func HandleAddPiece(log etypes.Log, cabi abi.ABI) (types.PieceCore, error) {
 	pc := types.PieceCore{}
 

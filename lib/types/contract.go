@@ -26,3 +26,17 @@ func (ei *EpochInfo) Serialize() ([]byte, error) {
 func (ei *EpochInfo) Deserialize(b []byte) error {
 	return cbor.Unmarshal(b, ei)
 }
+
+type ChallenegRSInfo struct {
+	Store   common.Address
+	Replica uint64
+	Piece   uint64
+}
+
+func (ei *ChallenegRSInfo) Serialize() ([]byte, error) {
+	return cbor.Marshal(ei)
+}
+
+func (ei *ChallenegRSInfo) Deserialize(b []byte) error {
+	return cbor.Unmarshal(b, ei)
+}

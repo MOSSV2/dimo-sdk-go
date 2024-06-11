@@ -38,6 +38,7 @@ var (
 	//http://unibasechain-scan-405529765.ap-southeast-1.elb.amazonaws.com/
 
 	// Epoch = 5760 blocks; 7.5 epoch/day; should be less
+	DefaultGasLimit     = 8_000_000
 	DefaultGasPrice     = 10
 	DefaultReplicaPrice = 1e14 // 1GB*100day cost 1
 	DefaultStoreEpoch   = 301
@@ -72,7 +73,7 @@ func makeAuth(chainID *big.Int, sk *ecdsa.PrivateKey) (*bind.TransactOpts, error
 	}
 
 	auth.Value = big.NewInt(0)
-	//auth.GasPrice = big.NewInt(int64(DefaultGasPrice))
+	auth.GasLimit = uint64(DefaultGasLimit)
 	client, err := ethclient.Dial(DevChain)
 	if err != nil {
 		return nil, err

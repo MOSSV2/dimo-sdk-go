@@ -388,6 +388,7 @@ func SubmitProof(sk *ecdsa.PrivateKey, _ep uint64, _pf bls.EpochProof) error {
 	_frb := FrInSolidity(_pf.ClaimedValue)
 	_pfb = append(_pfb, _frb...)
 
+	fmt.Println("submit epoch proof: ", au.From, _ep)
 	tx, err := pi.Submit(au, _ep, _sum, _pfb)
 	if err != nil {
 		return err
@@ -402,19 +403,35 @@ func SubmitProof(sk *ecdsa.PrivateKey, _ep uint64, _pf bls.EpochProof) error {
 }
 
 func ChallengeKZG(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64) error {
-	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
+	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Minute)
 	defer cancle()
-	pi, err := NewEProof(ctx)
-	if err != nil {
-		return err
-	}
 
 	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
 	if err != nil {
 		return err
 	}
 
-	tx, err := pi.ChalKZG(au, addr, _ep)
+	ti, err := NewToken(ctx)
+	if err != nil {
+		return err
+	}
+
+	tx, err := ti.IncreaseAllowance(au, BankAddr, big.NewInt(int64(DefaultPenalty)))
+	if err != nil {
+		return err
+	}
+	err = CheckTx(DevChain, tx.Hash())
+	if err != nil {
+		return err
+	}
+
+	pi, err := NewEProof(ctx)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("challenge eproof: ", addr, _ep)
+	tx, err = pi.ChalKZG(au, addr, _ep)
 	if err != nil {
 		return err
 	}
@@ -448,6 +465,213 @@ func ProveKZG(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64, _wroot []by
 	copy(_wt[:], _wroot)
 
 	tx, err := pi.ProveKZG(au, addr, _ep, _wt, _pf)
+	if err != nil {
+		return err
+	}
+
+	err = CheckTx(DevChain, tx.Hash())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ChallengeSum(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64, _qIndex uint8, sum string) error {
+	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Minute)
+	defer cancle()
+
+	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	if err != nil {
+		return err
+	}
+
+	if len(sum) > 0 {
+		ti, err := NewToken(ctx)
+		if err != nil {
+			return err
+		}
+
+		tx, err := ti.IncreaseAllowance(au, BankAddr, big.NewInt(int64(DefaultPenalty)))
+		if err != nil {
+			return err
+		}
+		err = CheckTx(DevChain, tx.Hash())
+		if err != nil {
+			return err
+		}
+
+	}
+
+	pi, err := NewEProof(ctx)
+	if err != nil {
+		return err
+	}
+
+	if len(sum) > 0 {
+		_sum, err := G1StringInSolidity(sum)
+		if err != nil {
+			return err
+		}
+		fmt.Println("challenge eproof sum0: ", addr, _ep)
+		tx, err := pi.Challenge(au, addr, _ep, _sum)
+		if err != nil {
+			return err
+		}
+		err = CheckTx(DevChain, tx.Hash())
+		if err != nil {
+			return err
+		}
+	} else {
+		fmt.Println("challenge eproof sum: ", addr, _ep, _qIndex)
+		tx, err := pi.ChalCom(au, addr, _ep, _qIndex)
+		if err != nil {
+			return err
+		}
+
+		err = CheckTx(DevChain, tx.Hash())
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func ProveSum(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64, coms []bls.G1, _pf []byte) error {
+	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Minute)
+	defer cancle()
+
+	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	if err != nil {
+		return err
+	}
+
+	ti, err := NewToken(ctx)
+	if err != nil {
+		return err
+	}
+
+	tx, err := ti.IncreaseAllowance(au, BankAddr, big.NewInt(int64(DefaultPenalty)))
+	if err != nil {
+		return err
+	}
+	err = CheckTx(DevChain, tx.Hash())
+	if err != nil {
+		return err
+	}
+
+	pi, err := NewEProof(ctx)
+	if err != nil {
+		return err
+	}
+
+	_coms := make([][]byte, len(coms))
+	for i := 0; i < len(coms); i++ {
+		_coms[i] = G1InSolidity(coms[i])
+	}
+
+	fmt.Println("prove eproof sum: ", addr, _ep)
+	tx, err = pi.ProveCom(au, addr, _ep, _coms, _pf)
+	if err != nil {
+		return err
+	}
+
+	err = CheckTx(DevChain, tx.Hash())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ChallengeOne(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64, _qIndex uint8) error {
+	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Minute)
+	defer cancle()
+
+	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	if err != nil {
+		return err
+	}
+
+	pi, err := NewEProof(ctx)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("challenge eproof one: ", addr, _ep, _qIndex)
+	tx, err := pi.ChalOne(au, addr, _ep, _qIndex)
+	if err != nil {
+		return err
+	}
+
+	err = CheckTx(DevChain, tx.Hash())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ProveOne(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64, com bls.G1, _pf []byte) error {
+	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Minute)
+	defer cancle()
+
+	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	if err != nil {
+		return err
+	}
+
+	ti, err := NewToken(ctx)
+	if err != nil {
+		return err
+	}
+
+	tx, err := ti.IncreaseAllowance(au, BankAddr, big.NewInt(int64(DefaultPenalty)))
+	if err != nil {
+		return err
+	}
+	err = CheckTx(DevChain, tx.Hash())
+	if err != nil {
+		return err
+	}
+
+	pi, err := NewEProof(ctx)
+	if err != nil {
+		return err
+	}
+
+	_com := G1InSolidity(com)
+	fmt.Println("prove eproof one: ", addr, _ep)
+	tx, err = pi.ProveOne(au, addr, _ep, _com, _pf)
+	if err != nil {
+		return err
+	}
+
+	err = CheckTx(DevChain, tx.Hash())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CheckEpochChallenge(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64) error {
+	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
+	defer cancle()
+
+	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	if err != nil {
+		return err
+	}
+
+	ep, err := NewEProof(ctx)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("check epoch proof: ", addr, _ep)
+	tx, err := ep.Check(au, addr, _ep)
 	if err != nil {
 		return err
 	}
