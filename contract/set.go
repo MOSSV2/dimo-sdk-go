@@ -444,7 +444,7 @@ func ChallengeKZG(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64) error {
 	return nil
 }
 
-func ProveKZG(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64, _wroot []byte, _pf []byte) error {
+func ProveKZG(sk *ecdsa.PrivateKey, _ep uint64, _wroot []byte, _pf []byte) error {
 	if len(_wroot) != 32 {
 		return fmt.Errorf("invalid witness root length")
 	}
@@ -464,7 +464,7 @@ func ProveKZG(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64, _wroot []by
 	var _wt [32]byte
 	copy(_wt[:], _wroot)
 
-	tx, err := pi.ProveKZG(au, addr, _ep, _wt, _pf)
+	tx, err := pi.ProveKZG(au, _ep, _wt, _pf)
 	if err != nil {
 		return err
 	}
@@ -538,7 +538,7 @@ func ChallengeSum(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64, _qIndex
 	return nil
 }
 
-func ProveSum(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64, coms []bls.G1, _pf []byte) error {
+func ProveSum(sk *ecdsa.PrivateKey, _ep uint64, coms []bls.G1, _pf []byte) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Minute)
 	defer cancle()
 
@@ -571,8 +571,8 @@ func ProveSum(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64, coms []bls.
 		_coms[i] = G1InSolidity(coms[i])
 	}
 
-	fmt.Println("prove eproof sum: ", addr, _ep)
-	tx, err = pi.ProveCom(au, addr, _ep, _coms, _pf)
+	fmt.Println("prove eproof sum: ", au.From, _ep)
+	tx, err = pi.ProveCom(au, _ep, _coms, _pf)
 	if err != nil {
 		return err
 	}
@@ -613,7 +613,7 @@ func ChallengeOne(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64, _qIndex
 	return nil
 }
 
-func ProveOne(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64, com bls.G1, _pf []byte) error {
+func ProveOne(sk *ecdsa.PrivateKey, _ep uint64, com bls.G1, _pf []byte) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Minute)
 	defer cancle()
 
@@ -642,8 +642,8 @@ func ProveOne(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64, com bls.G1,
 	}
 
 	_com := G1InSolidity(com)
-	fmt.Println("prove eproof one: ", addr, _ep)
-	tx, err = pi.ProveOne(au, addr, _ep, _com, _pf)
+	fmt.Println("prove eproof one: ", au.From, _ep)
+	tx, err = pi.ProveOne(au, _ep, _com, _pf)
 	if err != nil {
 		return err
 	}
