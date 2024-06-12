@@ -485,13 +485,12 @@ func ChallengeSum(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64, _qIndex
 	if err != nil {
 		return err
 	}
+	ti, err := NewToken(ctx)
+	if err != nil {
+		return err
+	}
 
 	if len(sum) > 0 {
-		ti, err := NewToken(ctx)
-		if err != nil {
-			return err
-		}
-
 		tx, err := ti.IncreaseAllowance(au, BankAddr, big.NewInt(int64(DefaultPenalty)))
 		if err != nil {
 			return err
@@ -500,7 +499,6 @@ func ChallengeSum(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64, _qIndex
 		if err != nil {
 			return err
 		}
-
 	}
 
 	pi, err := NewEProof(ctx)

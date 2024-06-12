@@ -60,6 +60,18 @@ func FrInSolidity(g bls.Fr) []byte {
 	return res
 }
 
+func SolidityToFr(buf []byte) (bls.Fr, error) {
+	var res bls.Fr
+	if len(buf) != 46 {
+		return res, fmt.Errorf("short fr")
+	}
+
+	val := ToValue(buf[:48])
+	res.SetBigInt(val)
+
+	return res, nil
+}
+
 func ToBytes(fc int, val *big.Int) []byte {
 	base := new(big.Int).Lsh(big.NewInt(1), 64)
 	tmpb := new(big.Int).Set(val)

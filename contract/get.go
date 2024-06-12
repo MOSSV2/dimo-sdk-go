@@ -7,9 +7,11 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/MOSSV2/dimo-sdk-go/contract/go/eproof"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/gpu"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/model"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/piece"
+	"github.com/MOSSV2/dimo-sdk-go/contract/go/rsproof"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/space"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -208,6 +210,62 @@ func GetStoreReplica(_a common.Address, _ri uint64) (uint64, error) {
 		return 0, err
 	}
 	return fi.GetSRAt(&bind.CallOpts{From: Base}, _a, _ri)
+}
+
+func GetRSChalInfo(_pi uint64, _pri uint8) (rsproof.RSProofProofInfo, error) {
+	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Second)
+	defer cancle()
+	rsp, err := NewRSProof(ctx)
+	if err != nil {
+		return rsproof.RSProofProofInfo{}, err
+	}
+
+	return rsp.GetProof(&bind.CallOpts{From: Base}, _pi, _pri)
+}
+
+func GetRSMinTime() (int64, error) {
+	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Second)
+	defer cancle()
+	rsp, err := NewRSProof(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	t, err := rsp.MinProveTime(&bind.CallOpts{From: Base})
+	if err != nil {
+		return 0, err
+	}
+
+	t.Mul(t, big.NewInt(int64(DevBlockTime)))
+	return t.Int64(), nil
+}
+
+func GetEpochChalInfo(_a common.Address, _ep uint64) (eproof.IEproofProofInfo, error) {
+	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Second)
+	defer cancle()
+	ep, err := NewEProof(ctx)
+	if err != nil {
+		return eproof.IEproofProofInfo{}, err
+	}
+
+	return ep.GetEProof(&bind.CallOpts{From: Base}, _a, _ep)
+}
+
+func GetEProofMinTime() (int64, error) {
+	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Second)
+	defer cancle()
+	rsp, err := NewEProof(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	t, err := rsp.MinProveTime(&bind.CallOpts{From: Base})
+	if err != nil {
+		return 0, err
+	}
+
+	t.Mul(t, big.NewInt(int64(DevBlockTime)))
+	return t.Int64(), nil
 }
 
 func GetRevenue(addr common.Address, typ string) (*big.Int, error) {

@@ -19,6 +19,8 @@ const (
 	DsPiece
 	DsReplica
 	DsEpoch
+	DsRSProof
+	DSEProof
 	DsModel
 	DsSpace
 	DsGPU

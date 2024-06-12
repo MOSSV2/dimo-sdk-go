@@ -139,15 +139,6 @@ func (rw *ReplicaWitness) Deserialize(b []byte) error {
 	return cbor.Unmarshal(b, rw)
 }
 
-type ReplicaInChain struct {
-	Name     string
-	Serial   uint64
-	Piece    uint64
-	Index    uint8
-	StoredOn common.Address
-	Witness  ReplicaWitness
-}
-
 type IFile interface {
 	AddFile(context.Context, FileReceipt) error
 	GetFile(context.Context, string, Options) (FileReceipt, error)

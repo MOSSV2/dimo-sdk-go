@@ -36,31 +36,6 @@ func HandleSetEpoch(log etypes.Log, cabi abi.ABI) (types.EpochInfo, error) {
 	return ei, nil
 }
 
-func HandleChallengeRS(log etypes.Log, cabi abi.ABI) (types.ChallenegRSInfo, error) {
-	ei := types.ChallenegRSInfo{}
-
-	evInfo, ok := cabi.Events["Challenge"]
-	if !ok {
-		return ei, fmt.Errorf("no event 'SetEpoch' in ABI")
-	}
-
-	if len(log.Topics) != 2 {
-		return ei, fmt.Errorf("invalid log topic length")
-	}
-	ei.Store = common.HexToAddress(log.Topics[1].Hex())
-
-	ld, err := cabi.Unpack(evInfo.Name, log.Data)
-	if err != nil {
-		return ei, err
-	}
-	if len(ld) != 2 {
-		return ei, fmt.Errorf("invalid log data length")
-	}
-	ei.Piece = ld[0].(uint64)
-	ei.Replica = ld[1].(uint64)
-	return ei, nil
-}
-
 func HandleAddPiece(log etypes.Log, cabi abi.ABI) (types.PieceCore, error) {
 	pc := types.PieceCore{}
 
@@ -172,4 +147,93 @@ func HandleAddReplica(log etypes.Log, cabi abi.ABI) (types.ReplicaInChain, error
 	rc.Witness.Proof = inputs[3].([]byte)
 
 	return rc, nil
+}
+
+func HandleRSChallenge(log etypes.Log, cabi abi.ABI) (types.RSChallengeInfo, error) {
+	ei := types.RSChallengeInfo{}
+
+	evInfo, ok := cabi.Events["Challenge"]
+	if !ok {
+		return ei, fmt.Errorf("no event 'Challenge' in ABI")
+	}
+
+	if len(log.Topics) != 2 {
+		return ei, fmt.Errorf("invalid log topic length")
+	}
+	ei.Store = common.HexToAddress(log.Topics[1].Hex())
+
+	ld, err := cabi.Unpack(evInfo.Name, log.Data)
+	if err != nil {
+		return ei, err
+	}
+	if len(ld) != 1 {
+		return ei, fmt.Errorf("invalid log data length")
+	}
+	ei.Replica = ld[0].(uint64)
+	return ei, nil
+}
+
+func HandleSubmitEProof(log etypes.Log, cabi abi.ABI) (types.EpochProof, error) {
+	ei := types.EpochProof{}
+
+	evInfo, ok := cabi.Events["Submit"]
+	if !ok {
+		return ei, fmt.Errorf("no event 'Submit' in ABI")
+	}
+
+	if len(log.Topics) != 2 {
+		return ei, fmt.Errorf("invalid log topic length")
+	}
+	ei.Store = common.HexToAddress(log.Topics[1].Hex())
+
+	ld, err := cabi.Unpack(evInfo.Name, log.Data)
+	if err != nil {
+		return ei, err
+	}
+	if len(ld) != 1 {
+		return ei, fmt.Errorf("invalid log data length")
+	}
+	ei.Epoch = ld[0].(uint64)
+
+	tx, err := GetTransaction(log.TxHash)
+	if err != nil {
+		return ei, err
+	}
+
+	method, ok := cabi.Methods["submit"]
+	if !ok {
+		return ei, fmt.Errorf("no method 'submit' in ABI")
+	}
+
+	inputData := tx.Data()
+	inputs, err := method.Inputs.UnpackValues(inputData[4:])
+	if err != nil {
+		return ei, err
+	}
+
+	if len(inputs) != 3 {
+		return ei, fmt.Errorf("invalid input length")
+	}
+
+	g1, err := SolidityToG1(inputs[1].([]byte))
+	if err == nil {
+		g1b := g1.Bytes()
+		ei.Sum = g1b[:]
+	}
+
+	pf := inputs[2].(([]byte))
+	if len(pf) == 144 {
+		g1, err := SolidityToG1(pf[:96])
+		if err == nil {
+			g1b := g1.Bytes()
+			ei.H = g1b[:]
+		}
+
+		fr, err := SolidityToFr(pf[96:144])
+		if err == nil {
+			ei.Value = fr.Marshal()
+		}
+	}
+
+	return ei, nil
 }

@@ -27,16 +27,40 @@ func (ei *EpochInfo) Deserialize(b []byte) error {
 	return cbor.Unmarshal(b, ei)
 }
 
-type ChallenegRSInfo struct {
+type RSChallengeInfo struct {
 	Store   common.Address
 	Replica uint64
-	Piece   uint64
 }
 
-func (ei *ChallenegRSInfo) Serialize() ([]byte, error) {
+func (ei *RSChallengeInfo) Serialize() ([]byte, error) {
 	return cbor.Marshal(ei)
 }
 
-func (ei *ChallenegRSInfo) Deserialize(b []byte) error {
+func (ei *RSChallengeInfo) Deserialize(b []byte) error {
+	return cbor.Unmarshal(b, ei)
+}
+
+type ReplicaInChain struct {
+	Name     string
+	Serial   uint64
+	Piece    uint64
+	Index    uint8
+	StoredOn common.Address
+	Witness  ReplicaWitness
+}
+
+type EpochProof struct {
+	Epoch uint64
+	Store common.Address
+	Sum   []byte
+	H     []byte
+	Value []byte
+}
+
+func (ei *EpochProof) Serialize() ([]byte, error) {
+	return cbor.Marshal(ei)
+}
+
+func (ei *EpochProof) Deserialize(b []byte) error {
 	return cbor.Unmarshal(b, ei)
 }
