@@ -237,3 +237,56 @@ func HandleSubmitEProof(log etypes.Log, cabi abi.ABI) (types.EpochProof, error) 
 
 	return ei, nil
 }
+
+func HandleEPChallenge(log etypes.Log, cabi abi.ABI) (types.EPChallengeInfo, error) {
+	ei := types.EPChallengeInfo{}
+
+	evInfo, ok := cabi.Events["Challenge"]
+	if !ok {
+		return ei, fmt.Errorf("no event 'Challenge' in ABI")
+	}
+
+	if len(log.Topics) != 2 {
+		return ei, fmt.Errorf("invalid log topic length")
+	}
+	ei.Store = common.HexToAddress(log.Topics[1].Hex())
+
+	ld, err := cabi.Unpack(evInfo.Name, log.Data)
+	if err != nil {
+		return ei, err
+	}
+	if len(ld) != 3 {
+		return ei, fmt.Errorf("invalid log data length")
+	}
+	ei.Epoch = ld[0].(uint64)
+	ei.Round = ld[1].(uint8)
+	ei.QIndex = ld[2].(uint8)
+
+	return ei, nil
+}
+
+func HandleEPProve(log etypes.Log, cabi abi.ABI) (types.EPChallengeInfo, error) {
+	ei := types.EPChallengeInfo{}
+
+	evInfo, ok := cabi.Events["Prove"]
+	if !ok {
+		return ei, fmt.Errorf("no event 'Prove' in ABI")
+	}
+
+	if len(log.Topics) != 2 {
+		return ei, fmt.Errorf("invalid log topic length")
+	}
+	ei.Store = common.HexToAddress(log.Topics[1].Hex())
+
+	ld, err := cabi.Unpack(evInfo.Name, log.Data)
+	if err != nil {
+		return ei, err
+	}
+	if len(ld) != 2 {
+		return ei, fmt.Errorf("invalid log data length")
+	}
+	ei.Epoch = ld[0].(uint64)
+	ei.Round = ld[1].(uint8)
+
+	return ei, nil
+}

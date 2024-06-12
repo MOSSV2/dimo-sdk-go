@@ -40,6 +40,13 @@ func (ei *RSChallengeInfo) Deserialize(b []byte) error {
 	return cbor.Unmarshal(b, ei)
 }
 
+type EPChallengeInfo struct {
+	Store  common.Address
+	Epoch  uint64
+	Round  uint8
+	QIndex uint8
+}
+
 type ReplicaInChain struct {
 	Name     string
 	Serial   uint64
