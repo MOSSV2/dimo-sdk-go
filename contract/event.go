@@ -9,6 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	etypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 )
 
 func HandleSetEpoch(log etypes.Log, cabi abi.ABI) (types.EpochInfo, error) {
@@ -149,8 +150,8 @@ func HandleAddReplica(log etypes.Log, cabi abi.ABI) (types.ReplicaInChain, error
 	return rc, nil
 }
 
-func HandleRSChallenge(log etypes.Log, cabi abi.ABI) (types.RSChallengeInfo, error) {
-	ei := types.RSChallengeInfo{}
+func HandleRSChallenge(log etypes.Log, cabi abi.ABI) (types.RSChalInChain, error) {
+	ei := types.RSChalInChain{}
 
 	evInfo, ok := cabi.Events["Challenge"]
 	if !ok {
@@ -173,8 +174,8 @@ func HandleRSChallenge(log etypes.Log, cabi abi.ABI) (types.RSChallengeInfo, err
 	return ei, nil
 }
 
-func HandleSubmitEProof(log etypes.Log, cabi abi.ABI) (types.EpochProof, error) {
-	ei := types.EpochProof{}
+func HandleSubmitEProof(log etypes.Log, cabi abi.ABI) (types.EProofInChain, error) {
+	ei := types.EProofInChain{}
 
 	evInfo, ok := cabi.Events["Submit"]
 	if !ok {
@@ -215,7 +216,8 @@ func HandleSubmitEProof(log etypes.Log, cabi abi.ABI) (types.EpochProof, error) 
 		return ei, fmt.Errorf("invalid input length")
 	}
 
-	g1, err := SolidityToG1(inputs[1].([]byte))
+	sum := inputs[1].([]byte)
+	g1, err := SolidityToG1(sum)
 	if err == nil {
 		g1b := g1.Bytes()
 		ei.Sum = g1b[:]
@@ -235,11 +237,13 @@ func HandleSubmitEProof(log etypes.Log, cabi abi.ABI) (types.EpochProof, error) 
 		}
 	}
 
+	ei.Hash = crypto.Keccak256(sum, pf)
+
 	return ei, nil
 }
 
-func HandleEPChallenge(log etypes.Log, cabi abi.ABI) (types.EPChallengeInfo, error) {
-	ei := types.EPChallengeInfo{}
+func HandleEPChallenge(log etypes.Log, cabi abi.ABI) (types.EPChalInChain, error) {
+	ei := types.EPChalInChain{}
 
 	evInfo, ok := cabi.Events["Challenge"]
 	if !ok {
@@ -265,8 +269,8 @@ func HandleEPChallenge(log etypes.Log, cabi abi.ABI) (types.EPChallengeInfo, err
 	return ei, nil
 }
 
-func HandleEPProve(log etypes.Log, cabi abi.ABI) (types.EPChallengeInfo, error) {
-	ei := types.EPChallengeInfo{}
+func HandleEPProve(log etypes.Log, cabi abi.ABI) (types.EPChalInChain, error) {
+	ei := types.EPChalInChain{}
 
 	evInfo, ok := cabi.Events["Prove"]
 	if !ok {
