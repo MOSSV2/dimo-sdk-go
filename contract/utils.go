@@ -62,7 +62,7 @@ func FrInSolidity(g bls.Fr) []byte {
 
 func SolidityToFr(buf []byte) (bls.Fr, error) {
 	var res bls.Fr
-	if len(buf) != 46 {
+	if len(buf) != 48 {
 		return res, fmt.Errorf("short fr")
 	}
 

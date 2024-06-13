@@ -292,5 +292,35 @@ func HandleEPProve(log etypes.Log, cabi abi.ABI) (types.EPChalInChain, error) {
 	ei.Epoch = ld[0].(uint64)
 	ei.Round = ld[1].(uint8)
 
+	tx, err := GetTransaction(log.TxHash)
+	if err != nil {
+		return ei, err
+	}
+
+	method, ok := cabi.Methods["proveCom"]
+	if !ok {
+		return ei, fmt.Errorf("no method 'proveCom' in ABI")
+	}
+
+	inputData := tx.Data()
+	inputs, err := method.Inputs.UnpackValues(inputData[4:])
+	if err != nil {
+		return ei, nil
+	}
+
+	if len(inputs) != 3 {
+		return ei, nil
+	}
+
+	coms := inputs[1].([][]byte)
+	ei.Coms = make([][]byte, 0, len(coms))
+	for i := 0; i < len(coms); i++ {
+		g1, err := SolidityToG1(coms[i])
+		if err == nil {
+			g1b := g1.Bytes()
+			ei.Coms = append(ei.Coms, g1b[:])
+		}
+	}
+
 	return ei, nil
 }

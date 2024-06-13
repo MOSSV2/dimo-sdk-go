@@ -45,6 +45,7 @@ type EPChalInChain struct {
 	Epoch  uint64
 	Round  uint8
 	QIndex uint8
+	Coms   [][]byte
 }
 
 type ReplicaInChain struct {

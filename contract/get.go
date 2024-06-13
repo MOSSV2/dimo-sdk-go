@@ -223,7 +223,7 @@ func GetRSChalInfo(_pi uint64, _pri uint8) (rsproof.RSProofProofInfo, error) {
 	return rsp.GetProof(&bind.CallOpts{From: Base}, _pi, _pri)
 }
 
-func GetRSMinTime() (int64, error) {
+func GetRSMinTime() (uint64, error) {
 	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancle()
 	rsp, err := NewRSProof(ctx)
@@ -236,8 +236,7 @@ func GetRSMinTime() (int64, error) {
 		return 0, err
 	}
 
-	t.Mul(t, big.NewInt(int64(DevBlockTime)))
-	return t.Int64(), nil
+	return t.Uint64(), nil
 }
 
 func GetEpochChalInfo(_a common.Address, _ep uint64) (eproof.IEproofProofInfo, error) {
@@ -251,7 +250,7 @@ func GetEpochChalInfo(_a common.Address, _ep uint64) (eproof.IEproofProofInfo, e
 	return ep.GetEProof(&bind.CallOpts{From: Base}, _a, _ep)
 }
 
-func GetEProofMinTime() (int64, error) {
+func GetEProofMinTime() (uint64, error) {
 	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancle()
 	rsp, err := NewEProof(ctx)
@@ -264,8 +263,7 @@ func GetEProofMinTime() (int64, error) {
 		return 0, err
 	}
 
-	t.Mul(t, big.NewInt(int64(DevBlockTime)))
-	return t.Int64(), nil
+	return t.Uint64(), nil
 }
 
 func GetRevenue(addr common.Address, typ string) (*big.Int, error) {
