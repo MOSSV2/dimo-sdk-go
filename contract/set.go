@@ -233,6 +233,34 @@ func AddReplica(sk *ecdsa.PrivateKey, rc types.ReplicaCore, pf []byte) error {
 	return nil
 }
 
+func UpdateStore(sk *ecdsa.PrivateKey, store common.Address) error {
+	logger.Debug("update store: ", store)
+
+	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
+	defer cancle()
+	fi, err := NewPiece(ctx)
+	if err != nil {
+		return err
+	}
+
+	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	if err != nil {
+		return err
+	}
+
+	tx, err := fi.CheckStore(au, store)
+	if err != nil {
+		return err
+	}
+
+	err = CheckTx(DevChain, tx.Hash())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func ChallengeRS(sk *ecdsa.PrivateKey, _pn, _rn string, _pri uint8) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()
