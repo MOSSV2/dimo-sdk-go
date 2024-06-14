@@ -139,10 +139,9 @@ func HandleAddReplica(log etypes.Log, cabi abi.ABI) (types.ReplicaInChain, error
 	}
 
 	g1, err := SolidityToG1(inputs[0].([]byte))
-	if err != nil {
-		return rc, err
+	if err == nil {
+		rc.Name = G1ToString(g1)
 	}
-	rc.Name = G1ToString(g1)
 	rc.Piece = inputs[1].(uint64)
 	rc.Index = inputs[2].(uint8)
 	rc.Witness.Proof = inputs[3].([]byte)
@@ -236,7 +235,6 @@ func HandleSubmitEProof(log etypes.Log, cabi abi.ABI) (types.EProofInChain, erro
 			ei.Value = fr.Marshal()
 		}
 	}
-
 	ei.Hash = crypto.Keccak256(sum, pf)
 
 	return ei, nil
