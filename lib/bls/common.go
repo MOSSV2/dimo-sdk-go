@@ -17,7 +17,7 @@ const (
 	UnPadSize = 31
 	PadSize   = 32
 	PadByte   = 0x01 // incase zero
-	LogShard  = 20
+	LogShard  = 25
 	MinShard  = 2
 	MaxShard  = 1 << LogShard
 	MaxSize   = MaxShard * UnPadSize // per piece
