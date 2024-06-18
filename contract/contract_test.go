@@ -22,7 +22,7 @@ func TestTransfer(t *testing.T) {
 	sk, addr := makeAccount()
 	val := big.NewInt(1e18)
 	val.Mul(val, big.NewInt(100000))
-	addr = common.HexToAddress("0xEb3277f9f7f6A1CdF85864310BCC3BD9C414AD24")
+	addr = common.HexToAddress("0x988030576f6b14ef9cb91854f2ae057b0681cd2a")
 	err := transfer(addr, val)
 	if err != nil {
 		t.Fatal(err)
@@ -42,7 +42,7 @@ func TestNodeCheck(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = RegisterNode(psk, 1)
+	err = RegisterNode(psk, 1, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -10,6 +10,7 @@ import (
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/eproof"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/gpu"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/model"
+	"github.com/MOSSV2/dimo-sdk-go/contract/go/node"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/piece"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/rsproof"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/space"
@@ -172,6 +173,26 @@ func GetReplica(_ri uint64) (piece.IPieceReplicaInfo, error) {
 	}
 
 	return pb, nil
+}
+
+func GetMinPledge(_typ uint8) (*big.Int, error) {
+	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Second)
+	defer cancle()
+	ni, err := NewNode(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return ni.GetMinPledge(&bind.CallOpts{From: Base}, _typ)
+}
+
+func GetPledgeInfo(addr common.Address, _typ uint8) (node.INodePledgeInfo, error) {
+	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Second)
+	defer cancle()
+	ni, err := NewNode(ctx)
+	if err != nil {
+		return node.INodePledgeInfo{}, err
+	}
+	return ni.GetPledge(&bind.CallOpts{From: addr}, addr, _typ)
 }
 
 func GetStore(addr common.Address) (piece.IPieceStoreInfo, error) {

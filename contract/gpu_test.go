@@ -26,7 +26,7 @@ func TestGPU(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = RegisterNode(sk, 3)
+	err = RegisterNode(sk, 3, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -123,7 +123,7 @@ func TestSpace(t *testing.T) {
 	}
 
 	fmt.Println("register compute node")
-	err = RegisterNode(sk, 3)
+	err = RegisterNode(sk, 3, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

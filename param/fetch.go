@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/MOSSV2/dimo-sdk-go/lib/log"
 	"github.com/mitchellh/go-homedir"
@@ -137,7 +138,11 @@ func downloadFile(pn string, pi paramInfo) error {
 
 		val, err := downloadChunk(url, start, end)
 		if err != nil {
-			return err
+			time.Sleep(3 * time.Second)
+			val, err = downloadChunk(url, start, end)
+			if err != nil {
+				return err
+			}
 		}
 		mw.Write(val)
 	}

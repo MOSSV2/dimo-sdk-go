@@ -70,7 +70,7 @@ func GetEpoch(sk *ecdsa.PrivateKey) (uint64, error) {
 	return ei.Current(&bind.CallOpts{From: au.From})
 }
 
-func RegisterNode(sk *ecdsa.PrivateKey, _typ uint8) error {
+func RegisterNode(sk *ecdsa.PrivateKey, _typ uint8, val *big.Int) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Minute)
 	defer cancle()
 	ni, err := NewNode(ctx)
@@ -94,17 +94,28 @@ func RegisterNode(sk *ecdsa.PrivateKey, _typ uint8) error {
 		return err
 	}
 
-	pval, err := ni.GetMinPledge(&bind.CallOpts{From: au.From}, _typ)
-	if err != nil {
-		return err
-	}
-	pinfo, err := ni.GetPledge(&bind.CallOpts{From: au.From}, au.From, _typ)
-	if err != nil {
-		return err
-	}
-	pval.Sub(pval, pinfo.Value)
+	if val == nil {
+		pval, err := ni.GetMinPledge(&bind.CallOpts{From: au.From}, _typ)
+		if err != nil {
+			return err
+		}
+		pinfo, err := ni.GetPledge(&bind.CallOpts{From: au.From}, au.From, _typ)
+		if err != nil {
+			return err
+		}
 
-	tx, err := ti.IncreaseAllowance(au, BankAddr, pval)
+		pinfo.Value.Sub(pinfo.Value, pinfo.Lock)
+
+		if pval.Cmp(pinfo.Value) > 0 {
+			pval.Sub(pval, pinfo.Value)
+			val = pval
+		} else {
+			fmt.Println("no need more pledge")
+			return nil
+		}
+	}
+
+	tx, err := ti.IncreaseAllowance(au, BankAddr, val)
 	if err != nil {
 		return err
 	}
@@ -112,7 +123,7 @@ func RegisterNode(sk *ecdsa.PrivateKey, _typ uint8) error {
 	if err != nil {
 		return err
 	}
-	tx, err = ni.Pledge(au, _typ, pval)
+	tx, err = ni.Pledge(au, _typ, val)
 	if err != nil {
 		return err
 	}
