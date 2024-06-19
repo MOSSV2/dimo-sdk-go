@@ -200,12 +200,37 @@ func (ew *EncodeWitness) Deserialize(buf []byte) error {
 	return nil
 }
 
-func Eval(p []fr.Element, point fr.Element) fr.Element {
-	var res fr.Element
+func Eval(p []Fr, point Fr) Fr {
+	var res Fr
 	n := len(p)
 	res.Set(&p[n-1])
 	for i := n - 2; i >= 0; i-- {
 		res.Mul(&res, &point).Add(&res, &p[i])
 	}
+	return res
+}
+
+func Divide(f []Fr, a Fr) []Fr {
+	var t Fr
+	res := make([]fr.Element, len(f))
+	copy(res, f)
+	for i := len(res) - 2; i >= 1; i-- {
+		t.Mul(&res[i+1], &a)
+		res[i].Add(&res[i], &t)
+	}
+	return res[1:]
+}
+
+func Mul(f []Fr, a Fr) []Fr {
+	var t, na Fr
+	na.Neg(&a)
+	res := make([]Fr, len(f)+1)
+	for i := 1; i < len(f); i++ {
+		t.Mul(&f[i], &na)
+		res[i].Add(&f[i-1], &t)
+	}
+	t.Mul(&f[0], &na)
+	res[0].Set(&t)
+	res[len(f)].Set(&f[len(f)-1])
 	return res
 }

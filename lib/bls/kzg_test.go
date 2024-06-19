@@ -589,6 +589,56 @@ func TestSlothV3(t *testing.T) {
 	t.Fatal()
 }
 
+func TestSlothV4(t *testing.T) {
+	rnd := utils.RandomBytes(32)
+	var fr_r Fr
+	fr_r.SetBytes(rnd)
+	total := 32 * 1024 * 1024
+	shards := make([]Fr, total)
+	shards[0].SetOne()
+	nt := time.Now()
+	for i := 1; i < total; i++ {
+		shards[i].Mul(&shards[i-1], &fr_r)
+	}
+	t.Log("v4 cost: ", time.Since(nt))
+
+	var point Fr
+	point.SetRandom()
+	nt = time.Now()
+	val := Eval(shards, point)
+	t.Log("v4 eval cost: ", time.Since(nt))
+
+	nt = time.Now()
+	fr_r.Mul(&fr_r, &point)
+	var nval, tmp Fr
+	nval.Exp(fr_r, big.NewInt(int64(total)))
+	tmp.SetOne()
+	nval.Sub(&nval, &tmp)
+	tmp.Sub(&fr_r, &tmp)
+	nval.Div(&nval, &tmp)
+	t.Log("v4 eval1 cost: ", time.Since(nt))
+	if !nval.Equal(&val) {
+		t.Log("unequal")
+	}
+
+	nt = time.Now()
+	h := Divide(shards, point)
+	t.Log("v4 divide cost: ", time.Since(nt))
+
+	nt = time.Now()
+	re := Mul(h, point)
+	t.Log("v4 mul cost: ", time.Since(nt))
+	re[0].Add(&re[0], &val)
+
+	for i := 1; i < total; i++ {
+		if !shards[i].Equal(&re[i]) {
+			t.Fatal("not equal at: ", i)
+		}
+	}
+
+	t.Fatal()
+}
+
 func TestMarshal(t *testing.T) {
 	ew := NewEncodeWitness(6, 4)
 	ewb := ew.Serialize()
