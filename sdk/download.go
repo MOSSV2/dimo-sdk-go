@@ -36,14 +36,15 @@ func DownloadPiece(baseUrl string, auth types.Auth, name string, streamer common
 		}
 		suc++
 	}
+	streamURL := ""
 	if suc < int(pr.Policy.K) {
 		er, err := GetEdge(baseUrl, auth, streamer)
 		if err != nil {
 			logger.Warnf("%s is not online: %s", streamer, err)
 			return nil, err
 		}
-		baseUrl = er.ExposeURL
-		pr, err = GetPieceReceipt(baseUrl, auth, name)
+		streamURL = er.ExposeURL
+		pr, err = GetPieceReceipt(streamURL, auth, name)
 		if err != nil {
 			logger.Warn("get piece: ", err)
 			return nil, err
@@ -52,12 +53,12 @@ func DownloadPiece(baseUrl string, auth types.Auth, name string, streamer common
 
 	suc = 0
 	for i, rep := range pr.Replicas {
-		val, err := DownloadReplica(baseUrl, auth, rep, pr.StoredOn[i])
-		if err != nil {
+		val, err := DownloadReplica(baseUrl, streamURL, auth, rep, pr.StoredOn[i])
+		if err != nil || len(val) == 0 {
 			if i < int(pr.Policy.K) {
 				need = append(need, i)
 			}
-			logger.Debugf("fail download replica %s %s", rep, err)
+			logger.Debugf("%s download fail: %v", rep, err)
 			continue
 		}
 
@@ -73,6 +74,11 @@ func DownloadPiece(baseUrl string, auth types.Auth, name string, streamer common
 	}
 	// repair
 	if len(need) > 0 {
+		slen := len(res[survived[0]]) / bls.PadSize
+		for _, v := range need {
+			res[v] = make([]byte, 0, slen*bls.PadSize)
+		}
+
 		rs, err := erasure.NewRS(int(pr.Policy.N), int(pr.Policy.K))
 		if err != nil {
 			return nil, err
@@ -81,37 +87,42 @@ func DownloadPiece(baseUrl string, auth types.Auth, name string, streamer common
 		if err != nil {
 			return nil, err
 		}
-		surdata := make([][]byte, pr.Policy.K)
-		for i := 0; i < int(pr.Policy.K); i++ {
-			surdata[i] = res[survived[i]]
-		}
-		ndata, err := re.Encode(surdata, need)
-		if err != nil {
-			return nil, err
-		}
-		for i, v := range need {
-			res[v] = ndata[i]
+		encoded := make([][]byte, int(pr.Policy.K))
+		for i := 0; i < slen; i++ {
+			for j := 0; j < int(pr.Policy.K); j++ {
+				encoded[j] = res[survived[j]][i*bls.PadSize : (i+1)*bls.PadSize]
+			}
+			par, err := re.Encode(encoded, need)
+			if err != nil {
+				return nil, err
+			}
+			for i, v := range need {
+				res[v] = append(res[v], par[i]...)
+			}
 		}
 	}
 
 	pbyte := make([]byte, 0, pr.Size)
 	for i := 0; i < int(pr.Policy.K); i++ {
-		res[i], err = bls.Unpad(res[i])
+		data, err := bls.Unpad(res[i])
 		if err != nil {
 			return nil, err
 		}
-		pbyte = append(pbyte, res[i]...)
+		pbyte = append(pbyte, data...)
 	}
 
 	return pbyte[:pr.Size], nil
 }
 
-func DownloadReplica(baseUrl string, auth types.Auth, name string, addr common.Address) ([]byte, error) {
-	res, err := DownloadReplicaOrigin(baseUrl, auth, name)
-	if err != nil {
-		return DownloadReplicaFromStream(baseUrl, auth, name, addr)
+func DownloadReplica(baseUrl, streamUrl string, auth types.Auth, name string, addr common.Address) ([]byte, error) {
+	if addr != types.EmptyAddr {
+		res, err := DownloadReplicaFromStream(baseUrl, auth, name, addr)
+		if err == nil {
+			return res, nil
+		}
 	}
-	return res, nil
+
+	return DownloadReplicaOrigin(streamUrl, auth, name)
 }
 
 func DownloadReplicaOrigin(baseUrl string, auth types.Auth, name string) ([]byte, error) {
@@ -131,7 +142,7 @@ func DownloadReplicaOrigin(baseUrl string, auth types.Auth, name string) ([]byte
 }
 
 func DownloadReplicaFromStream(baseUrl string, auth types.Auth, name string, addr common.Address) ([]byte, error) {
-	logger.Debug("download replica: ", name, " from stream")
+	logger.Debug("download replica: ", name, " via stream")
 	el, err := ListEdge(baseUrl, auth, types.StreamType)
 	if err != nil {
 		return nil, err
@@ -142,7 +153,7 @@ func DownloadReplicaFromStream(baseUrl string, auth types.Auth, name string, add
 	form.Set("storedOn", addr.String())
 
 	for _, er := range el.Edges {
-		logger.Debug("download replica: ", name, " from stream: ", er.Name, " at: ", er.ExposeURL)
+		logger.Debug("download replica: ", name, " via stream: ", er.Name, " at: ", er.ExposeURL)
 		ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Minute)
 		defer cancle()
 		resByte, err := doRequest(ctx, er.ExposeURL, "/api/download", auth, strings.NewReader(form.Encode()))
@@ -152,7 +163,7 @@ func DownloadReplicaFromStream(baseUrl string, auth types.Auth, name string, add
 
 		return resByte, nil
 	}
-	return nil, fmt.Errorf("fail")
+	return nil, fmt.Errorf("no avail stream")
 }
 
 func DownloadPieceAndSave(baseUrl string, auth types.Auth, com string, ks types.IPieceStore, streamer common.Address) error {

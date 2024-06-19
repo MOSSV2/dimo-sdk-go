@@ -23,7 +23,7 @@ func Pad(in []byte) []byte {
 func Unpad(in []byte) ([]byte, error) {
 	cnt := 1 + (len(in)-1)/PadSize
 	if len(in) != PadSize*cnt {
-		return nil, fmt.Errorf("invalid unpad length, should align to %d", PadSize)
+		return nil, fmt.Errorf("invalid unpad length %d , should align to %d", len(in), PadSize)
 	}
 
 	out := make([]byte, UnPadSize*cnt)
