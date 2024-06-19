@@ -149,7 +149,7 @@ type EncodeWitness struct {
 	Commits       []G1 // n
 	MoveCommits   []G1 // k
 	LimitCommits  []G1 // k
-	Hs            []G1 // k
+	H             G1   // k
 	ClaimedValues []Fr // k
 }
 
@@ -158,7 +158,6 @@ func NewEncodeWitness(n, k int) *EncodeWitness {
 		Commits:       make([]G1, n),
 		MoveCommits:   make([]G1, k),
 		LimitCommits:  make([]G1, k),
-		Hs:            make([]G1, k),
 		ClaimedValues: make([]Fr, k),
 	}
 }
@@ -171,7 +170,7 @@ func (ew *EncodeWitness) Serialize() []byte {
 		ew.Commits,
 		ew.MoveCommits,
 		ew.LimitCommits,
-		ew.Hs,
+		&ew.H,
 		ew.ClaimedValues,
 	}
 	for _, v := range toEncode {
@@ -190,7 +189,7 @@ func (ew *EncodeWitness) Deserialize(buf []byte) error {
 		&ew.Commits,
 		&ew.MoveCommits,
 		&ew.LimitCommits,
-		&ew.Hs,
+		&ew.H,
 		&ew.ClaimedValues,
 	}
 	for _, v := range toDecode {
@@ -199,4 +198,14 @@ func (ew *EncodeWitness) Deserialize(buf []byte) error {
 		}
 	}
 	return nil
+}
+
+func Eval(p []fr.Element, point fr.Element) fr.Element {
+	var res fr.Element
+	n := len(p)
+	res.Set(&p[n-1])
+	for i := n - 2; i >= 0; i-- {
+		res.Mul(&res, &point).Add(&res, &p[i])
+	}
+	return res
 }
