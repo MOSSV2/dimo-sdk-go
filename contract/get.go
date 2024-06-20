@@ -30,7 +30,7 @@ func GetInstAddr(ctx context.Context, typ string) (common.Address, error) {
 }
 
 func getOrder(count, pcnt uint64) (uint8, error) {
-	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Second)
+	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancle()
 
 	ri, err := NewEVerify(ctx)
@@ -55,7 +55,7 @@ func GetOrder(count, pcnt uint64) (uint8, uint64) {
 		order -= 1
 	}
 
-	if order > 6 {
+	for order > 6 {
 		total /= 8
 		order -= 1
 	}
@@ -69,7 +69,7 @@ func GetOrder(count, pcnt uint64) (uint8, uint64) {
 }
 
 func choose(addr common.Address, seed [32]byte, count, pcnt uint64, i uint64) (uint64, error) {
-	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Second)
+	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancle()
 	ri, err := NewEVerify(ctx)
 	if err != nil {
@@ -289,7 +289,7 @@ func GetEProofMinTime() (uint64, error) {
 
 func GetRevenue(addr common.Address, typ string) (*big.Int, error) {
 	res := big.NewInt(0)
-	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
+	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancle()
 
 	switch typ {

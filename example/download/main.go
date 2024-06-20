@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
+	"log"
 	"math/big"
 	"os"
 	"path"
@@ -45,12 +46,12 @@ func main() {
 	if *mf {
 		err = DownloadModel(sk, *namestr, fp)
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 		}
 	} else {
 		err = DownloadFile(sk, *namestr, fp)
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 		}
 	}
 }
@@ -79,7 +80,7 @@ func DownloadFile(sk *ecdsa.PrivateKey, fname, fp string) error {
 	if err == nil {
 		if finfo.IsDir() {
 			fp = filepath.Join(fp, fname)
-			fmt.Println("will save file to: ", fp)
+			log.Println("will save file to: ", fp)
 		} else {
 			fmt.Printf("overwrite %s? \n", fp)
 			fmt.Printf("please input 'yes' to continue: ")
@@ -106,7 +107,7 @@ func DownloadFile(sk *ecdsa.PrivateKey, fname, fp string) error {
 		if err != nil {
 			return err
 		}
-		fmt.Printf("download %s to: %s\n", fname, fp)
+		log.Printf("download %s to: %s\n", fname, fp)
 		return nil
 	}
 
@@ -115,7 +116,7 @@ func DownloadFile(sk *ecdsa.PrivateKey, fname, fp string) error {
 		return err
 	}
 
-	fmt.Printf("use local dir '%s' as cache\n", cachedir)
+	log.Printf("use local dir '%s' as cache\n", cachedir)
 	defer os.RemoveAll(cachedir)
 
 	ds, err := kv.NewBadgerStore(path.Join(cachedir, "meta"), nil)
@@ -135,7 +136,7 @@ func DownloadFile(sk *ecdsa.PrivateKey, fname, fp string) error {
 		return err
 	}
 
-	fmt.Printf("download %s to: %s\n", fname, fp)
+	log.Printf("download %s to: %s\n", fname, fp)
 	return nil
 }
 
@@ -173,7 +174,7 @@ func DownloadModel(sk *ecdsa.PrivateKey, name, fp string) error {
 		return err
 	}
 
-	fmt.Printf("use local dir '%s' as cache\n", cachedir)
+	log.Printf("use local dir '%s' as cache\n", cachedir)
 	defer os.RemoveAll(cachedir)
 
 	ds, err := kv.NewBadgerStore(path.Join(cachedir, "meta"), nil)
@@ -196,6 +197,6 @@ func DownloadModel(sk *ecdsa.PrivateKey, name, fp string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("download model %s to dir: %s\n", name, fp)
+	log.Printf("download model %s to dir: %s\n", name, fp)
 	return nil
 }

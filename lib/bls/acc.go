@@ -77,7 +77,6 @@ func (ap *AccProof) Add(d []byte, slen int, com string, coeByte []byte) error {
 
 func (ap *AccProof) GenProof(rnd []byte) (EpochProof, error) {
 	ep := EpochProof{}
-	fmt.Println("element length: ", len(ap.elements))
 	if len(ap.elements) == 0 {
 		return ep, fmt.Errorf("empty shards")
 	}

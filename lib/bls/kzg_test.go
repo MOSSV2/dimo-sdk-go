@@ -641,6 +641,8 @@ func TestSlothV4(t *testing.T) {
 
 func TestMarshal(t *testing.T) {
 	ew := NewEncodeWitness(6, 4)
+	ew.H.ScalarMultiplicationBase(big.NewInt(10))
+	ew.ClaimedValues[0].SetRandom()
 	ewb := ew.Serialize()
 	new := new(EncodeWitness)
 	err := new.Deserialize(ewb)

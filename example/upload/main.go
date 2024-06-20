@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
+	"log"
 	"math/big"
 	"os"
 	"path"
@@ -43,12 +44,12 @@ func main() {
 	if *mf {
 		err = UploadModel(sk, fp)
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 		}
 	} else {
 		err = UploadFile(sk, fp)
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 		}
 	}
 }
@@ -95,8 +96,8 @@ func UploadFile(sk *ecdsa.PrivateKey, fp string) error {
 		if err != nil {
 			return err
 		}
-		fmt.Printf("upload %s to %s, sha256: %s\n", fp, submitter, res.Name)
-		fmt.Printf("submit %s to chain\n", res.Name)
+		log.Printf("upload %s to %s, sha256: %s\n", fp, submitter, res.Name)
+		log.Printf("submit %s to chain\n", res.Name)
 
 		// submit meta to chain
 		for _, pc := range pcs {
@@ -126,8 +127,8 @@ func UploadFile(sk *ecdsa.PrivateKey, fp string) error {
 			return err
 		}
 
-		fmt.Printf("upload %s to %s, sha256: %s\n", fp, submitter, res.Name)
-		fmt.Printf("submit %s to chain\n", res.Name)
+		log.Printf("upload %s to %s, sha256: %s\n", fp, submitter, res.Name)
+		log.Printf("submit %s to chain\n", res.Name)
 
 		// submit meta to chain
 		for _, pc := range pcs {
@@ -184,7 +185,7 @@ func UploadModel(sk *ecdsa.PrivateKey, fp string) error {
 		return err
 	}
 
-	fmt.Printf("upload and submit model %s\n", mrm.Name)
+	log.Printf("upload and submit model %s\n", mrm.Name)
 
 	return nil
 }

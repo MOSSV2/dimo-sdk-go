@@ -12,6 +12,8 @@ import (
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/model"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/node"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/piece"
+	"github.com/MOSSV2/dimo-sdk-go/contract/go/plonk/kzg"
+	"github.com/MOSSV2/dimo-sdk-go/contract/go/plonk/rsone"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/reward"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/rsproof"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/space"
@@ -147,6 +149,74 @@ func NewRSProof(ctx context.Context) (*rsproof.RSProof, error) {
 		return nil, err
 	}
 	return rsproof.NewRSProof(faddr, client)
+}
+
+func NewRSOne(ctx context.Context) (*rsone.PlonkVerifier, error) {
+	client, err := ethclient.DialContext(ctx, DevChain)
+	if err != nil {
+		return nil, err
+	}
+
+	bi, err := bank.NewBank(BankAddr, client)
+	if err != nil {
+		return nil, err
+	}
+	faddr, err := bi.Get(&bind.CallOpts{From: Base}, "rsone")
+	if err != nil {
+		return nil, err
+	}
+	return rsone.NewPlonkVerifier(faddr, client)
+}
+
+func NewKZGPlonk(ctx context.Context) (*kzg.PlonkVerifier, error) {
+	client, err := ethclient.DialContext(ctx, DevChain)
+	if err != nil {
+		return nil, err
+	}
+
+	bi, err := bank.NewBank(BankAddr, client)
+	if err != nil {
+		return nil, err
+	}
+	faddr, err := bi.Get(&bind.CallOpts{From: Base}, "kzg")
+	if err != nil {
+		return nil, err
+	}
+	return kzg.NewPlonkVerifier(faddr, client)
+}
+
+func NewMulPlonk(ctx context.Context) (*kzg.PlonkVerifier, error) {
+	client, err := ethclient.DialContext(ctx, DevChain)
+	if err != nil {
+		return nil, err
+	}
+
+	bi, err := bank.NewBank(BankAddr, client)
+	if err != nil {
+		return nil, err
+	}
+	faddr, err := bi.Get(&bind.CallOpts{From: Base}, "mul")
+	if err != nil {
+		return nil, err
+	}
+	return kzg.NewPlonkVerifier(faddr, client)
+}
+
+func NewAddPlonk(ctx context.Context) (*kzg.PlonkVerifier, error) {
+	client, err := ethclient.DialContext(ctx, DevChain)
+	if err != nil {
+		return nil, err
+	}
+
+	bi, err := bank.NewBank(BankAddr, client)
+	if err != nil {
+		return nil, err
+	}
+	faddr, err := bi.Get(&bind.CallOpts{From: Base}, "add")
+	if err != nil {
+		return nil, err
+	}
+	return kzg.NewPlonkVerifier(faddr, client)
 }
 
 func NewEProof(ctx context.Context) (*eproof.EProof, error) {

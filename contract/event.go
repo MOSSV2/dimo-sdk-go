@@ -12,7 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
-func HandleSetEpoch(log etypes.Log, cabi abi.ABI) (types.EpochInfo, error) {
+func HandleSetEpoch(elog etypes.Log, cabi abi.ABI) (types.EpochInfo, error) {
 	ei := types.EpochInfo{}
 
 	evInfo, ok := cabi.Events["SetEpoch"]
@@ -20,7 +20,7 @@ func HandleSetEpoch(log etypes.Log, cabi abi.ABI) (types.EpochInfo, error) {
 		return ei, fmt.Errorf("no event 'SetEpoch' in ABI")
 	}
 
-	ld, err := cabi.Unpack(evInfo.Name, log.Data)
+	ld, err := cabi.Unpack(evInfo.Name, elog.Data)
 	if err != nil {
 		return ei, err
 	}
@@ -37,7 +37,7 @@ func HandleSetEpoch(log etypes.Log, cabi abi.ABI) (types.EpochInfo, error) {
 	return ei, nil
 }
 
-func HandleAddPiece(log etypes.Log, cabi abi.ABI) (types.PieceCore, error) {
+func HandleAddPiece(elog etypes.Log, cabi abi.ABI) (types.PieceCore, error) {
 	pc := types.PieceCore{}
 
 	evInfo, ok := cabi.Events["AddPiece"]
@@ -45,12 +45,12 @@ func HandleAddPiece(log etypes.Log, cabi abi.ABI) (types.PieceCore, error) {
 		return pc, fmt.Errorf("no event 'AddPiece' in ABI")
 	}
 
-	if len(log.Topics) != 2 {
+	if len(elog.Topics) != 2 {
 		return pc, fmt.Errorf("invalid log topic length")
 	}
-	pc.Owner = common.HexToAddress(log.Topics[1].Hex())
+	pc.Owner = common.HexToAddress(elog.Topics[1].Hex())
 
-	ld, err := cabi.Unpack(evInfo.Name, log.Data)
+	ld, err := cabi.Unpack(evInfo.Name, elog.Data)
 	if err != nil {
 		return pc, err
 	}
@@ -60,7 +60,7 @@ func HandleAddPiece(log etypes.Log, cabi abi.ABI) (types.PieceCore, error) {
 	pc.Serial = ld[0].(uint64)
 	pc.Start = ld[1].(uint64)
 
-	tx, err := GetTransaction(log.TxHash)
+	tx, err := GetTransaction(elog.TxHash)
 	if err != nil {
 		return pc, err
 	}
@@ -93,7 +93,7 @@ func HandleAddPiece(log etypes.Log, cabi abi.ABI) (types.PieceCore, error) {
 	return pc, nil
 }
 
-func HandleAddReplica(log etypes.Log, cabi abi.ABI) (types.ReplicaInChain, error) {
+func HandleAddReplica(elog etypes.Log, cabi abi.ABI) (types.ReplicaInChain, error) {
 	rc := types.ReplicaInChain{
 		Witness: types.ReplicaWitness{},
 	}
@@ -103,14 +103,14 @@ func HandleAddReplica(log etypes.Log, cabi abi.ABI) (types.ReplicaInChain, error
 		return rc, fmt.Errorf("no event 'AddReplica' in ABI")
 	}
 
-	if len(log.Topics) != 2 {
+	if len(elog.Topics) != 2 {
 		return rc, fmt.Errorf("invalid log topic length")
 	}
-	rc.StoredOn = common.HexToAddress(log.Topics[1].Hex())
+	rc.StoredOn = common.HexToAddress(elog.Topics[1].Hex())
 
-	ld, err := cabi.Unpack(evInfo.Name, log.Data)
+	ld, err := cabi.Unpack(evInfo.Name, elog.Data)
 	if err != nil {
-		fmt.Println(err)
+		return rc, err
 	}
 	if len(ld) != 2 {
 		return rc, fmt.Errorf("invalid log data length")
@@ -118,7 +118,7 @@ func HandleAddReplica(log etypes.Log, cabi abi.ABI) (types.ReplicaInChain, error
 	rc.Serial = ld[0].(uint64)
 	rc.Witness.Index = ld[1].(uint64)
 
-	tx, err := GetTransaction(log.TxHash)
+	tx, err := GetTransaction(elog.TxHash)
 	if err != nil {
 		return rc, err
 	}
@@ -149,7 +149,7 @@ func HandleAddReplica(log etypes.Log, cabi abi.ABI) (types.ReplicaInChain, error
 	return rc, nil
 }
 
-func HandleRSChallenge(log etypes.Log, cabi abi.ABI) (types.RSChalInChain, error) {
+func HandleRSChallenge(elog etypes.Log, cabi abi.ABI) (types.RSChalInChain, error) {
 	ei := types.RSChalInChain{}
 
 	evInfo, ok := cabi.Events["Challenge"]
@@ -157,12 +157,12 @@ func HandleRSChallenge(log etypes.Log, cabi abi.ABI) (types.RSChalInChain, error
 		return ei, fmt.Errorf("no event 'Challenge' in ABI")
 	}
 
-	if len(log.Topics) != 2 {
+	if len(elog.Topics) != 2 {
 		return ei, fmt.Errorf("invalid log topic length")
 	}
-	ei.Store = common.HexToAddress(log.Topics[1].Hex())
+	ei.Store = common.HexToAddress(elog.Topics[1].Hex())
 
-	ld, err := cabi.Unpack(evInfo.Name, log.Data)
+	ld, err := cabi.Unpack(evInfo.Name, elog.Data)
 	if err != nil {
 		return ei, err
 	}
@@ -173,7 +173,7 @@ func HandleRSChallenge(log etypes.Log, cabi abi.ABI) (types.RSChalInChain, error
 	return ei, nil
 }
 
-func HandleSubmitEProof(log etypes.Log, cabi abi.ABI) (types.EProofInChain, error) {
+func HandleSubmitEProof(elog etypes.Log, cabi abi.ABI) (types.EProofInChain, error) {
 	ei := types.EProofInChain{}
 
 	evInfo, ok := cabi.Events["Submit"]
@@ -181,12 +181,12 @@ func HandleSubmitEProof(log etypes.Log, cabi abi.ABI) (types.EProofInChain, erro
 		return ei, fmt.Errorf("no event 'Submit' in ABI")
 	}
 
-	if len(log.Topics) != 2 {
+	if len(elog.Topics) != 2 {
 		return ei, fmt.Errorf("invalid log topic length")
 	}
-	ei.Store = common.HexToAddress(log.Topics[1].Hex())
+	ei.Store = common.HexToAddress(elog.Topics[1].Hex())
 
-	ld, err := cabi.Unpack(evInfo.Name, log.Data)
+	ld, err := cabi.Unpack(evInfo.Name, elog.Data)
 	if err != nil {
 		return ei, err
 	}
@@ -195,7 +195,7 @@ func HandleSubmitEProof(log etypes.Log, cabi abi.ABI) (types.EProofInChain, erro
 	}
 	ei.Epoch = ld[0].(uint64)
 
-	tx, err := GetTransaction(log.TxHash)
+	tx, err := GetTransaction(elog.TxHash)
 	if err != nil {
 		return ei, err
 	}
@@ -240,7 +240,7 @@ func HandleSubmitEProof(log etypes.Log, cabi abi.ABI) (types.EProofInChain, erro
 	return ei, nil
 }
 
-func HandleEPChallenge(log etypes.Log, cabi abi.ABI) (types.EPChalInChain, error) {
+func HandleEPChallenge(elog etypes.Log, cabi abi.ABI) (types.EPChalInChain, error) {
 	ei := types.EPChalInChain{}
 
 	evInfo, ok := cabi.Events["Challenge"]
@@ -248,12 +248,12 @@ func HandleEPChallenge(log etypes.Log, cabi abi.ABI) (types.EPChalInChain, error
 		return ei, fmt.Errorf("no event 'Challenge' in ABI")
 	}
 
-	if len(log.Topics) != 2 {
+	if len(elog.Topics) != 2 {
 		return ei, fmt.Errorf("invalid log topic length")
 	}
-	ei.Store = common.HexToAddress(log.Topics[1].Hex())
+	ei.Store = common.HexToAddress(elog.Topics[1].Hex())
 
-	ld, err := cabi.Unpack(evInfo.Name, log.Data)
+	ld, err := cabi.Unpack(evInfo.Name, elog.Data)
 	if err != nil {
 		return ei, err
 	}
@@ -267,7 +267,7 @@ func HandleEPChallenge(log etypes.Log, cabi abi.ABI) (types.EPChalInChain, error
 	return ei, nil
 }
 
-func HandleEPProve(log etypes.Log, cabi abi.ABI) (types.EPChalInChain, error) {
+func HandleEPProve(elog etypes.Log, cabi abi.ABI) (types.EPChalInChain, error) {
 	ei := types.EPChalInChain{}
 
 	evInfo, ok := cabi.Events["Prove"]
@@ -275,12 +275,12 @@ func HandleEPProve(log etypes.Log, cabi abi.ABI) (types.EPChalInChain, error) {
 		return ei, fmt.Errorf("no event 'Prove' in ABI")
 	}
 
-	if len(log.Topics) != 2 {
+	if len(elog.Topics) != 2 {
 		return ei, fmt.Errorf("invalid log topic length")
 	}
-	ei.Store = common.HexToAddress(log.Topics[1].Hex())
+	ei.Store = common.HexToAddress(elog.Topics[1].Hex())
 
-	ld, err := cabi.Unpack(evInfo.Name, log.Data)
+	ld, err := cabi.Unpack(evInfo.Name, elog.Data)
 	if err != nil {
 		return ei, err
 	}
@@ -290,7 +290,7 @@ func HandleEPProve(log etypes.Log, cabi abi.ABI) (types.EPChalInChain, error) {
 	ei.Epoch = ld[0].(uint64)
 	ei.Round = ld[1].(uint8)
 
-	tx, err := GetTransaction(log.TxHash)
+	tx, err := GetTransaction(elog.TxHash)
 	if err != nil {
 		return ei, err
 	}
