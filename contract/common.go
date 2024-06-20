@@ -26,6 +26,7 @@ import (
 const (
 	KZGVKRoot      = "3b8201b322c65a735690cf82c850b8624c29ec05400e06ba92a9aad12c37c1605812abbc9a1a11f500b3ab28b7751b52"
 	RSn6k4VKRoot   = "20124409308349291856393827233330886154936240065532557381303490426078026213022"
+	RSn14k7VKRoot  = "12965432607723983577277931168857749896340024793655516799335584916344574509244"
 	KZGPlonkVKRoot = "13578975972813045124644274037649423183976186349085914163035805076522753635190"
 	MulPlonkVKRoot = "2861925165761505728354689500849584476756532312668674953086797720607020018383"
 	AddPlonkVKRoot = "20489533579041455173069175848985790272136441897595303638506439358532630167529"
@@ -87,7 +88,7 @@ func makeAuth(chainID *big.Int, sk *ecdsa.PrivateKey) (*bind.TransactOpts, error
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("%s basefee: %d\n", auth.From, header.BaseFee)
+	logger.Debugf("height: %d, basefee: %d", header.Number, header.BaseFee)
 	auth.GasPrice = header.BaseFee
 	return auth, nil
 }
@@ -116,7 +117,7 @@ func GetTransaction(hash common.Hash) (*types.Transaction, error) {
 }
 
 func CheckTx(endPoint string, txHash common.Hash) error {
-	log.Println("check tx: ", txHash.String())
+	logger.Debug("check tx: ", txHash.String())
 	var receipt *types.Receipt
 	var err error
 
@@ -142,7 +143,7 @@ func CheckTx(endPoint string, txHash common.Hash) error {
 		}
 		return fmt.Errorf("%s transaction mined but execution failed, check your input", txHash)
 	}
-	log.Printf("%s cost gas: %d\n", txHash.String(), receipt.GasUsed)
+	logger.Debugf("%s cost gas: %d", txHash.String(), receipt.GasUsed)
 	return nil
 }
 
@@ -250,8 +251,8 @@ func Transfer(ep string, sk *ecdsa.PrivateKey, toAddr common.Address, value *big
 	defer client.Close()
 
 	fromAddr := utils.ECDSAToAddr(sk)
-	log.Printf("%s from has: %d\n", fromAddr, BalanceOf(ep, fromAddr))
-	log.Printf("%s to has: %d\n", toAddr, BalanceOf(ep, toAddr))
+	logger.Debugf("%s from has: %d", fromAddr, BalanceOf(ep, fromAddr))
+	logger.Debugf("%s to has: %d", toAddr, BalanceOf(ep, toAddr))
 
 	nonce, err := client.PendingNonceAt(ctx, fromAddr)
 	if err != nil {
@@ -286,7 +287,7 @@ func Transfer(ep string, sk *ecdsa.PrivateKey, toAddr common.Address, value *big
 	if err != nil {
 		return err
 	}
-	log.Printf("%s to has: %d\n", toAddr, BalanceOf(ep, toAddr))
+	logger.Debugf("%s to has: %d", toAddr, BalanceOf(ep, toAddr))
 	return nil
 }
 
@@ -329,13 +330,13 @@ func TransferToken(ep string, sk *ecdsa.PrivateKey, tokenAddr, toaddr common.Add
 	if err != nil {
 		return err
 	}
-	log.Printf("%s from has token: %d\n", au.From, hasval)
+	logger.Debugf("%s from has token: %d", au.From, hasval)
 
 	hasval, err = ti.BalanceOf(&bind.CallOpts{From: Base}, toaddr)
 	if err != nil {
 		return err
 	}
-	log.Printf("%s to has token: %d\n", toaddr, hasval)
+	logger.Debugf("%s to has token: %d", toaddr, hasval)
 
 	tx, err := ti.Transfer(au, toaddr, val)
 	if err != nil {
@@ -350,7 +351,7 @@ func TransferToken(ep string, sk *ecdsa.PrivateKey, tokenAddr, toaddr common.Add
 	if err != nil {
 		return err
 	}
-	log.Printf("%s to has token: %d\n", toaddr, hasval)
+	logger.Debugf("%s to has token: %d", toaddr, hasval)
 	return nil
 }
 
@@ -371,6 +372,6 @@ func BalanceOfToken(addr common.Address) *big.Int {
 	if err != nil {
 		return big.NewInt(0)
 	}
-	log.Printf("%s to has token: %d\n", addr, hasval)
+	logger.Debugf("%s to has token: %d", addr, hasval)
 	return hasval
 }

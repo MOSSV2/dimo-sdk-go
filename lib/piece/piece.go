@@ -12,7 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-var logger = log.Logger("piece")
+var logger = log.Logger("pieceStore")
 
 var _ types.IPieceStore = &pieceStore{}
 

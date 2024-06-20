@@ -6,7 +6,6 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
-	"log"
 	"math/big"
 	"time"
 
@@ -39,7 +38,7 @@ func Set(sk *ecdsa.PrivateKey, _typ string, ca common.Address) error {
 	if err != nil {
 		return err
 	}
-	log.Println(_typ, " set success to: ", ca.String())
+	logger.Debug(_typ, " set success to: ", ca.String())
 	return nil
 }
 
@@ -83,7 +82,7 @@ func RegisterNode(sk *ecdsa.PrivateKey, _typ uint8, val *big.Int) error {
 
 	_, err = ni.Check(&bind.CallOpts{From: au.From}, au.From, _typ)
 	if err == nil {
-		logger.Debug("already pledge")
+		logger.Debugf("%s already pledge enough money in type %d", au.From, _typ)
 		return nil
 	}
 
@@ -108,7 +107,7 @@ func RegisterNode(sk *ecdsa.PrivateKey, _typ uint8, val *big.Int) error {
 			pval.Sub(pval, pinfo.Value)
 			val = pval
 		} else {
-			log.Println("no need more pledge")
+			logger.Debug("no need more pledge")
 			return nil
 		}
 	}
@@ -185,7 +184,7 @@ func AddPiece(sk *ecdsa.PrivateKey, pc types.PieceCore) error {
 		return err
 	}
 
-	log.Println("add piece: ", pc)
+	logger.Debug("add piece: ", pc)
 	tx, err = fi.AddPiece(au, pb, pc.Price, uint64(pc.Size), pc.Expire, pc.Policy.N, pc.Policy.K)
 	if err != nil {
 		return err
@@ -229,7 +228,7 @@ func AddReplica(sk *ecdsa.PrivateKey, rc types.ReplicaCore, pf []byte) error {
 		return fmt.Errorf("%s is not on chain", rc.Piece)
 	}
 
-	log.Println("add replica: ", _pi, rc)
+	logger.Debug("add replica: ", _pi, rc)
 	tx, err := fi.AddReplica(au, rb, _pi, rc.Index, pf)
 	if err != nil {
 		return err
@@ -307,7 +306,7 @@ func ChallengeRS(sk *ecdsa.PrivateKey, _pn, _rn string, _pri uint8) error {
 		return err
 	}
 
-	log.Println("challenge rs proof: ", _rn, _pn, _pri)
+	logger.Debug("challenge rs proof: ", _rn, _pn, _pri)
 	tx, err = rsp.Challenge(au, pname, rname, _pri)
 	if err != nil {
 		return err
@@ -426,7 +425,7 @@ func SubmitProof(sk *ecdsa.PrivateKey, _ep uint64, _pf bls.EpochProof) error {
 	_frb := FrInSolidity(_pf.ClaimedValue)
 	_pfb = append(_pfb, _frb...)
 
-	log.Println("submit epoch proof: ", au.From, _ep)
+	logger.Debug("submit epoch proof: ", au.From, _ep)
 	tx, err := pi.Submit(au, _ep, _sum, _pfb)
 	if err != nil {
 		return err
@@ -468,7 +467,7 @@ func ChallengeKZG(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64) error {
 		return err
 	}
 
-	log.Println("challenge eproof: ", addr, _ep)
+	logger.Debug("challenge eproof: ", addr, _ep)
 	tx, err = pi.ChalKZG(au, addr, _ep)
 	if err != nil {
 		return err
@@ -549,7 +548,7 @@ func ChallengeSum(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64, _qIndex
 		if err != nil {
 			return err
 		}
-		log.Println("challenge eproof sum0: ", addr, _ep)
+		logger.Debug("challenge eproof sum0: ", addr, _ep)
 		tx, err := pi.Challenge(au, addr, _ep, _sum)
 		if err != nil {
 			return err
@@ -559,7 +558,7 @@ func ChallengeSum(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64, _qIndex
 			return err
 		}
 	} else {
-		log.Println("challenge eproof sum: ", addr, _ep, _qIndex)
+		logger.Debug("challenge eproof sum: ", addr, _ep, _qIndex)
 		tx, err := pi.ChalCom(au, addr, _ep, _qIndex)
 		if err != nil {
 			return err
@@ -607,7 +606,7 @@ func ProveSum(sk *ecdsa.PrivateKey, _ep uint64, coms []bls.G1, _pf []byte) error
 		_coms[i] = G1InSolidity(coms[i])
 	}
 
-	log.Println("prove eproof sum: ", au.From, _ep)
+	logger.Debug("prove eproof sum: ", au.From, _ep)
 	tx, err = pi.ProveCom(au, _ep, _coms, _pf)
 	if err != nil {
 		return err
@@ -635,7 +634,7 @@ func ChallengeOne(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64, _qIndex
 		return err
 	}
 
-	log.Println("challenge eproof one: ", addr, _ep, _qIndex)
+	logger.Debug("challenge eproof one: ", addr, _ep, _qIndex)
 	tx, err := pi.ChalOne(au, addr, _ep, _qIndex)
 	if err != nil {
 		return err
@@ -678,7 +677,7 @@ func ProveOne(sk *ecdsa.PrivateKey, _ep uint64, com bls.G1, _pf []byte) error {
 	}
 
 	_com := G1InSolidity(com)
-	log.Println("prove eproof one: ", au.From, _ep)
+	logger.Debug("prove eproof one: ", au.From, _ep)
 	tx, err = pi.ProveOne(au, _ep, _com, _pf)
 	if err != nil {
 		return err
@@ -706,7 +705,7 @@ func CheckEpochChallenge(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64) 
 		return err
 	}
 
-	log.Println("check eproof: ", addr, _ep)
+	logger.Debug("check eproof: ", addr, _ep)
 	tx, err := ep.Check(au, addr, _ep)
 	if err != nil {
 		return err

@@ -7,7 +7,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"io"
-	"log"
 	"math/big"
 	"net/url"
 	"os"
@@ -163,7 +162,7 @@ func ListLocalDir(d string) (types.ModelMeta, error) {
 	mrm.Size = size
 	mrm.Price = big.NewInt(int64(size))
 
-	log.Println("files: ", mrm.Files)
+	logger.Debug("files: ", mrm.Files)
 
 	return mrm, nil
 }
@@ -179,7 +178,7 @@ func UploadModelFiles(url string, sk *ecdsa.PrivateKey, au types.Auth, fp string
 	for k, v := range mrm.Files {
 		fr, err := GetFileReceipt(url, au, v)
 		if err == nil && fr.Name == v {
-			log.Println("local already has file: ", v)
+			logger.Debug("local already has file: ", v)
 			continue
 		}
 
@@ -201,7 +200,7 @@ func UploadModelFiles(url string, sk *ecdsa.PrivateKey, au types.Auth, fp string
 			}
 		}
 
-		log.Printf("uploaded %s to %s, sha256: %s\n", sfp, streamer, fr.Name)
+		logger.Debug("uploaded %s to %s, sha256: %s\n", sfp, streamer, fr.Name)
 		if k == archive.ShadowTar {
 			os.Remove(sfp)
 		}

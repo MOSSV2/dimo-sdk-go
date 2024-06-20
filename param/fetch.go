@@ -103,12 +103,12 @@ func checkFile(fn string, pi paramInfo) error {
 	if hex.EncodeToString(h.Sum(nil)) != pi.hash {
 		return fmt.Errorf("mismatch hash at %s", fn)
 	}
-	logger.Debug("local has right: ", fn)
+	logger.Debug("local has right param: ", fn)
 	return nil
 }
 
 func downloadFile(pn string, pi paramInfo) error {
-	logger.Debug("start fetch: ", pn)
+	logger.Debug("start fetch param: ", pn)
 	fp, err := homedir.Expand(paramdir)
 	if err != nil {
 		return err
@@ -150,7 +150,7 @@ func downloadFile(pn string, pi paramInfo) error {
 	if hex.EncodeToString(h.Sum(nil)) != pi.hash {
 		return fmt.Errorf("mismatch hash at downloaded %s", pn)
 	}
-	logger.Debug("finish fetch: ", pn)
+	logger.Debug("finish fetch param: ", pn)
 	return nil
 }
 

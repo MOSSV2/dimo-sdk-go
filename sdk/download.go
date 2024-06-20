@@ -40,13 +40,11 @@ func DownloadPiece(baseUrl string, auth types.Auth, name string, streamer common
 	if suc < int(pr.Policy.K) {
 		er, err := GetEdge(baseUrl, auth, streamer)
 		if err != nil {
-			logger.Warnf("%s is not online: %s", streamer, err)
 			return nil, err
 		}
 		streamURL = er.ExposeURL
 		pr, err = GetPieceReceipt(streamURL, auth, name)
 		if err != nil {
-			logger.Warn("get piece: ", err)
 			return nil, err
 		}
 	}
