@@ -99,7 +99,7 @@ func GetTransactionReceipt(endPoint string, hash common.Hash) (*types.Receipt, e
 		return nil, err
 	}
 	defer client.Close()
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	return client.TransactionReceipt(ctx, hash)
 }
@@ -110,7 +110,7 @@ func GetTransaction(hash common.Hash) (*types.Transaction, error) {
 		return nil, err
 	}
 	defer client.Close()
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	res, _, err := client.TransactionByHash(ctx, hash)
 	return res, err
@@ -298,7 +298,7 @@ func BalanceOf(ep string, addr common.Address) *big.Int {
 	}
 	defer client.Close()
 
-	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Second)
+	ctx, cancle := context.WithTimeout(context.TODO(), 10*time.Second)
 	defer cancle()
 
 	var result string
@@ -356,7 +356,7 @@ func TransferToken(ep string, sk *ecdsa.PrivateKey, tokenAddr, toaddr common.Add
 }
 
 func BalanceOfToken(addr common.Address) *big.Int {
-	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Second)
+	ctx, cancle := context.WithTimeout(context.TODO(), 10*time.Second)
 	defer cancle()
 
 	client, err := ethclient.DialContext(ctx, DevChain)

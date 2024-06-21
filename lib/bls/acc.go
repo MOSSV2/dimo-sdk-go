@@ -28,12 +28,6 @@ func NewAccProof(pk *PublicKey) *AccProof {
 	return ap
 }
 
-func (ap *AccProof) Reset(rnd []byte) {
-	ap.elements = make([]Fr, 0, len(ap.pk.Pk.G1))
-	ap.sum.X.SetZero()
-	ap.sum.Y.SetZero()
-}
-
 func (ap *AccProof) Add(d []byte, slen int, com string, coeByte []byte) error {
 	if len(d) == 0 {
 		return fmt.Errorf("zero data size")

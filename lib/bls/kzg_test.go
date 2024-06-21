@@ -668,7 +668,20 @@ func TestAcc(t *testing.T) {
 		coeByte := make([]byte, 8)
 		binary.BigEndian.PutUint64(coeByte, uint64(i))
 		coeByte = crypto.Keccak256(seed[:], coeByte)
-		err = ap.Add(data, 32, com, coeByte)
+
+		var buf bytes.Buffer
+		if i%3 == 0 {
+			var tmp Fr
+			tmp.SetOne()
+			buf.Write(tmp.Marshal())
+			var g1 G1
+			g1.ScalarMultiplicationBase(big.NewInt(1))
+			com = hex.EncodeToString(g1.Marshal())
+		} else {
+			buf.Write(data)
+		}
+
+		err = ap.Add(buf.Bytes(), 32, com, coeByte)
 		if err != nil {
 			t.Fatal(err)
 		}
