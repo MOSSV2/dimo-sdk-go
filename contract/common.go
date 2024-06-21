@@ -104,15 +104,28 @@ func GetTransactionReceipt(endPoint string, hash common.Hash) (*types.Receipt, e
 	return client.TransactionReceipt(ctx, hash)
 }
 
-func GetTransaction(hash common.Hash) (*types.Transaction, error) {
+func GetTransactionRetry(h common.Hash) (*types.Transaction, error) {
+	retry := 0
+	for retry < 10 {
+		tx, err := GetTransaction(h)
+		if err == nil {
+			return tx, nil
+		}
+		retry++
+		time.Sleep(time.Duration(retry) * time.Second)
+	}
+	return nil, fmt.Errorf("fail to get tx")
+}
+
+func GetTransaction(h common.Hash) (*types.Transaction, error) {
 	client, err := ethclient.Dial(DevChain)
 	if err != nil {
 		return nil, err
 	}
 	defer client.Close()
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	res, _, err := client.TransactionByHash(ctx, hash)
+	res, _, err := client.TransactionByHash(ctx, h)
 	return res, err
 }
 

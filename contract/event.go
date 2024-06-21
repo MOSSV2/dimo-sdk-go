@@ -60,7 +60,7 @@ func HandleAddPiece(elog etypes.Log, cabi abi.ABI) (types.PieceCore, error) {
 	pc.Serial = ld[0].(uint64)
 	pc.Start = ld[1].(uint64)
 
-	tx, err := GetTransaction(elog.TxHash)
+	tx, err := GetTransactionRetry(elog.TxHash)
 	if err != nil {
 		return pc, err
 	}
@@ -118,7 +118,7 @@ func HandleAddReplica(elog etypes.Log, cabi abi.ABI) (types.ReplicaInChain, erro
 	rc.Serial = ld[0].(uint64)
 	rc.Witness.Index = ld[1].(uint64)
 
-	tx, err := GetTransaction(elog.TxHash)
+	tx, err := GetTransactionRetry(elog.TxHash)
 	if err != nil {
 		return rc, err
 	}
@@ -195,7 +195,7 @@ func HandleSubmitEProof(elog etypes.Log, cabi abi.ABI) (types.EProofInChain, err
 	}
 	ei.Epoch = ld[0].(uint64)
 
-	tx, err := GetTransaction(elog.TxHash)
+	tx, err := GetTransactionRetry(elog.TxHash)
 	if err != nil {
 		return ei, err
 	}
@@ -290,7 +290,7 @@ func HandleEPProve(elog etypes.Log, cabi abi.ABI) (types.EPChalInChain, error) {
 	ei.Epoch = ld[0].(uint64)
 	ei.Round = ld[1].(uint8)
 
-	tx, err := GetTransaction(elog.TxHash)
+	tx, err := GetTransactionRetry(elog.TxHash)
 	if err != nil {
 		return ei, err
 	}
