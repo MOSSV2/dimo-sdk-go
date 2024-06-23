@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/eproof"
+	"github.com/MOSSV2/dimo-sdk-go/contract/go/everify"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/gpu"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/model"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/node"
@@ -269,6 +270,17 @@ func GetEpochChalInfo(_a common.Address, _ep uint64) (eproof.IEproofProofInfo, e
 	}
 
 	return ep.GetEProof(&bind.CallOpts{From: Base}, _a, _ep)
+}
+
+func GetEpochChalDetail(_a common.Address, _ep uint64) (everify.IEVerifyCInfo, error) {
+	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Second)
+	defer cancle()
+	ep, err := NewEVerify(ctx)
+	if err != nil {
+		return everify.IEVerifyCInfo{}, err
+	}
+
+	return ep.GetCInfo(&bind.CallOpts{From: Base}, _a, _ep)
 }
 
 func GetEProofMinTime() (uint64, error) {

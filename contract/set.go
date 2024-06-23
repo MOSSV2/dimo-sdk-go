@@ -321,7 +321,7 @@ func ChallengeRS(sk *ecdsa.PrivateKey, _pn, _rn string, _pri uint8) error {
 }
 
 func ProveRS(sk *ecdsa.PrivateKey, _pn, _rn string, _pri uint8, _pf []byte) error {
-	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
+	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Minute)
 	defer cancle()
 	rsp, err := NewRSProof(ctx)
 	if err != nil {
@@ -486,7 +486,7 @@ func ProveKZG(sk *ecdsa.PrivateKey, _ep uint64, _wroot []byte, _pf []byte) error
 		return fmt.Errorf("invalid witness root length")
 	}
 
-	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
+	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Minute)
 	defer cancle()
 	pi, err := NewEProof(ctx)
 	if err != nil {
@@ -574,7 +574,7 @@ func ChallengeSum(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64, _qIndex
 }
 
 func ProveSum(sk *ecdsa.PrivateKey, _ep uint64, coms []bls.G1, _pf []byte) error {
-	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
+	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Minute)
 	defer cancle()
 
 	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
@@ -649,24 +649,10 @@ func ChallengeOne(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64, _qIndex
 }
 
 func ProveOne(sk *ecdsa.PrivateKey, _ep uint64, com bls.G1, _pf []byte) error {
-	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
+	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Minute)
 	defer cancle()
 
 	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
-	if err != nil {
-		return err
-	}
-
-	ti, err := NewToken(ctx)
-	if err != nil {
-		return err
-	}
-
-	tx, err := ti.IncreaseAllowance(au, BankAddr, big.NewInt(int64(DefaultPenalty)))
-	if err != nil {
-		return err
-	}
-	err = CheckTx(DevChain, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -678,7 +664,7 @@ func ProveOne(sk *ecdsa.PrivateKey, _ep uint64, com bls.G1, _pf []byte) error {
 
 	_com := G1InSolidity(com)
 	logger.Debug("prove eproof one: ", au.From, _ep)
-	tx, err = pi.ProveOne(au, _ep, _com, _pf)
+	tx, err := pi.ProveOne(au, _ep, _com, _pf)
 	if err != nil {
 		return err
 	}
