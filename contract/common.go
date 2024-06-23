@@ -46,6 +46,7 @@ var (
 
 	DefaultReplicaPrice = 1e11 // 1TB*100 epoch cost 10
 	DefaultStoreEpoch   = 101  // slight larger than minEpoch
+	DelaySubmit         = 7
 
 	DefaultSpacePrice = 1e10
 	DefaultSpaceEpoch = 201
