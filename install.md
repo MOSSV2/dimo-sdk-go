@@ -1,5 +1,10 @@
 # dimo
 
+## 架构
+
+
+![dimo data flow](./dimo_data_flow.png)
+
 ## 下载二进制
 
 下载相应平台的二进制:
@@ -55,6 +60,27 @@ Network: 100mbps
 // 查看收益信息
 > ./store-edge chain revenue
 ```
+
+## validator
+
+验证store提交证据的正确性，在发现错误的时候提起挑战，获取收益
+
++ standard
+
+CPU: 16 core
+Memory: 32GB
+Storage: 1TB SSD
+Network: 10mbps
+
+```shell
+// 初始化，默认使用~/.validator
+> ./validator init
+// 默认使用8085端口
+> ./store-edge daemon run -b <BIND_PORT>
+// 例如
+> ./store-edge daemon run -b 0.0.0.0:8085
+```
+
 
 ## client(todo)
 
