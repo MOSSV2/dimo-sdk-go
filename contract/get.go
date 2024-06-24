@@ -13,6 +13,7 @@ import (
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/model"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/node"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/piece"
+	"github.com/MOSSV2/dimo-sdk-go/contract/go/reward"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/rsproof"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/space"
 
@@ -299,6 +300,17 @@ func GetEProofMinTime() (uint64, error) {
 	return t.Uint64(), nil
 }
 
+func GetReward(addr common.Address) (reward.IRewardRewardInfo, error) {
+	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Second)
+	defer cancle()
+	gi, err := NewReward(ctx)
+	if err != nil {
+		return reward.IRewardRewardInfo{}, err
+	}
+	return gi.GetReward(&bind.CallOpts{From: addr}, addr)
+
+}
+
 func GetRevenue(addr common.Address, typ string) (*big.Int, error) {
 	res := big.NewInt(0)
 	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Second)
@@ -316,6 +328,18 @@ func GetRevenue(addr common.Address, typ string) (*big.Int, error) {
 		}
 
 		res.Set(si.Revenue)
+		return res, nil
+	case "reward":
+		gi, err := NewReward(ctx)
+		if err != nil {
+			return res, err
+		}
+		si, err := gi.GetReward(&bind.CallOpts{From: addr}, addr)
+		if err != nil {
+			return res, err
+		}
+
+		res.Set(si.Avail)
 		return res, nil
 	case "gpu":
 		gi, err := NewGPU(ctx)

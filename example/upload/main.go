@@ -23,7 +23,7 @@ import (
 func main() {
 	skstr := flag.String("sk", "", "private key for sending transaction")
 	pathstr := flag.String("path", "", "dir or file path to upload")
-	mf := flag.Bool("model", false, "download model or regular file/dir")
+	mf := flag.Bool("model", false, "upload type: model or regular file/dir")
 	flag.Parse()
 
 	sk, err := crypto.HexToECDSA(*skstr)

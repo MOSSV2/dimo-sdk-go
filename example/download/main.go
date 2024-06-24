@@ -25,7 +25,7 @@ func main() {
 	skstr := flag.String("sk", "", "private key for sending transaction")
 	namestr := flag.String("name", "", "file or model name to download")
 	pathstr := flag.String("path", "", "dir or file path to save")
-	mf := flag.Bool("model", false, "download model or regular file")
+	mf := flag.Bool("model", false, "download type: model or regular file")
 	flag.Parse()
 
 	sk, err := crypto.HexToECDSA(*skstr)
@@ -57,7 +57,7 @@ func main() {
 }
 
 func DownloadFile(sk *ecdsa.PrivateKey, fname, fp string) error {
-	au, err := key.BuildAuth(sk, []byte("upload"))
+	au, err := key.BuildAuth(sk, []byte("download"))
 	if err != nil {
 		return err
 	}
