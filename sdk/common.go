@@ -31,9 +31,7 @@ func init() {
 	log.SetLogLevel("DEBUG")
 }
 
-const (
-	ServerURL = "http://52.220.254.5:8080"
-)
+var ServerURL = "http://52.220.254.5:8080"
 
 func CheckFileFull(ff types.FileFull) ([]types.PieceCore, error) {
 	res := make([]types.PieceCore, len(ff.Pieces))
