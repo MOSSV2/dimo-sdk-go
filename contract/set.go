@@ -752,7 +752,17 @@ func TestProveEpoch(_key string, pub []*big.Int, _pf []byte) error {
 		return err
 	}
 
-	vt, err := ev.GetVKRoot(&bind.CallOpts{From: Base}, _key)
+	vt := new(big.Int)
+	switch _key {
+	case "kzg":
+		vt, err = ev.INKZGVK(&bind.CallOpts{From: Base})
+	case "mul":
+		vt, err = ev.INMULVK(&bind.CallOpts{From: Base})
+	case "add":
+		vt, err = ev.INADDVK(&bind.CallOpts{From: Base})
+	default:
+		return fmt.Errorf("unsupported inner circuit: %s", _key)
+	}
 	if err != nil {
 		return err
 	}
