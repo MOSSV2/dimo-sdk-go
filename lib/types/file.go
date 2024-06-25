@@ -19,6 +19,9 @@ type Policy struct {
 func (p Policy) Check() error {
 	switch {
 	case p.N == 6 && p.K == 4:
+	case p.N == 14 && p.K == 7:
+	case p.N == 32 && p.K == 16:
+	case p.N == 64 && p.K == 32:
 	default:
 		return fmt.Errorf("unsupported rs policy: %d %d", p.N, p.K)
 	}
@@ -110,6 +113,7 @@ type PieceWitness struct {
 }
 
 type ReplicaCore struct {
+	Fake     bool
 	Name     string // encoded
 	Serial   uint64
 	Size     int64  // stored size

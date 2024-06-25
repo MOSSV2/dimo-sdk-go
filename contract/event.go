@@ -1,6 +1,7 @@
 package contract
 
 import (
+	"encoding/hex"
 	"fmt"
 	"math/big"
 
@@ -79,11 +80,13 @@ func HandleAddPiece(elog etypes.Log, cabi abi.ABI) (types.PieceCore, error) {
 	if len(inputs) != 6 {
 		return pc, fmt.Errorf("invalid input length")
 	}
+
 	g1, err := SolidityToG1(inputs[0].([]byte))
-	if err != nil {
-		return pc, err
+	if err == nil {
+		pc.Name = G1ToString(g1)
+	} else {
+		pc.Name = hex.EncodeToString(inputs[0].([]byte))
 	}
-	pc.Name = G1ToString(g1)
 	pc.Price = inputs[1].(*big.Int)
 	pc.Size = int64(inputs[2].(uint64))
 	pc.Expire = inputs[3].(uint64)
@@ -141,6 +144,8 @@ func HandleAddReplica(elog etypes.Log, cabi abi.ABI) (types.ReplicaInChain, erro
 	g1, err := SolidityToG1(inputs[0].([]byte))
 	if err == nil {
 		rc.Name = G1ToString(g1)
+	} else {
+		rc.Name = hex.EncodeToString(inputs[0].([]byte))
 	}
 	rc.Piece = inputs[1].(uint64)
 	rc.Index = inputs[2].(uint8)
@@ -155,6 +160,30 @@ func HandleRSChallenge(elog etypes.Log, cabi abi.ABI) (types.RSChalInChain, erro
 	evInfo, ok := cabi.Events["Challenge"]
 	if !ok {
 		return ei, fmt.Errorf("no event 'Challenge' in ABI")
+	}
+
+	if len(elog.Topics) != 2 {
+		return ei, fmt.Errorf("invalid log topic length")
+	}
+	ei.Store = common.HexToAddress(elog.Topics[1].Hex())
+
+	ld, err := cabi.Unpack(evInfo.Name, elog.Data)
+	if err != nil {
+		return ei, err
+	}
+	if len(ld) != 1 {
+		return ei, fmt.Errorf("invalid log data length")
+	}
+	ei.Replica = ld[0].(uint64)
+	return ei, nil
+}
+
+func HandleRSFake(elog etypes.Log, cabi abi.ABI) (types.RSChalInChain, error) {
+	ei := types.RSChalInChain{}
+
+	evInfo, ok := cabi.Events["Fake"]
+	if !ok {
+		return ei, fmt.Errorf("no event 'Fake' in ABI")
 	}
 
 	if len(elog.Topics) != 2 {
