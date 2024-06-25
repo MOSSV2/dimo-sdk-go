@@ -24,6 +24,7 @@ func main() {
 	skstr := flag.String("sk", "", "private key for sending transaction")
 	pathstr := flag.String("path", "", "dir or file path to upload")
 	mf := flag.Bool("model", false, "upload type: model or regular file/dir")
+	fname := flag.Bool("name", false, "file name in public, default is sha256")
 	flag.Parse()
 
 	sk, err := crypto.HexToECDSA(*skstr)
@@ -47,14 +48,14 @@ func main() {
 			log.Println(err)
 		}
 	} else {
-		err = UploadFile(sk, fp)
+		err = UploadFile(sk, fp, *fname)
 		if err != nil {
 			log.Println(err)
 		}
 	}
 }
 
-func UploadFile(sk *ecdsa.PrivateKey, fp string) error {
+func UploadFile(sk *ecdsa.PrivateKey, fp string, fname bool) error {
 	au, err := key.BuildAuth(sk, []byte("upload"))
 	if err != nil {
 		return err
@@ -87,8 +88,13 @@ func UploadFile(sk *ecdsa.PrivateKey, fp string) error {
 	}
 
 	if !fi.IsDir() {
+		nm := ""
+		if fname {
+			nm = filepath.Base(fp)
+		}
+
 		// upload to stream and submit to gateway
-		res, streamer, err := sdk.Upload(sdk.ServerURL, au, policy, fp, "")
+		res, streamer, err := sdk.Upload(sdk.ServerURL, au, policy, fp, nm)
 		if err != nil {
 			return err
 		}
@@ -96,7 +102,7 @@ func UploadFile(sk *ecdsa.PrivateKey, fp string) error {
 		if err != nil {
 			return err
 		}
-		log.Printf("upload %s to %s, sha256: %s\n", fp, streamer, res.Name)
+		log.Printf("upload %s to %s, sha256: %s\n", fp, streamer, res.Hash)
 		log.Printf("submit %s to chain\n", res.Name)
 
 		// submit meta to chain
@@ -118,7 +124,11 @@ func UploadFile(sk *ecdsa.PrivateKey, fp string) error {
 		if fi.IsDir() {
 			return nil
 		}
-		res, streamer, err := sdk.Upload(sdk.ServerURL, au, policy, fileName, "")
+		nm := ""
+		if fname {
+			nm = filepath.Base(fileName)
+		}
+		res, streamer, err := sdk.Upload(sdk.ServerURL, au, policy, fileName, nm)
 		if err != nil {
 			return nil
 		}
@@ -127,7 +137,7 @@ func UploadFile(sk *ecdsa.PrivateKey, fp string) error {
 			return err
 		}
 
-		log.Printf("upload %s to %s, sha256: %s\n", fp, streamer, res.Name)
+		log.Printf("upload %s to %s, sha256: %s\n", fp, streamer, res.Hash)
 		log.Printf("submit %s to chain\n", res.Name)
 
 		// submit meta to chain
