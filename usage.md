@@ -1,9 +1,5 @@
 # dimo
 
-## 架构
-
-
-![dimo data flow](./dimo_data_flow.png)
 
 ## 下载二进制
 
