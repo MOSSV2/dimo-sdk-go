@@ -48,6 +48,7 @@ var (
 	DefaultGasLimit = 8_000_000
 	DefaultGasPrice = 10
 
+	DefaultStreamPrice  = 1e12
 	DefaultReplicaPrice = 1e11 // 1TB*100 epoch cost 10
 	DefaultStoreEpoch   = 101  // slight larger than minEpoch
 	DelaySubmit         = 7

@@ -156,14 +156,16 @@ func AddPiece(sk *ecdsa.PrivateKey, pc types.PieceCore) error {
 		pc.Expire = ce + uint64(DefaultStoreEpoch) + 1
 	}
 	if pc.Price == nil {
-		pc.Price = new(big.Int).SetInt64(int64(DefaultReplicaPrice))
+		pc.Price = big.NewInt(int64(DefaultReplicaPrice))
 	}
 
 	_size := 1 + (pc.Size-1)/(31*int64(pc.Policy.K))
-	_size = (1 + (_size-1)/(32*1024)) * int64(pc.Policy.N)
+	_size = 1 + (_size-1)/(32*1024)
 
 	val := big.NewInt(int64(pc.Expire-pc.Start) * _size)
 	val.Mul(val, pc.Price)
+	val.Add(val, big.NewInt(int64(DefaultStreamPrice)))
+	val.Mul(val, big.NewInt(int64(pc.Policy.N)))
 
 	ti, err := NewToken(ctx)
 	if err != nil {
@@ -185,7 +187,7 @@ func AddPiece(sk *ecdsa.PrivateKey, pc types.PieceCore) error {
 	}
 
 	logger.Debug("add piece: ", pc)
-	tx, err = fi.AddPiece(au, pb, pc.Price, uint64(pc.Size), pc.Expire, pc.Policy.N, pc.Policy.K)
+	tx, err = fi.AddPiece(au, pb, pc.Price, uint64(pc.Size), pc.Expire, pc.Policy.N, pc.Policy.K, pc.Streamer)
 	if err != nil {
 		return err
 	}
@@ -828,6 +830,56 @@ func Settle(sk *ecdsa.PrivateKey, _money *big.Int) error {
 	}
 
 	tx, err := fi.Settle(au, _money)
+	if err != nil {
+		return err
+	}
+
+	err = CheckTx(DevChain, tx.Hash())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func WithdrawRevenue(sk *ecdsa.PrivateKey, _money *big.Int) error {
+	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
+	defer cancle()
+	fi, err := NewPiece(ctx)
+	if err != nil {
+		return err
+	}
+	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	if err != nil {
+		return err
+	}
+
+	tx, err := fi.Withdraw(au, _money)
+	if err != nil {
+		return err
+	}
+
+	err = CheckTx(DevChain, tx.Hash())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func WithdrawReward(sk *ecdsa.PrivateKey, _money *big.Int) error {
+	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
+	defer cancle()
+	fi, err := NewReward(ctx)
+	if err != nil {
+		return err
+	}
+	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	if err != nil {
+		return err
+	}
+
+	tx, err := fi.Withdraw(au, _money)
 	if err != nil {
 		return err
 	}

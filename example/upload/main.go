@@ -88,15 +88,15 @@ func UploadFile(sk *ecdsa.PrivateKey, fp string) error {
 
 	if !fi.IsDir() {
 		// upload to stream and submit to gateway
-		res, submitter, err := sdk.Upload(sdk.ServerURL, au, policy, fp, "")
+		res, streamer, err := sdk.Upload(sdk.ServerURL, au, policy, fp, "")
 		if err != nil {
 			return err
 		}
-		pcs, err := sdk.CheckFileFull(res)
+		pcs, err := sdk.CheckFileFull(res, streamer)
 		if err != nil {
 			return err
 		}
-		log.Printf("upload %s to %s, sha256: %s\n", fp, submitter, res.Name)
+		log.Printf("upload %s to %s, sha256: %s\n", fp, streamer, res.Name)
 		log.Printf("submit %s to chain\n", res.Name)
 
 		// submit meta to chain
@@ -118,16 +118,16 @@ func UploadFile(sk *ecdsa.PrivateKey, fp string) error {
 		if fi.IsDir() {
 			return nil
 		}
-		res, submitter, err := sdk.Upload(sdk.ServerURL, au, policy, fileName, "")
+		res, streamer, err := sdk.Upload(sdk.ServerURL, au, policy, fileName, "")
 		if err != nil {
 			return nil
 		}
-		pcs, err := sdk.CheckFileFull(res)
+		pcs, err := sdk.CheckFileFull(res, streamer)
 		if err != nil {
 			return err
 		}
 
-		log.Printf("upload %s to %s, sha256: %s\n", fp, submitter, res.Name)
+		log.Printf("upload %s to %s, sha256: %s\n", fp, streamer, res.Name)
 		log.Printf("submit %s to chain\n", res.Name)
 
 		// submit meta to chain

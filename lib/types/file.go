@@ -48,8 +48,7 @@ func (frc *FileCore) Deserialize(b []byte) error {
 
 type FileReceipt struct {
 	FileCore
-	Streams []common.Address
-	Pieces  []string
+	Pieces []string
 }
 
 func (fr *FileReceipt) Serialize() ([]byte, error) {
@@ -75,14 +74,15 @@ func (ff *FileFull) Deserialize(b []byte) error {
 }
 
 type PieceCore struct {
-	Policy Policy
-	Name   string
-	Serial uint64
-	Size   int64 // raw size
-	Start  uint64
-	Expire uint64
-	Owner  common.Address
-	Price  *big.Int
+	Policy   Policy
+	Name     string
+	Serial   uint64
+	Size     int64 // raw size
+	Start    uint64
+	Expire   uint64
+	Price    *big.Int
+	Owner    common.Address
+	Streamer common.Address
 }
 
 func (pc *PieceCore) Serialize() ([]byte, error) {

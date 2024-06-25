@@ -16,6 +16,7 @@ import (
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/reward"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/rsproof"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/space"
+	"github.com/MOSSV2/dimo-sdk-go/lib/types"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -317,7 +318,7 @@ func GetRevenue(addr common.Address, typ string) (*big.Int, error) {
 	defer cancle()
 
 	switch typ {
-	case "piece":
+	case types.StoreType:
 		gi, err := NewPiece(ctx)
 		if err != nil {
 			return res, err
@@ -328,6 +329,18 @@ func GetRevenue(addr common.Address, typ string) (*big.Int, error) {
 		}
 
 		res.Set(si.Revenue)
+		return res, nil
+	case types.StreamType:
+		gi, err := NewPiece(ctx)
+		if err != nil {
+			return res, err
+		}
+		val, err := gi.GetRevenue(&bind.CallOpts{From: addr}, addr)
+		if err != nil {
+			return res, err
+		}
+
+		res.Set(val)
 		return res, nil
 	case "reward":
 		gi, err := NewReward(ctx)

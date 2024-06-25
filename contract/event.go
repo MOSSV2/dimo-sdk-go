@@ -77,7 +77,7 @@ func HandleAddPiece(elog etypes.Log, cabi abi.ABI) (types.PieceCore, error) {
 		return pc, err
 	}
 
-	if len(inputs) != 6 {
+	if len(inputs) != 7 {
 		return pc, fmt.Errorf("invalid input length")
 	}
 
@@ -92,6 +92,7 @@ func HandleAddPiece(elog etypes.Log, cabi abi.ABI) (types.PieceCore, error) {
 	pc.Expire = inputs[3].(uint64)
 	pc.Policy.N = inputs[4].(uint8)
 	pc.Policy.K = inputs[5].(uint8)
+	pc.Streamer = inputs[6].(common.Address)
 
 	return pc, nil
 }
