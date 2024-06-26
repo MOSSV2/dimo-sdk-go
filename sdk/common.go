@@ -40,7 +40,7 @@ var ServerURL = "http://52.220.254.5:8080"
 
 const InHashID = hash.MIMC_BW6_761
 
-func CheckFileFull(ff types.FileFull, streamer common.Address, fp string) ([]types.PieceCore, error) {
+func CheckFileFull(ff types.FileFull, stream common.Address, fp string) ([]types.PieceCore, error) {
 	logger.Debug("check stream handle of file: ", fp)
 	res := make([]types.PieceCore, len(ff.Pieces))
 	p, err := homedir.Expand(fp)
@@ -70,6 +70,10 @@ func CheckFileFull(ff types.FileFull, streamer common.Address, fp string) ([]typ
 
 		mh.Reset()
 
+		buf := make([]byte, 28)
+		buf = append(buf, stream.Bytes()...)
+		mh.Write(buf)
+
 		for j := 0; j < int(ff.Policy.K); j++ {
 			mh.Write(ew.Commits[j].Marshal())
 			mh.Write(ew.MoveCommits[j].Marshal())
@@ -81,7 +85,6 @@ func CheckFileFull(ff types.FileFull, streamer common.Address, fp string) ([]typ
 
 		slen := (1 + (ff.PieceSizes[i]-1)/(31*int64(ff.Policy.K))) * 31
 		rest := ff.PieceSizes[i]
-		var buf []byte
 		for j := 0; j < int(ff.Policy.K); j++ {
 			size := slen
 			if rest < slen {
@@ -107,7 +110,7 @@ func CheckFileFull(ff types.FileFull, streamer common.Address, fp string) ([]typ
 			Policy:   ff.Policy,
 			Name:     ff.Pieces[i],
 			Size:     ff.PieceSizes[i],
-			Streamer: streamer,
+			Streamer: stream,
 		}
 	}
 	return res, nil
