@@ -98,7 +98,7 @@ func UploadFile(sk *ecdsa.PrivateKey, fp string, fname bool) error {
 		if err != nil {
 			return err
 		}
-		pcs, err := sdk.CheckFileFull(res, streamer)
+		pcs, err := sdk.CheckFileFull(res, streamer, fp)
 		if err != nil {
 			return err
 		}
@@ -132,7 +132,7 @@ func UploadFile(sk *ecdsa.PrivateKey, fp string, fname bool) error {
 		if err != nil {
 			return nil
 		}
-		pcs, err := sdk.CheckFileFull(res, streamer)
+		pcs, err := sdk.CheckFileFull(res, streamer, fp)
 		if err != nil {
 			return err
 		}

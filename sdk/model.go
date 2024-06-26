@@ -188,7 +188,7 @@ func UploadModelFiles(url string, sk *ecdsa.PrivateKey, au types.Auth, fp string
 			return mrm, err
 		}
 
-		pcs, err := CheckFileFull(ff, streamer)
+		pcs, err := CheckFileFull(ff, streamer, sfp)
 		if err != nil {
 			return mrm, err
 		}
