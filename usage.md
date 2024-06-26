@@ -22,12 +22,18 @@ Network: public IP, 100mbps
 ### 运行
 
 ```shell
-// 初始化，默认使用~/.stream目录
+// 初始化，默认使用~/.stream目录, 创建account，密码默认aidemo123
 > ./stream init
-// 默认使用8083端口，8083端口需要可以外网访问
+// 启动，默认使用8083端口，8083端口需要可以外网访问
 > ./stream daemon run -b <BIND_PORT> -e <EXPOSE_URL>
 // 例如外网ip为1.2.3.4
 > ./stream daemon run -b 0.0.0.0:8083 -e http://1.2.3.4:8083
+// 查看余额
+> ./stream chain balance
+// 查看收益
+> ./stream chain stream revenue
+// 取回收益
+> ./stream chain stream withdraw
 ```
 
 ## store
@@ -45,16 +51,22 @@ Network: 100mbps
 ### 运行
 
 ```shell
-// 初始化，默认使用~/.store目录
+// 初始化，默认使用~/.store目录,创建account，密码默认aidemo123
 > ./store-edge init
-// 默认使用8082端口
+// 启动，默认使用8082端口
 > ./store-edge daemon run -b <BIND_PORT> -e <EXPOSE_URL>
 // 例如外网ip为1.2.3.4，8082端口可以外网访问
 > ./store-edge daemon run -b 0.0.0.0:8082 -e http://1.2.3.4:8082
 // 例如: 无外网ip，8082端口不可以外网访问
-> ./store-edge daemon run -b 0.0.0.0:8082
+> ./store-edge daemon run -b 127.0.0.1:8082
+// 查看余额
+> ./stream chain balance
 // 查看收益信息
-> ./store-edge chain revenue
+> ./store-edge chain store revenue
+// 取回存储收益
+> ./store-edge chain store withdraw
+// 取回存储奖励
+> ./store-edge chain store withdrawReward
 ```
 
 ## validator
@@ -69,12 +81,14 @@ Storage: 1TB SSD
 Network: 10mbps
 
 ```shell
-// 初始化，默认使用~/.validator
+// 初始化，默认使用~/.validator,创建account，密码默认aidemo123
 > ./validator init
 // 默认使用8085端口
-> ./store-edge daemon run -b <BIND_PORT>
+> ./validator daemon run -b <BIND_PORT>
 // 例如
-> ./store-edge daemon run -b 0.0.0.0:8085
+> ./validator daemon run -b 127.0.0.1:8085
+// 查看余额
+> ./validator chain balance
 ```
 
 
