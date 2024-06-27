@@ -45,7 +45,7 @@ func TestReward(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for i := uint64(2500); i < 3000; i += 100 {
+	for i := uint64(64); i < 3000; i += 64 {
 		tx, err := ri.Mint(au, i)
 		if err != nil {
 			t.Fatal(i, err)
@@ -56,6 +56,34 @@ func TestReward(t *testing.T) {
 			t.Fatal(i, err)
 		}
 	}
+}
+
+func TestTotalReward(t *testing.T) {
+	ri, err := NewReward(context.TODO())
+	if err != nil {
+		t.Fatal(err)
+	}
+	ts, err := ri.TotalShare(&bind.CallOpts{From: Base})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(ts)
+	cur, err := ri.Current(&bind.CallOpts{From: Base})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(cur)
+	val, err := ri.Rest(&bind.CallOpts{From: Base})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(val)
+	rsi, err := ri.GetEReward(&bind.CallOpts{From: Base}, cur-1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(rsi)
+	t.Fatal()
 }
 
 func TestNodeCheck(t *testing.T) {

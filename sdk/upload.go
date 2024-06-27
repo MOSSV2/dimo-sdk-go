@@ -60,8 +60,8 @@ func Upload(baseUrl string, auth types.Auth, policy types.Policy, filePath strin
 		fr, err := UploadData(em.ExposeURL, auth, policy, filePath)
 		if err != nil {
 			logger.Debug("upload: ", filePath, " to: ", em.ExposeURL, " fail: ", err)
-			if !strings.Contains(err.Error(), "already has file") {
-				continue
+			if strings.Contains(err.Error(), "already has") {
+				return res, em.Name, err
 			}
 		}
 
