@@ -11,7 +11,6 @@ import (
 
 	bls "github.com/consensys/gnark-crypto/ecc/bls12-377"
 	"github.com/consensys/gnark-crypto/ecc/bls12-377/kzg"
-
 	gkzg "github.com/consensys/gnark-crypto/kzg"
 )
 
