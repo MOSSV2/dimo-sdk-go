@@ -867,6 +867,31 @@ func WithdrawRevenue(sk *ecdsa.PrivateKey, _money *big.Int) error {
 	return nil
 }
 
+func SettleReward(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64) error {
+	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
+	defer cancle()
+	fi, err := NewReward(ctx)
+	if err != nil {
+		return err
+	}
+	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	if err != nil {
+		return err
+	}
+
+	tx, err := fi.Settle(au, addr, _ep)
+	if err != nil {
+		return err
+	}
+
+	err = CheckTx(DevChain, tx.Hash())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func WithdrawReward(sk *ecdsa.PrivateKey, _money *big.Int) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()

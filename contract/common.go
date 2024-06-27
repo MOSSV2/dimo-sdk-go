@@ -44,7 +44,7 @@ var (
 	//http://unibasechain-scan-405529765.ap-southeast-1.elb.amazonaws.com/
 
 	DevBlockTime = 2 // seconds/block
-	SyncHeight   = 955_000
+	SyncHeight   = 991_000
 
 	// Epoch = 5760 blocks; 7.5 epoch/day; should be less
 	DefaultGasLimit = 8_000_000

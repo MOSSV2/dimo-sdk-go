@@ -65,6 +65,8 @@ Network: 100mbps
 > ./store-edge chain store revenue
 // 取回存储收益
 > ./store-edge chain store withdraw
+// 更新存储奖励
+> ./store-edge chain store updateReward
 // 取回存储奖励
 > ./store-edge chain store withdrawReward
 ```

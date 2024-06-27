@@ -308,7 +308,7 @@ func GetReward(addr common.Address) (reward.IRewardRewardInfo, error) {
 	if err != nil {
 		return reward.IRewardRewardInfo{}, err
 	}
-	return gi.GetReward(&bind.CallOpts{From: addr}, addr)
+	return gi.GetSReward(&bind.CallOpts{From: addr}, addr)
 
 }
 
@@ -347,7 +347,7 @@ func GetRevenue(addr common.Address, typ string) (*big.Int, error) {
 		if err != nil {
 			return res, err
 		}
-		si, err := gi.GetReward(&bind.CallOpts{From: addr}, addr)
+		si, err := gi.GetSReward(&bind.CallOpts{From: addr}, addr)
 		if err != nil {
 			return res, err
 		}

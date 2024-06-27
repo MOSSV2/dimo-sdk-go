@@ -22,12 +22,40 @@ func TestTransfer(t *testing.T) {
 	sk, addr := makeAccount()
 	val := big.NewInt(1e18)
 	val.Mul(val, big.NewInt(100000))
-	addr = common.HexToAddress("0x17B0D6a060e1D95AB223AD8D2F170824764E430e")
+	addr = common.HexToAddress("0x3424aD62dD417b2edFfacBa665316dD8cFA27fF7")
 	err := transfer(addr, val)
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Fatal(sk)
+}
+
+func TestReward(t *testing.T) {
+	sk, addr := makeAccount()
+	val := big.NewInt(1e18)
+	err := transfer(addr, val)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ri, err := NewReward(context.TODO())
+	if err != nil {
+		t.Fatal(err)
+	}
+	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for i := uint64(100); i < 3000; i += 100 {
+		tx, err := ri.Mint(au, i)
+		if err != nil {
+			t.Fatal(i, err)
+		}
+
+		err = CheckTx(DevChain, tx.Hash())
+		if err != nil {
+			t.Fatal(i, err)
+		}
+	}
 }
 
 func TestNodeCheck(t *testing.T) {
