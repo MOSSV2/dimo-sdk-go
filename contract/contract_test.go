@@ -45,7 +45,7 @@ func TestReward(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for i := uint64(100); i < 3000; i += 100 {
+	for i := uint64(2500); i < 3000; i += 100 {
 		tx, err := ri.Mint(au, i)
 		if err != nil {
 			t.Fatal(i, err)

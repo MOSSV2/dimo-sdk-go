@@ -3,11 +3,9 @@ package contract
 import (
 	"context"
 	"crypto/ecdsa"
-	"encoding/hex"
 	"fmt"
 	"log"
 	"math/big"
-	"strings"
 	"time"
 
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/token"
@@ -156,9 +154,16 @@ func CheckTx(endPoint string, txHash common.Hash) error {
 		return fmt.Errorf("%s not packaged", txHash)
 	}
 
-	if receipt.Status == 0 { // 0 means fail
+	if receipt.Status == types.ReceiptStatusFailed { // 0 means fail
+		for _, elog := range receipt.Logs {
+			log.Printf("Log: %v\n", elog) // 打印日志信息
+		}
 		err = AnalyzeTransactionFailure(txHash)
-		log.Println("tx revert: ", err)
+		if err != nil {
+			logger.Warn("tx revert: ", err)
+			return err
+		}
+
 		if receipt.GasUsed != receipt.CumulativeGasUsed {
 			return fmt.Errorf("%s transaction exceed gas limit", txHash)
 		}
@@ -200,16 +205,7 @@ func AnalyzeTransactionFailure(txHash common.Hash) error {
 	}
 
 	_, err = client.CallContract(context.Background(), callMsg, receipt.BlockNumber)
-	if err != nil {
-		errData := err.Error()
-		if strings.HasPrefix(errData, "execution reverted") {
-			errorMessage := parseRevertReason(errData)
-			return fmt.Errorf("revert reason: %s", errorMessage)
-		}
-		return fmt.Errorf("contract call error: %v", err)
-	} else {
-		return fmt.Errorf("no revert reason found, check gas limit or other issues")
-	}
+	return err
 }
 
 func getFrom(tx *types.Transaction) common.Address {
@@ -250,16 +246,6 @@ func getFrom(tx *types.Transaction) common.Address {
 		return common.Address{}
 	}
 	return from
-}
-
-func parseRevertReason(errData string) string {
-	if len(errData) > 138 {
-		reason := errData[138:]
-		if reasonBytes, err := hex.DecodeString(reason); err == nil {
-			return string(reasonBytes)
-		}
-	}
-	return "unknown revert reason"
 }
 
 func Transfer(ep string, sk *ecdsa.PrivateKey, toAddr common.Address, value *big.Int) error {
