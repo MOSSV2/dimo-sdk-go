@@ -18,6 +18,7 @@ import (
 	"github.com/MOSSV2/dimo-sdk-go/lib/archive"
 	"github.com/MOSSV2/dimo-sdk-go/lib/bls"
 	"github.com/MOSSV2/dimo-sdk-go/lib/types"
+
 	darchive "github.com/docker/docker/pkg/archive"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/mitchellh/go-homedir"

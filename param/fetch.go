@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/MOSSV2/dimo-sdk-go/lib/log"
-	"github.com/mitchellh/go-homedir"
 
+	"github.com/mitchellh/go-homedir"
 	"github.com/schollz/progressbar/v3"
 )
 
