@@ -66,6 +66,10 @@ type ListReplicaResult struct {
 	Replicas []ReplicaCore
 }
 
+type ListProofResult struct {
+	Proofs []ProofStat
+}
+
 type ListStatResult struct {
 	Stats []StatResult
 }
