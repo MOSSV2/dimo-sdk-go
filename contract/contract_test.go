@@ -23,13 +23,70 @@ func TestTransfer(t *testing.T) {
 	valt := big.NewInt(1e18)
 	valt.Mul(valt, big.NewInt(100))
 
-	val := big.NewInt(8e15)
-	addr = common.HexToAddress("0xd03E6fE1824917F1B42a07F0Baa9ac025DF8c984")
+	val := big.NewInt(1e15)
+	addr = common.HexToAddress("0xC51d7E77496444A164d5832b5079E21076F732B9")
 	err := transfer(addr, val, valt)
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Fatal(sk)
+}
+
+func TestFakeReplica(t *testing.T) {
+	valt := big.NewInt(1e18)
+	valt.Mul(valt, big.NewInt(10))
+
+	pkey, paddr := makeAccount()
+
+	val := big.NewInt(1e15)
+	err := transfer(paddr, val, valt)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = RegisterNode(pkey, 1, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Minute)
+	defer cancle()
+	fi, err := NewPiece(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	au, err := makeAuth(big.NewInt(int64(DevChainID)), pkey)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rb := []byte("test-" + time.Now().String())
+	_pi := uint64(76)
+	_pri := uint8(1)
+	pf := make([]byte, 32)
+	fmt.Println("submitreplica0: ", BalanceOf(DevChain, au.From))
+	tx, err := fi.AddReplica(au, rb, _pi, _pri, pf)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = CheckTx(DevChain, tx.Hash())
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println("submitreplica1: ", BalanceOf(DevChain, au.From))
+}
+
+func TestReplicaStat(t *testing.T) {
+	rsp, err := NewRSProof(context.TODO())
+	if err != nil {
+		t.Fatal(err)
+	}
+	rspi, err := rsp.GetProof(&bind.CallOpts{From: Base}, 76, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(rspi)
 }
 
 func TestReward(t *testing.T) {
@@ -236,6 +293,17 @@ func TestBlock(t *testing.T) {
 	}
 
 	fmt.Println(eb.Uint64())
+
+	pi, err := NewPiece(context.TODO())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	pcu, err := pi.Current(&bind.CallOpts{From: Base})
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(pcu)
 }
 
 func TestChoose(t *testing.T) {
