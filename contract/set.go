@@ -167,7 +167,8 @@ func AddPiece(sk *ecdsa.PrivateKey, pc types.PieceCore) error {
 		return err
 	}
 
-	fmt.Println("submitpiece0: ", BalanceOf(DevChain, au.From))
+	gtoken := BalanceOf(DevChain, au.From)
+	fmt.Println("submitpiece0: ", gtoken)
 	tx, err := ti.IncreaseAllowance(au, BankAddr, val)
 	if err != nil {
 		return err
@@ -198,6 +199,7 @@ func AddPiece(sk *ecdsa.PrivateKey, pc types.PieceCore) error {
 		return err
 	}
 	fmt.Println("submitpiece2: ", BalanceOf(DevChain, au.From))
+	fmt.Println("submitpiece cost: ", gtoken.Sub(gtoken, BalanceOf(DevChain, au.From)).Div(gtoken, big.NewInt(1_000_000_000)))
 
 	return nil
 }
@@ -233,6 +235,7 @@ func AddReplica(sk *ecdsa.PrivateKey, rc types.ReplicaCore, pf []byte) error {
 		return fmt.Errorf("%s is not on chain", rc.Piece)
 	}
 
+	gtoken := BalanceOf(DevChain, au.From)
 	logger.Debug("add replica: ", _pi, rc)
 	fmt.Println("submitreplica0: ", BalanceOf(DevChain, au.From))
 	tx, err := fi.AddReplica(au, rb, _pi, rc.Index, pf)
@@ -244,6 +247,7 @@ func AddReplica(sk *ecdsa.PrivateKey, rc types.ReplicaCore, pf []byte) error {
 		return err
 	}
 	fmt.Println("submitreplica1: ", BalanceOf(DevChain, au.From))
+	fmt.Println("submitreplica cost: ", gtoken.Sub(gtoken, BalanceOf(DevChain, au.From)).Div(gtoken, big.NewInt(1_000_000_000)))
 
 	return nil
 }
@@ -444,6 +448,7 @@ func SubmitProof(sk *ecdsa.PrivateKey, _ep uint64, _pf bls.EpochProof) error {
 	_frb := FrInSolidity(_pf.ClaimedValue)
 	_pfb = append(_pfb, _frb...)
 
+	gtoken := BalanceOf(DevChain, au.From)
 	logger.Debug("submit epoch proof: ", au.From, _ep)
 	fmt.Println("submitproof0: ", BalanceOf(DevChain, au.From))
 	tx, err := pi.Submit(au, _ep, _sum, _pfb)
@@ -456,7 +461,7 @@ func SubmitProof(sk *ecdsa.PrivateKey, _ep uint64, _pf bls.EpochProof) error {
 		return err
 	}
 	fmt.Println("submitproof1: ", BalanceOf(DevChain, au.From))
-
+	fmt.Println("submitproof cost: ", gtoken.Sub(gtoken, BalanceOf(DevChain, au.From)).Div(gtoken, big.NewInt(1_000_000_000)))
 	return nil
 }
 

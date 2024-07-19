@@ -87,6 +87,17 @@ func TestReplicaStat(t *testing.T) {
 		t.Fatal(err)
 	}
 	fmt.Println(rspi)
+	client, err := ethclient.Dial(DevChain)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer client.Close()
+	latest, err := client.BlockNumber(context.TODO())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Println(latest)
 }
 
 func TestReward(t *testing.T) {
