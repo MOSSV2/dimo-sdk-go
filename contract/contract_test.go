@@ -23,8 +23,8 @@ func TestTransfer(t *testing.T) {
 	valt := big.NewInt(1e18)
 	valt.Mul(valt, big.NewInt(100))
 
-	val := big.NewInt(1e15)
-	addr = common.HexToAddress("0xC51d7E77496444A164d5832b5079E21076F732B9")
+	val := big.NewInt(5e16)
+	addr = common.HexToAddress("0xcf2bf532adbed038b849416b2346633c57bcc3fe")
 	err := transfer(addr, val, valt)
 	if err != nil {
 		t.Fatal(err)
@@ -293,6 +293,13 @@ func TestBlock(t *testing.T) {
 	}
 
 	fmt.Println(latest)
+
+	bk, err := client.HeaderByNumber(ctx, big.NewInt(int64(latest-1000)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(bk.BaseFee, bk.BlobGasUsed, bk.Hash())
+
 	latest, err = GetEpoch()
 	if err != nil {
 		t.Fatal(err)
@@ -367,7 +374,7 @@ func TestMarshal(t *testing.T) {
 }
 
 func TestReceipt(t *testing.T) {
-	tx := common.HexToHash("0xa781ef9b7d27821e727e5ae6fb2a2a1bfac9668df78dbec689c3621ca794643c")
+	tx := common.HexToHash("0x4df93d6807c44fa617bacd1c15fa8fd57ce64f03c9ea41b7a046ea793d6a6afd")
 	receipt, err := GetTransactionReceipt(DevChain, tx)
 	if err != nil {
 		t.Fatal(err)

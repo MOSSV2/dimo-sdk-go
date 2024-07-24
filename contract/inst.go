@@ -28,6 +28,7 @@ func NewBank(ctx context.Context) (*bank.Bank, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer client.Close()
 
 	return bank.NewBank(BankAddr, client)
 }
@@ -37,6 +38,7 @@ func NewToken(ctx context.Context) (*token.Token, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer client.Close()
 
 	bi, err := bank.NewBank(BankAddr, client)
 	if err != nil {
@@ -54,6 +56,7 @@ func NewEpoch(ctx context.Context) (*epoch.Epoch, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer client.Close()
 
 	bi, err := bank.NewBank(BankAddr, client)
 	if err != nil {
@@ -71,6 +74,7 @@ func NewControl(ctx context.Context) (*control.Control, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer client.Close()
 
 	bi, err := bank.NewBank(BankAddr, client)
 	if err != nil {
@@ -88,6 +92,7 @@ func NewNode(ctx context.Context) (*node.Node, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer client.Close()
 
 	bi, err := bank.NewBank(BankAddr, client)
 	if err != nil {
@@ -105,6 +110,7 @@ func NewPiece(ctx context.Context) (*piece.Piece, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer client.Close()
 
 	bi, err := bank.NewBank(BankAddr, client)
 	if err != nil {
@@ -122,6 +128,7 @@ func NewReward(ctx context.Context) (*reward.Reward, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer client.Close()
 
 	bi, err := bank.NewBank(BankAddr, client)
 	if err != nil {
@@ -139,6 +146,7 @@ func NewRSProof(ctx context.Context) (*rsproof.RSProof, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer client.Close()
 
 	bi, err := bank.NewBank(BankAddr, client)
 	if err != nil {
@@ -156,6 +164,7 @@ func NewRSOne(ctx context.Context) (*rsone.PlonkVerifier, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer client.Close()
 
 	bi, err := bank.NewBank(BankAddr, client)
 	if err != nil {
@@ -173,6 +182,7 @@ func NewKZGPlonk(ctx context.Context) (*kzg.PlonkVerifier, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer client.Close()
 
 	bi, err := bank.NewBank(BankAddr, client)
 	if err != nil {
@@ -190,6 +200,7 @@ func NewMulPlonk(ctx context.Context) (*kzg.PlonkVerifier, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer client.Close()
 
 	bi, err := bank.NewBank(BankAddr, client)
 	if err != nil {
@@ -207,6 +218,7 @@ func NewAddPlonk(ctx context.Context) (*kzg.PlonkVerifier, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer client.Close()
 
 	bi, err := bank.NewBank(BankAddr, client)
 	if err != nil {
@@ -224,6 +236,7 @@ func NewEProof(ctx context.Context) (*eproof.EProof, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer client.Close()
 
 	bi, err := bank.NewBank(BankAddr, client)
 	if err != nil {
@@ -241,6 +254,7 @@ func NewEVerify(ctx context.Context) (*everify.EVerify, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer client.Close()
 
 	bi, err := bank.NewBank(BankAddr, client)
 	if err != nil {
@@ -258,6 +272,7 @@ func NewGPU(ctx context.Context) (*gpu.GPU, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer client.Close()
 
 	bi, err := bank.NewBank(BankAddr, client)
 	if err != nil {
@@ -275,6 +290,7 @@ func NewModel(ctx context.Context) (*model.Model, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer client.Close()
 
 	bi, err := bank.NewBank(BankAddr, client)
 	if err != nil {
@@ -292,6 +308,7 @@ func NewSpace(ctx context.Context) (*space.Space, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer client.Close()
 
 	bi, err := bank.NewBank(BankAddr, client)
 	if err != nil {

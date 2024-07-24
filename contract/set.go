@@ -10,6 +10,7 @@ import (
 
 	"github.com/MOSSV2/dimo-sdk-go/lib/bls"
 	"github.com/MOSSV2/dimo-sdk-go/lib/types"
+	"github.com/MOSSV2/dimo-sdk-go/lib/utils"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -199,7 +200,7 @@ func AddPiece(sk *ecdsa.PrivateKey, pc types.PieceCore) error {
 		return err
 	}
 	fmt.Println("submitpiece2: ", BalanceOf(DevChain, au.From))
-	fmt.Println("submitpiece cost: ", gtoken.Sub(gtoken, BalanceOf(DevChain, au.From)).Div(gtoken, big.NewInt(1_000_000_000)))
+	fmt.Println("submitpiece cost: ", utils.FormatEth(gtoken.Sub(gtoken, BalanceOf(DevChain, au.From))))
 
 	return nil
 }
@@ -247,7 +248,7 @@ func AddReplica(sk *ecdsa.PrivateKey, rc types.ReplicaCore, pf []byte) error {
 		return err
 	}
 	fmt.Println("submitreplica1: ", BalanceOf(DevChain, au.From))
-	fmt.Println("submitreplica cost: ", gtoken.Sub(gtoken, BalanceOf(DevChain, au.From)).Div(gtoken, big.NewInt(1_000_000_000)))
+	fmt.Println("submitreplica cost: ", utils.FormatEth(gtoken.Sub(gtoken, BalanceOf(DevChain, au.From))))
 
 	return nil
 }
@@ -461,7 +462,7 @@ func SubmitProof(sk *ecdsa.PrivateKey, _ep uint64, _pf bls.EpochProof) error {
 		return err
 	}
 	fmt.Println("submitproof1: ", BalanceOf(DevChain, au.From))
-	fmt.Println("submitproof cost: ", gtoken.Sub(gtoken, BalanceOf(DevChain, au.From)).Div(gtoken, big.NewInt(1_000_000_000)))
+	fmt.Println("submitproof cost: ", utils.FormatEth(gtoken.Sub(gtoken, BalanceOf(DevChain, au.From))))
 	return nil
 }
 
