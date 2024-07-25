@@ -11,7 +11,12 @@ const (
 	// https://optimism-sepolia-rpc.publicnode.com
 	L2Endpoint     = "https://optimism.drpc.org"
 	L2TestEndpoint = "https://11155420.rpc.thirdweb.com"
-	Decimals       = 1_000_000
+
+	L2BaseEndpoint = "https://base.drpc.org"
+
+	L1Endpoint = "https://eth.drpc.org"
+
+	Decimals = 1_000_000
 )
 
 var Base = common.HexToAddress("0x61Ea24745A3F7Bcbb67eD95B674fEcfbb331ABd0")

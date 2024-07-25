@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"math/big"
-	"time"
 
 	"github.com/MOSSV2/dimo-sdk-go/estimator"
 	"github.com/MOSSV2/dimo-sdk-go/lib/utils"
@@ -15,7 +14,11 @@ import (
 )
 
 func main() {
-	l2client, err := ethclient.Dial(estimator.L2TestEndpoint)
+	l2fee()
+}
+
+func l2fee() {
+	l2client, err := ethclient.Dial(estimator.L2BaseEndpoint)
 	if err != nil {
 		return
 	}
@@ -36,14 +39,13 @@ func main() {
 	l2average := new(big.Int)
 	average := new(big.Int)
 	cnt := 0
+
+	bn, err := l2client.BlockNumber(context.TODO())
+	if err != nil {
+		return
+	}
+
 	for {
-		time.Sleep(time.Minute)
-
-		bn, err := l2client.BlockNumber(context.TODO())
-		if err != nil {
-			continue
-		}
-
 		header, err := l2client.HeaderByNumber(context.TODO(), big.NewInt(int64(bn)))
 		if err != nil {
 			continue
@@ -55,6 +57,7 @@ func main() {
 			continue
 		}
 		cnt++
+		bn -= 30
 
 		l2fee := new(big.Int).Mul(header.BaseFee, big.NewInt(int64(gasused)))
 		l2total.Add(l2total, l2fee)
@@ -69,5 +72,40 @@ func main() {
 		average.Div(total, big.NewInt(int64(cnt)))
 
 		fmt.Printf("%d,head: %d, l1: %s, l2: %s, total: %s, l1 average: %s, l2 average: %s, average: %s\n", cnt, bn, utils.FormatEth(l1fee), utils.FormatEth(l2fee), utils.FormatEth(fee), utils.FormatEth(l1average), utils.FormatEth(l2average), utils.FormatEth(average))
+	}
+}
+
+func l1fee() {
+	l2client, err := ethclient.Dial(estimator.L1Endpoint)
+	if err != nil {
+		return
+	}
+	defer l2client.Close()
+
+	gasused := 370_000
+
+	l2total := new(big.Int)
+	l2average := new(big.Int)
+	cnt := 0
+
+	bn, err := l2client.BlockNumber(context.TODO())
+	if err != nil {
+		return
+	}
+
+	for {
+		header, err := l2client.HeaderByNumber(context.TODO(), big.NewInt(int64(bn)))
+		if err != nil {
+			continue
+		}
+
+		cnt++
+		bn -= 30
+
+		l2fee := new(big.Int).Mul(header.BaseFee, big.NewInt(int64(gasused)))
+		l2total.Add(l2total, l2fee)
+		l2average.Div(l2total, big.NewInt(int64(cnt)))
+
+		fmt.Printf("%d,head: %d, total: %s, average: %s\n", cnt, bn, utils.FormatEth(l2fee), utils.FormatEth(l2average))
 	}
 }
