@@ -250,6 +250,8 @@ func HandleSubmitEProof(elog etypes.Log, cabi abi.ABI) (types.EProofInChain, err
 	if err == nil {
 		g1b := g1.Bytes()
 		ei.Sum = g1b[:]
+	} else {
+		ei.Sum = sum
 	}
 
 	pf := inputs[2].(([]byte))

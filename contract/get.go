@@ -102,6 +102,7 @@ func GetBlockNumber() (uint64, error) {
 	if err != nil {
 		return 0, err
 	}
+	defer client.Close()
 	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancle()
 	return client.BlockNumber(ctx)
@@ -259,12 +260,12 @@ func GetStoreReplica(_a common.Address, _ri uint64) (uint64, error) {
 	return fi.GetSRAt(&bind.CallOpts{From: Base}, _a, _ri)
 }
 
-func GetRSChalInfo(_pi uint64, _pri uint8) (rsproof.RSProofProofInfo, error) {
+func GetRSChalInfo(_pi uint64, _pri uint8) (rsproof.IRSProofProofInfo, error) {
 	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancle()
 	rsp, err := NewRSProof(ctx)
 	if err != nil {
-		return rsproof.RSProofProofInfo{}, err
+		return rsproof.IRSProofProofInfo{}, err
 	}
 
 	return rsp.GetProof(&bind.CallOpts{From: Base}, _pi, _pri)
@@ -286,12 +287,12 @@ func GetRSMinTime() (uint64, error) {
 	return t.Uint64(), nil
 }
 
-func GetEpochChalInfo(_a common.Address, _ep uint64) (eproof.IEproofProofInfo, error) {
+func GetEpochChalInfo(_a common.Address, _ep uint64) (eproof.IEProofProofInfo, error) {
 	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancle()
 	ep, err := NewEProof(ctx)
 	if err != nil {
-		return eproof.IEproofProofInfo{}, err
+		return eproof.IEProofProofInfo{}, err
 	}
 
 	return ep.GetEProof(&bind.CallOpts{From: Base}, _a, _ep)

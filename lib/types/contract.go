@@ -73,3 +73,9 @@ func (ei *EProofInChain) Serialize() ([]byte, error) {
 func (ei *EProofInChain) Deserialize(b []byte) error {
 	return cbor.Unmarshal(b, ei)
 }
+
+type ProofStat struct {
+	Owner common.Address
+	Epoch []uint64
+	Stat  []string
+}

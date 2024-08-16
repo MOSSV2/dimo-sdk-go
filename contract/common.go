@@ -37,13 +37,23 @@ const (
 var (
 	//DevChain   = "http://54.254.72.127:8501"
 	//DevChainID = 222
-	DevChain   = "http://unibase-sepolia-2052362516.ap-southeast-1.elb.amazonaws.com"
-	DevChainID = 42069
+
 	//http://unibasechain-scan-405529765.ap-southeast-1.elb.amazonaws.com/
+	//L1Bridge   = common.HexToAddress("0x07205FEfD61E11C7AE3aeeb1656451Bad7896a84")
+	DevChain   = "https://chain.unibase.io"
+	DevChainID = 42069
+	BankAddr   = common.HexToAddress("0xDA976D1B21103f847ABCd7f644E84d45203A5C5F")
+	TokenAddr  = common.HexToAddress("0x6c579D5eF7846E2c6cE255Adc2E0BEF1411fEB5c")
+
+	// https://sepolia-optimism.etherscan.io/
+	//DevChain   = "https://11155420.rpc.thirdweb.com"
+	//DevChainID = 11155420
+	//BankAddr   = common.HexToAddress("0x10daaccC6D3c20075893dF17b706D0380Ad946E3")
+	//TokenAddr  = common.HexToAddress("0x36111d1Cc3f6d5F25EF8B083a5a725838A0c2676")
 
 	DevBlockTime = 2 // seconds/block
 	EpochBlocks  = 3600
-	SyncHeight   = 28_000
+	SyncHeight   = 41_000
 
 	DefaultGasLimit = 8_000_000
 	DefaultGasPrice = 10
@@ -58,12 +68,7 @@ var (
 
 	DefaultPenalty = 1e18
 
-	L1Bridge = common.HexToAddress("0x07EFc706EaFD6AE3b31fc0ba796F9C37A4510B9b")
-
 	Base = common.HexToAddress("0x61Ea24745A3F7Bcbb67eD95B674fEcfbb331ABd0")
-
-	BankAddr  = common.HexToAddress("0x221E94E910Ce182E1A8d71ffEABFB991B822aAe4")
-	TokenAddr = common.HexToAddress("0x793FBB43D82Af009748953f22DBCE31d89B624B7")
 )
 
 var logger = dlog.Logger("contract")
@@ -90,11 +95,13 @@ func makeAuth(chainID *big.Int, sk *ecdsa.PrivateKey) (*bind.TransactOpts, error
 	if err != nil {
 		return nil, err
 	}
+	defer client.Close()
+
 	header, err := client.HeaderByNumber(context.TODO(), nil)
 	if err != nil {
 		return nil, err
 	}
-	logger.Debugf("height: %d, basefee: %d", header.Number, header.BaseFee)
+	logger.Debugf("height: %d, basefee: %d, blob: %d", header.Number, header.BaseFee, header.BlobGasUsed)
 	auth.GasPrice = header.BaseFee
 	return auth, nil
 }
@@ -169,7 +176,7 @@ func CheckTx(endPoint string, txHash common.Hash) error {
 		}
 		return fmt.Errorf("%s transaction mined but execution failed, check your input", txHash)
 	}
-	logger.Debugf("%s cost gas: %d", txHash.String(), receipt.GasUsed)
+	logger.Debugf("%s cost gas: %d, price: %d, blob gas: %d, price: %d", txHash.String(), receipt.GasUsed, receipt.EffectiveGasPrice, receipt.BlobGasUsed, receipt.BlobGasPrice)
 	return nil
 }
 
@@ -325,6 +332,7 @@ func TransferToken(ep string, sk *ecdsa.PrivateKey, tokenAddr, toaddr common.Add
 	if err != nil {
 		return err
 	}
+	defer client.Close()
 	ti, err := token.NewToken(tokenAddr, client)
 	if err != nil {
 		return err
@@ -370,6 +378,8 @@ func BalanceOfToken(addr common.Address) *big.Int {
 	if err != nil {
 		return big.NewInt(0)
 	}
+	defer client.Close()
+
 	ti, err := token.NewToken(TokenAddr, client)
 	if err != nil {
 		return big.NewInt(0)

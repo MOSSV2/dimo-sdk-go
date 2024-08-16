@@ -3,12 +3,14 @@ package contract
 import (
 	"context"
 	"crypto/ecdsa"
+	"encoding/hex"
 	"fmt"
 	"math/big"
 	"time"
 
 	"github.com/MOSSV2/dimo-sdk-go/lib/bls"
 	"github.com/MOSSV2/dimo-sdk-go/lib/types"
+	"github.com/MOSSV2/dimo-sdk-go/lib/utils"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -109,7 +111,7 @@ func RegisterNode(sk *ecdsa.PrivateKey, _typ uint8, val *big.Int) error {
 			return nil
 		}
 	}
-
+	logger.Debug("register node: ", au.From, val)
 	tx, err := ti.IncreaseAllowance(au, BankAddr, val)
 	if err != nil {
 		return err
@@ -135,7 +137,7 @@ func AddPiece(sk *ecdsa.PrivateKey, pc types.PieceCore) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Minute)
 	defer cancle()
 
-	ce, err := UpdateEpoch(sk)
+	ce, err := GetEpoch()
 	if err != nil {
 		return err
 	}
@@ -166,6 +168,8 @@ func AddPiece(sk *ecdsa.PrivateKey, pc types.PieceCore) error {
 		return err
 	}
 
+	gtoken := BalanceOf(DevChain, au.From)
+	fmt.Println("submitpiece0: ", gtoken)
 	tx, err := ti.IncreaseAllowance(au, BankAddr, val)
 	if err != nil {
 		return err
@@ -186,6 +190,7 @@ func AddPiece(sk *ecdsa.PrivateKey, pc types.PieceCore) error {
 	}
 
 	logger.Debug("add piece: ", pc)
+	fmt.Println("submitpiece1: ", BalanceOf(DevChain, au.From))
 	tx, err = fi.AddPiece(au, pb, pc.Price, uint64(pc.Size), pc.Expire, pc.Policy.N, pc.Policy.K, pc.Streamer)
 	if err != nil {
 		return err
@@ -194,6 +199,8 @@ func AddPiece(sk *ecdsa.PrivateKey, pc types.PieceCore) error {
 	if err != nil {
 		return err
 	}
+	fmt.Println("submitpiece2: ", BalanceOf(DevChain, au.From))
+	fmt.Println("submitpiece cost: ", utils.FormatEth(gtoken.Sub(gtoken, BalanceOf(DevChain, au.From))))
 
 	return nil
 }
@@ -229,7 +236,9 @@ func AddReplica(sk *ecdsa.PrivateKey, rc types.ReplicaCore, pf []byte) error {
 		return fmt.Errorf("%s is not on chain", rc.Piece)
 	}
 
+	gtoken := BalanceOf(DevChain, au.From)
 	logger.Debug("add replica: ", _pi, rc)
+	fmt.Println("submitreplica0: ", BalanceOf(DevChain, au.From))
 	tx, err := fi.AddReplica(au, rb, _pi, rc.Index, pf)
 	if err != nil {
 		return err
@@ -238,6 +247,8 @@ func AddReplica(sk *ecdsa.PrivateKey, rc types.ReplicaCore, pf []byte) error {
 	if err != nil {
 		return err
 	}
+	fmt.Println("submitreplica1: ", BalanceOf(DevChain, au.From))
+	fmt.Println("submitreplica cost: ", utils.FormatEth(gtoken.Sub(gtoken, BalanceOf(DevChain, au.From))))
 
 	return nil
 }
@@ -299,12 +310,18 @@ func ChallengeRS(sk *ecdsa.PrivateKey, _pn, _rn string, _pri uint8) error {
 	}
 	pname, err := G1StringInSolidity(_pn)
 	if err != nil {
-		return err
+		pname, err = hex.DecodeString(_pn)
+		if err != nil {
+			return err
+		}
 	}
 
 	rname, err := G1StringInSolidity(_rn)
 	if err != nil {
-		return err
+		rname, err = hex.DecodeString(_rn)
+		if err != nil {
+			return err
+		}
 	}
 
 	logger.Debug("challenge rs proof: ", _rn, _pn, _pri)
@@ -372,12 +389,18 @@ func CheckRSChallenge(sk *ecdsa.PrivateKey, _pn, _rn string, _pri uint8) error {
 
 	pname, err := G1StringInSolidity(_pn)
 	if err != nil {
-		return err
+		pname, err = hex.DecodeString(_pn)
+		if err != nil {
+			return err
+		}
 	}
 
 	rname, err := G1StringInSolidity(_rn)
 	if err != nil {
-		return err
+		rname, err = hex.DecodeString(_rn)
+		if err != nil {
+			return err
+		}
 	}
 
 	piece, err := NewPiece(ctx)
@@ -426,7 +449,9 @@ func SubmitProof(sk *ecdsa.PrivateKey, _ep uint64, _pf bls.EpochProof) error {
 	_frb := FrInSolidity(_pf.ClaimedValue)
 	_pfb = append(_pfb, _frb...)
 
+	gtoken := BalanceOf(DevChain, au.From)
 	logger.Debug("submit epoch proof: ", au.From, _ep)
+	fmt.Println("submitproof0: ", BalanceOf(DevChain, au.From))
 	tx, err := pi.Submit(au, _ep, _sum, _pfb)
 	if err != nil {
 		return err
@@ -436,7 +461,8 @@ func SubmitProof(sk *ecdsa.PrivateKey, _ep uint64, _pf bls.EpochProof) error {
 	if err != nil {
 		return err
 	}
-
+	fmt.Println("submitproof1: ", BalanceOf(DevChain, au.From))
+	fmt.Println("submitproof cost: ", utils.FormatEth(gtoken.Sub(gtoken, BalanceOf(DevChain, au.From))))
 	return nil
 }
 
@@ -547,7 +573,10 @@ func ChallengeSum(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64, _qIndex
 	if len(sum) > 0 {
 		_sum, err := G1StringInSolidity(sum)
 		if err != nil {
-			return err
+			_sum, err = hex.DecodeString(sum)
+			if err != nil {
+				return err
+			}
 		}
 		logger.Debug("challenge eproof sum0: ", addr, _ep)
 		tx, err := pi.Challenge(au, addr, _ep, _sum)

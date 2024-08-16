@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"math/big"
 	mrand "math/rand"
 	"net"
 	"os/exec"
@@ -149,6 +150,10 @@ const (
 	MB = 1e6
 	GB = 1e9
 	TB = 1e12
+
+	Wei  = 1
+	GWei = 1e9
+	Eth  = 1e18
 )
 
 func FormatBytes(i int64) (result string) {
@@ -165,6 +170,19 @@ func FormatBytes(i int64) (result string) {
 		result = fmt.Sprintf("%d B", i)
 	}
 	return
+}
+
+func FormatEth(i *big.Int) string {
+	f := new(big.Float).SetInt(i)
+	res, _ := f.Float64()
+	switch {
+	case res >= Eth:
+		return fmt.Sprintf("%.02f Eth", res/Eth)
+	case res >= GWei:
+		return fmt.Sprintf("%.02f Gwei", res/GWei)
+	default:
+		return fmt.Sprintf("%d Wei", i.Int64())
+	}
 }
 
 func GetHardwareInfo() types.HardwareInfo {

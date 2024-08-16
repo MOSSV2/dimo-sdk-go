@@ -29,8 +29,32 @@ func New(ksp string) *Key {
 	}
 }
 
+func (k *Key) Has(addr common.Address) bool {
+	return k.ks.HasAddress(addr)
+}
+
 func (k *Key) Create(pw string) (common.Address, error) {
 	ac, err := k.ks.NewAccount(pw)
+	if err != nil {
+		return common.Address{}, err
+	}
+	return ac.Address, nil
+}
+
+func (k *Key) ImportECDSA(sk, pw string) (common.Address, error) {
+	privateKey, err := crypto.HexToECDSA(sk)
+	if err != nil {
+		return common.Address{}, err
+	}
+	ac, err := k.ks.ImportECDSA(privateKey, pw)
+	if err != nil {
+		return common.Address{}, err
+	}
+	return ac.Address, nil
+}
+
+func (k *Key) Import(kjson, oldpw, pw string) (common.Address, error) {
+	ac, err := k.ks.Import([]byte(kjson), oldpw, pw)
 	if err != nil {
 		return common.Address{}, err
 	}
