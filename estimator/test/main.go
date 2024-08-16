@@ -18,7 +18,7 @@ func main() {
 }
 
 func l2fee() {
-	l2client, err := ethclient.Dial(estimator.L2BaseEndpoint)
+	l2client, err := ethclient.Dial(estimator.L2Endpoint)
 	if err != nil {
 		return
 	}

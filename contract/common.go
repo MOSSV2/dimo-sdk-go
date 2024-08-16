@@ -39,11 +39,11 @@ var (
 	//DevChainID = 222
 
 	//http://unibasechain-scan-405529765.ap-southeast-1.elb.amazonaws.com/
-	//L1Bridge   = common.HexToAddress("0x07EFc706EaFD6AE3b31fc0ba796F9C37A4510B9b")
-	DevChain   = "http://unibase-sepolia-2052362516.ap-southeast-1.elb.amazonaws.com"
+	//L1Bridge   = common.HexToAddress("0x07205FEfD61E11C7AE3aeeb1656451Bad7896a84")
+	DevChain   = "https://chain.unibase.io"
 	DevChainID = 42069
-	BankAddr   = common.HexToAddress("0x221E94E910Ce182E1A8d71ffEABFB991B822aAe4")
-	TokenAddr  = common.HexToAddress("0x793FBB43D82Af009748953f22DBCE31d89B624B7")
+	BankAddr   = common.HexToAddress("0xDA976D1B21103f847ABCd7f644E84d45203A5C5F")
+	TokenAddr  = common.HexToAddress("0x6c579D5eF7846E2c6cE255Adc2E0BEF1411fEB5c")
 
 	// https://sepolia-optimism.etherscan.io/
 	//DevChain   = "https://11155420.rpc.thirdweb.com"
@@ -53,7 +53,7 @@ var (
 
 	DevBlockTime = 2 // seconds/block
 	EpochBlocks  = 3600
-	SyncHeight   = 28_000
+	SyncHeight   = 41_000
 
 	DefaultGasLimit = 8_000_000
 	DefaultGasPrice = 10

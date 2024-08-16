@@ -16,6 +16,8 @@ const (
 
 	L1Endpoint = "https://eth.drpc.org"
 
+	L1Holesky = "https://holesky.drpc.org"
+
 	Decimals = 1_000_000
 )
 

@@ -19,12 +19,16 @@ import (
 )
 
 func TestTransfer(t *testing.T) {
+	admin := common.HexToAddress("0xC653B3b33702F3F80336274734f14c2C31885b02")
+	has := BalanceOf(DevChain, admin)
+	fmt.Println("admin has: ", has)
+
 	sk, addr := makeAccount()
 	valt := big.NewInt(1e18)
 	valt.Mul(valt, big.NewInt(100))
 
-	val := big.NewInt(5e16)
-	addr = common.HexToAddress("0xcf2bf532adbed038b849416b2346633c57bcc3fe")
+	val := big.NewInt(1e17)
+	addr = common.HexToAddress("0x420c881BeAa77BAC9aCEE540e9dB52Ae04b75DBB")
 	err := transfer(addr, val, valt)
 	if err != nil {
 		t.Fatal(err)
