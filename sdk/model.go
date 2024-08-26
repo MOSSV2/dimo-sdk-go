@@ -196,7 +196,7 @@ func UploadModelFiles(url string, sk *ecdsa.PrivateKey, au types.Auth, fp string
 			}
 		}
 
-		logger.Debugf("uploaded %s to %s, sha256: %s\n", sfp, streamer, fr.Hash)
+		logger.Debugf("uploaded %s to %s, sha256: %s\n", sfp, streamer, ff.Hash)
 		if k == archive.ShadowTar {
 			os.Remove(sfp)
 		}
