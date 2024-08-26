@@ -42,8 +42,8 @@ var (
 	//L1Bridge   = common.HexToAddress("0x07205FEfD61E11C7AE3aeeb1656451Bad7896a84")
 	DevChain   = "https://chain.unibase.io"
 	DevChainID = 42069
-	BankAddr   = common.HexToAddress("0xDA976D1B21103f847ABCd7f644E84d45203A5C5F")
-	TokenAddr  = common.HexToAddress("0x6c579D5eF7846E2c6cE255Adc2E0BEF1411fEB5c")
+	BankAddr   = common.HexToAddress("0x221E94E910Ce182E1A8d71ffEABFB991B822aAe4")
+	TokenAddr  = common.HexToAddress("0xAb2505D73472964a36359635E43449FEC0D90BA0")
 
 	// https://sepolia-optimism.etherscan.io/
 	//DevChain   = "https://11155420.rpc.thirdweb.com"
@@ -53,7 +53,7 @@ var (
 
 	DevBlockTime = 2 // seconds/block
 	EpochBlocks  = 3600
-	SyncHeight   = 41_000
+	SyncHeight   = 165_000
 
 	DefaultGasLimit = 8_000_000
 	DefaultGasPrice = 10
