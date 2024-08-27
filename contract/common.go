@@ -53,7 +53,7 @@ var (
 
 	DevBlockTime = 2 // seconds/block
 	EpochBlocks  = 3600
-	SyncHeight   = 165_000
+	SyncHeight   = 463_000
 
 	DefaultGasLimit = 8_000_000
 	DefaultGasPrice = 10
