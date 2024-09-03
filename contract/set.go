@@ -946,6 +946,7 @@ func WithdrawReward(sk *ecdsa.PrivateKey, _money *big.Int) error {
 }
 
 func AddModel(sk *ecdsa.PrivateKey, mc types.ModelMeta) error {
+	logger.Debug("add model: ", mc)
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()
 	mi, err := NewModel(ctx)
@@ -962,6 +963,7 @@ func AddModel(sk *ecdsa.PrivateKey, mc types.ModelMeta) error {
 		return err
 	}
 
+	logger.Debug("add model: ", mc.Name)
 	tx, err := mi.Add(au, mc.Name, _rt)
 	if err != nil {
 		return err

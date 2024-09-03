@@ -37,3 +37,21 @@ go sdk for dimo，include file, model and contract operations
 # example, sync repo
 > ./hub --name=CompVis/stable-diffusion-v1-1
 ```
+
+## web downloader
+
+### public web downloader
+
+GET: http://52.76.75.134:8080/api/download?name=<your file name>
+
+
+### private web downloader
+
+```shell
+> cd app/download
+> go build
+> ./download init
+# run
+> ./download daemon run -b 0.0.0.0:8086
+# download your file by get http://<ip>:8086/api/download?name=<your file name> 
+```

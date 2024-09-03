@@ -24,3 +24,5 @@ example/download/download
 example/upload/upload
 example/hub/hub
 
+app/downloader/downloader
+
