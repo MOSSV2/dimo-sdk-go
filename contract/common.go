@@ -39,7 +39,7 @@ var (
 	//DevChainID = 222
 
 	//http://unibasechain-scan-405529765.ap-southeast-1.elb.amazonaws.com/
-	//L1Bridge   = common.HexToAddress("0x6E3039B7eb9d0050854619F0a39dE982f50a920E")
+	//L1Bridge   = common.HexToAddress("0xc072613dAaab3E9BcC8dDd23aE7c368DC5751984")
 	DevChain   = "https://chain.unibase.io"
 	DevChainID = 43134
 	BankAddr   = common.HexToAddress("0x221E94E910Ce182E1A8d71ffEABFB991B822aAe4")
@@ -51,9 +51,9 @@ var (
 	//BankAddr   = common.HexToAddress("0x10daaccC6D3c20075893dF17b706D0380Ad946E3")
 	//TokenAddr  = common.HexToAddress("0x36111d1Cc3f6d5F25EF8B083a5a725838A0c2676")
 
-	DevBlockTime = 2 // seconds/block
-	EpochBlocks  = 3600
-	SyncHeight   = 95_000
+	DevBlockTime = 6 // seconds/block
+	EpochBlocks  = 1200
+	SyncHeight   = 1_000
 
 	DefaultGasLimit = 8_000_000
 	DefaultGasPrice = 10
