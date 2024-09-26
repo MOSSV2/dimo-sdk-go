@@ -40,23 +40,28 @@ var (
 
 	//http://unibasechain-scan-405529765.ap-southeast-1.elb.amazonaws.com/
 	//L1Bridge   = common.HexToAddress("0xc072613dAaab3E9BcC8dDd23aE7c368DC5751984")
-	DevChain   = "https://chain.unibase.io"
-	DevChainID = 43134
-	BankAddr   = common.HexToAddress("0x221E94E910Ce182E1A8d71ffEABFB991B822aAe4")
-	TokenAddr  = common.HexToAddress("0xAb2505D73472964a36359635E43449FEC0D90BA0")
+	//DevChain   = "https://chain.unibase.io"
+	//DevChainID = 43134
 
-	// https://sepolia-optimism.etherscan.io/
+	//DevChain   = "https://ethereum-holesky.publicnode.com"
+	//DevChainID = 17000
+	//BankAddr   = common.HexToAddress("0x6c579D5eF7846E2c6cE255Adc2E0BEF1411fEB5c")
+	//TokenAddr  = common.HexToAddress("0x421BfaFCfa9370c64F65100246D02913Bc9079F4")
+	//SyncHeight   = 2_391_000
+
+	//https://sepolia-optimism.etherscan.io/
 	//DevChain   = "https://11155420.rpc.thirdweb.com"
-	//DevChainID = 11155420
-	//BankAddr   = common.HexToAddress("0x10daaccC6D3c20075893dF17b706D0380Ad946E3")
-	//TokenAddr  = common.HexToAddress("0x36111d1Cc3f6d5F25EF8B083a5a725838A0c2676")
+	DevChain   = "https://optimism-sepolia-rpc.publicnode.com"
+	DevChainID = 11155420
+	BankAddr   = common.HexToAddress("0xdb85334d1061162080Be9436C037183f61E25ed7")
+	TokenAddr  = common.HexToAddress("0x15716bcAe684F6c93013e6834Cdd98eF1c35844a")
 
-	DevBlockTime = 6 // seconds/block
+	DevBlockTime = 2 // seconds/block
 	EpochBlocks  = 1200
-	SyncHeight   = 1_000
+	SyncHeight   = 17_764_000
 
 	DefaultGasLimit = 8_000_000
-	DefaultGasPrice = 10
+	DefaultGasPrice = 1000
 
 	DefaultStreamPrice  = 1e12
 	DefaultReplicaPrice = 1e11 // 1TB*100 epoch cost 10
@@ -102,7 +107,7 @@ func makeAuth(chainID *big.Int, sk *ecdsa.PrivateKey) (*bind.TransactOpts, error
 		return nil, err
 	}
 	logger.Debugf("height: %d, basefee: %d, blob: %d", header.Number, header.BaseFee, header.BlobGasUsed)
-	auth.GasPrice = header.BaseFee
+	auth.GasPrice = header.BaseFee.Add(header.BaseFee, big.NewInt(int64(DefaultGasPrice)))
 	return auth, nil
 }
 
@@ -279,7 +284,7 @@ func Transfer(ep string, sk *ecdsa.PrivateKey, toAddr common.Address, value *big
 	}
 
 	gasLimit := uint64(23000)
-	gasPrice := header.BaseFee
+	gasPrice := header.BaseFee.Add(header.BaseFee, big.NewInt(int64(DefaultGasPrice)))
 
 	tx := types.NewTransaction(nonce, toAddr, value, gasLimit, gasPrice, nil)
 

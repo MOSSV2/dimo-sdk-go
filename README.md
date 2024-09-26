@@ -3,6 +3,16 @@ go sdk for dimo，include file, model and contract operations
 
 ## usage 
 
+### network
+
+OP Sepolia: https://docs.optimism.io/chain/networks
+
++ explorer: https://sepolia-optimistic.etherscan.io
++ RPC URL: https://optimism-sepolia-rpc.publicnode.com
++ Faucet: https://docs.optimism.io/builders/tools/build/faucets 
+
+note: 启动时会从服务器自动获取0.002 gas token和100 UB token
+
 ### upload file/directory/model
 
 ```shell
@@ -42,7 +52,7 @@ go sdk for dimo，include file, model and contract operations
 
 ### public web downloader
 
-GET: http://52.76.75.134:8080/api/download?name=<your file name>
+Browser: "http://52.76.75.134:8080/api/download?name=\<your file name\>"
 
 
 ### private web downloader
