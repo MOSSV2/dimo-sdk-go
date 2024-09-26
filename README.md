@@ -52,7 +52,11 @@ note: 启动时会从服务器自动获取0.002 gas token和100 UB token
 
 ### public web downloader
 
-Browser: "http://52.76.75.134:8080/api/download?name=\<your file name\>"
+Web Browser: 
+
+```
+http://52.76.75.134:8080/api/download?name=<your file name>
+```
 
 
 ### private web downloader
