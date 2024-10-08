@@ -83,6 +83,7 @@ type PieceCore struct {
 	Price    *big.Int
 	Owner    common.Address
 	Streamer common.Address
+	TX       string
 }
 
 func (pc *PieceCore) Serialize() ([]byte, error) {
@@ -120,6 +121,7 @@ type ReplicaCore struct {
 	Piece    string // belongs to which piece
 	Index    uint8
 	StoredOn common.Address
+	TX       string
 }
 
 func (rc *ReplicaCore) Serialize() ([]byte, error) {
