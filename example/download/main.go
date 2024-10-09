@@ -10,7 +10,6 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/MOSSV2/dimo-sdk-go/contract"
 	"github.com/MOSSV2/dimo-sdk-go/lib/key"
 	"github.com/MOSSV2/dimo-sdk-go/lib/kv"
 	"github.com/MOSSV2/dimo-sdk-go/lib/piece"
@@ -57,13 +56,6 @@ func main() {
 
 func DownloadFile(sk *ecdsa.PrivateKey, fname, fp string) error {
 	au, err := key.BuildAuth(sk, []byte("download"))
-	if err != nil {
-		return err
-	}
-
-	sdk.Login(sdk.ServerURL, au)
-
-	err = contract.CheckBalance(au.Addr)
 	if err != nil {
 		return err
 	}
@@ -134,13 +126,6 @@ func DownloadFile(sk *ecdsa.PrivateKey, fname, fp string) error {
 
 func DownloadModel(sk *ecdsa.PrivateKey, name, fp string) error {
 	au, err := key.BuildAuth(sk, []byte("upload"))
-	if err != nil {
-		return err
-	}
-
-	sdk.Login(sdk.ServerURL, au)
-
-	err = contract.CheckBalance(au.Addr)
 	if err != nil {
 		return err
 	}
