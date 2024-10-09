@@ -39,7 +39,9 @@ func HandleSetEpoch(elog etypes.Log, cabi abi.ABI) (types.EpochInfo, error) {
 }
 
 func HandleAddPiece(elog etypes.Log, cabi abi.ABI) (types.PieceCore, error) {
-	pc := types.PieceCore{}
+	pc := types.PieceCore{
+		TX: elog.TxHash.String(),
+	}
 
 	evInfo, ok := cabi.Events["AddPiece"]
 	if !ok {
@@ -99,6 +101,7 @@ func HandleAddPiece(elog etypes.Log, cabi abi.ABI) (types.PieceCore, error) {
 
 func HandleAddReplica(elog etypes.Log, cabi abi.ABI) (types.ReplicaInChain, error) {
 	rc := types.ReplicaInChain{
+		TX:      elog.TxHash.String(),
 		Witness: types.ReplicaWitness{},
 	}
 
@@ -204,7 +207,9 @@ func HandleRSFake(elog etypes.Log, cabi abi.ABI) (types.RSChalInChain, error) {
 }
 
 func HandleSubmitEProof(elog etypes.Log, cabi abi.ABI) (types.EProofInChain, error) {
-	ei := types.EProofInChain{}
+	ei := types.EProofInChain{
+		TX: elog.TxHash.String(),
+	}
 
 	evInfo, ok := cabi.Events["Submit"]
 	if !ok {

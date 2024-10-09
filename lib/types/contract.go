@@ -49,6 +49,7 @@ type EPChalInChain struct {
 }
 
 type ReplicaInChain struct {
+	TX       string
 	Name     string
 	Serial   uint64
 	Piece    uint64
@@ -58,6 +59,7 @@ type ReplicaInChain struct {
 }
 
 type EProofInChain struct {
+	TX    string
 	Epoch uint64
 	Store common.Address
 	Hash  []byte

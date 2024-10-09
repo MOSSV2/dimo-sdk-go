@@ -55,6 +55,7 @@ var (
 	DevChainID = 11155420
 	BankAddr   = common.HexToAddress("0xdb85334d1061162080Be9436C037183f61E25ed7")
 	TokenAddr  = common.HexToAddress("0x15716bcAe684F6c93013e6834Cdd98eF1c35844a")
+	// piece 0x45a593415B4A9ED20d2372668D13923cD60e12F5
 
 	DevBlockTime = 2 // seconds/block
 	EpochBlocks  = 1200
