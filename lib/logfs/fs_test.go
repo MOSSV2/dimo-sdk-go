@@ -20,12 +20,12 @@ func TestFs(t *testing.T) {
 	}
 
 	rdir := filepath.Join(basedir, "data")
-	fs, err := New(ds, rdir)
+	fs, err := New(ds, rdir, "0xaaa")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	key := []byte("testa")
+	key := utils.RandomBytes(15)
 	val := []byte("abcdefg")
 
 	err = fs.Put(key, val)
@@ -34,9 +34,9 @@ func TestFs(t *testing.T) {
 	}
 
 	for i := 0; i < 100; i++ {
-		length := rand.Int31n(256)
+		length := rand.Int31n(240) + 16
 		nkey := utils.RandomBytes(int(length))
-		length = rand.Int31n(256 * 1024)
+		length = rand.Int31n(1024 * 1024)
 		nval := utils.RandomBytes(int(length))
 		err = fs.Put(nkey, nval)
 		if err != nil {

@@ -20,8 +20,7 @@ var logger = log.Logger("logfs")
 var _ types.IFileStore = (*LogFS)(nil)
 
 const (
-	MaxSize = 4 * 1024 * 1024
-	prefix  = "logfs"
+	MaxSize = 31 * 1024 * 1024
 )
 
 type LogMeta struct {
@@ -43,14 +42,17 @@ func (lm *LogMeta) Deserialize(b []byte) error {
 type LogFS struct {
 	sync.RWMutex
 	ds       types.IKVStore
+	addr     string
 	curSize  int64
 	curIndex uint32
 	curFi    *os.File
 	basedir  string
 }
 
-func New(ds types.IKVStore, dir string) (*LogFS, error) {
+// todo: each one has its own maxsize
+func New(ds types.IKVStore, dir string, addr string) (*LogFS, error) {
 	//log.SetLogLevel("debug")
+	dir = filepath.Join(dir, addr)
 	logger.Infof("logfs start at: %s", dir)
 	err := os.MkdirAll(dir, 0755)
 	if err != nil {
@@ -60,9 +62,10 @@ func New(ds types.IKVStore, dir string) (*LogFS, error) {
 	sf := &LogFS{
 		basedir: dir,
 		ds:      ds,
+		addr:    addr,
 	}
 
-	dsKey := types.NewKey(types.DsLogFS, prefix)
+	dsKey := types.NewKey(types.DsLogFS, addr)
 	val, err := sf.ds.Get(dsKey)
 	if err == nil && len(val) == 4 {
 		sf.curIndex = binary.BigEndian.Uint32(val)
@@ -90,7 +93,7 @@ func (sf *LogFS) forward() error {
 	}
 	sf.curIndex++
 
-	dsKey := types.NewKey(types.DsLogFS, prefix)
+	dsKey := types.NewKey(types.DsLogFS, sf.addr)
 	val := make([]byte, 4)
 	binary.BigEndian.PutUint32(val, sf.curIndex)
 	err = sf.ds.Put(dsKey, val)
@@ -105,13 +108,13 @@ func (sf *LogFS) forward() error {
 	}
 	sf.curFi = fi
 	sf.curSize = 0
-	logger.Infof("logfs forword to: %d", sf.curIndex)
+	logger.Infof("logfs forward to: %d", sf.curIndex)
 	return nil
 }
 
 func (sf *LogFS) Put(key, val []byte) error {
 	sum := sha256.Sum256(val)
-	dskey := types.NewKey(types.DsLogFS, key)
+	dskey := types.NewKey(types.DsLogFS, sf.addr, key)
 
 	sf.Lock()
 	defer sf.Unlock()
@@ -158,7 +161,7 @@ func (sf *LogFS) Put(key, val []byte) error {
 }
 
 func (sf *LogFS) Get(key []byte, opts ...int) ([]byte, error) {
-	dskey := types.NewKey(types.DsLogFS, key)
+	dskey := types.NewKey(types.DsLogFS, sf.addr, key)
 	val, err := sf.ds.Get(dskey)
 	if err != nil {
 		return nil, err
