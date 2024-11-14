@@ -169,23 +169,32 @@ func (s *Server) uploadTo() {
 				if err == nil {
 					er, err := sdk.ListEdge(sdk.ServerURL, au, types.StreamType)
 					if err != nil {
-						continue
+						break
 					}
+					suc := 0
 					for _, pn := range fr.Pieces {
 						for _, st := range er.Edges {
 							pr, err := sdk.GetPieceReceipt(st.ExposeURL, au, pn)
 							if err == nil && pr.Serial == 0 {
-								err = contract.AddPiece(sk, pr.PieceCore)
-								if err != nil {
-									continue
+								if pr.Serial > 0 {
+									suc++
+								} else {
+									err = contract.AddPiece(sk, pr.PieceCore)
+									if err == nil {
+										suc++
+									}
 								}
 							}
 						}
 					}
-					buf := make([]byte, 4)
-					binary.BigEndian.PutUint32(buf, i+1)
-					s.rp.MetaStore().Put(dsKey, buf)
-					continue
+					if suc == len(fr.Pieces) {
+						buf := make([]byte, 4)
+						binary.BigEndian.PutUint32(buf, i+1)
+						s.rp.MetaStore().Put(dsKey, buf)
+						continue
+					} else {
+						break
+					}
 				}
 				// upload to stream and submit to gateway
 				res, streamer, err := sdk.Upload(sdk.ServerURL, au, policy, fp, fname)
