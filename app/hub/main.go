@@ -15,13 +15,13 @@ func main() {
 	local = append(local, serverCmd)
 
 	app := cli.App{
-		Name:    "downloader",
+		Name:    "hub",
 		Version: build.UserVersion(),
-		Usage:   "downloader node",
+		Usage:   "hub node",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  cmd.RepoStr,
-				Value: "~/.downloader",
+				Value: "~/.hub",
 				Usage: "app home dir",
 			},
 			&cli.StringFlag{

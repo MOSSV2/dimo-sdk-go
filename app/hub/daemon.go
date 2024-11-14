@@ -14,7 +14,7 @@ import (
 
 	"github.com/MOSSV2/dimo-sdk-go/app/cmd"
 	"github.com/MOSSV2/dimo-sdk-go/build"
-	"github.com/MOSSV2/dimo-sdk-go/downloader"
+	"github.com/MOSSV2/dimo-sdk-go/hub"
 	"github.com/MOSSV2/dimo-sdk-go/lib/repo"
 	"github.com/MOSSV2/dimo-sdk-go/lib/utils"
 	"github.com/MOSSV2/dimo-sdk-go/sdk"
@@ -25,7 +25,7 @@ import (
 
 var serverCmd = &cli.Command{
 	Name:  "daemon",
-	Usage: "dimo downloader web daemon",
+	Usage: "dimo hub daemon",
 	Subcommands: []*cli.Command{
 		runCmd,
 		cmd.StopCmd,
@@ -34,7 +34,7 @@ var serverCmd = &cli.Command{
 
 var runCmd = &cli.Command{
 	Name:  "run",
-	Usage: "run downloader node",
+	Usage: "run hub node for upload and download",
 	Flags: []cli.Flag{
 		&cli.StringFlag{
 			Name:    cmd.EndpointStr,
@@ -85,7 +85,7 @@ var runCmd = &cli.Command{
 			return err
 		}
 
-		srv, err := downloader.NewServer(rp)
+		srv, err := hub.NewServer(rp)
 		if err != nil {
 			return err
 		}
@@ -117,7 +117,7 @@ var runCmd = &cli.Command{
 			log.Fatal("forced to shutdown: ", err)
 		}
 
-		log.Println("downloader daemon exited")
+		log.Println("hub daemon exited")
 		return nil
 	},
 }

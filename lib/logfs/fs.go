@@ -1,4 +1,4 @@
-package simplefs
+package logfs
 
 import (
 	"bytes"
@@ -113,7 +113,14 @@ func (sf *LogFS) forward() error {
 }
 
 func (sf *LogFS) Put(key, val []byte) error {
+	if len(val) > MaxSize {
+		return fmt.Errorf("size exceed %d", MaxSize)
+	}
+
 	sum := sha256.Sum256(val)
+	if len(key) == 0 {
+		key = sum[:]
+	}
 	dskey := types.NewKey(types.DsLogFS, sf.addr, key)
 
 	sf.Lock()
@@ -161,6 +168,15 @@ func (sf *LogFS) Put(key, val []byte) error {
 }
 
 func (sf *LogFS) Get(key []byte, opts ...int) ([]byte, error) {
+	lm, err := sf.GetMeta(key)
+	if err != nil {
+		return nil, err
+	}
+
+	return sf.GetData(lm, opts...)
+}
+
+func (sf *LogFS) GetMeta(key []byte) (*LogMeta, error) {
 	dskey := types.NewKey(types.DsLogFS, sf.addr, key)
 	val, err := sf.ds.Get(dskey)
 	if err != nil {
@@ -172,7 +188,10 @@ func (sf *LogFS) Get(key []byte, opts ...int) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	return lm, nil
+}
 
+func (sf *LogFS) GetData(lm *LogMeta, opts ...int) ([]byte, error) {
 	logger.Infof("logfs read at: %d %d %d", lm.Index, lm.Start, lm.Size)
 	curlog := filepath.Join(sf.basedir, fmt.Sprintf("%d.log", lm.Index))
 	fi, err := os.OpenFile(curlog, os.O_RDONLY, os.ModePerm)

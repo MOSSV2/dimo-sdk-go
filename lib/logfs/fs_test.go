@@ -1,4 +1,4 @@
-package simplefs
+package logfs
 
 import (
 	"bytes"
