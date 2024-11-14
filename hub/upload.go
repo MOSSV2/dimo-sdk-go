@@ -142,16 +142,21 @@ func (s *Server) uploadTo() {
 			continue
 		}
 
-		uploadMap := make(map[string]uint32)
 		for _, key := range s.kskeys {
-			next := uploadMap[key]
 			dsKey := types.NewKey(types.DsLogFS, key)
 			val, err := s.rp.MetaStore().Get(dsKey)
 			if err != nil || len(val) != 4 {
 				continue
 			}
-
 			curIndex := binary.BigEndian.Uint32(val)
+
+			next := uint32(0)
+			dsKey = types.NewKey(types.DsLogFS, "next", key)
+			val, err = s.rp.MetaStore().Get(dsKey)
+			if err == nil && len(val) == 4 {
+				next = binary.BigEndian.Uint32(val)
+			}
+
 			if next >= curIndex {
 				continue
 			}
@@ -159,6 +164,29 @@ func (s *Server) uploadTo() {
 			for i := next; i < curIndex; i++ {
 				fname := key + "-" + fmt.Sprintf("%d.log", i)
 				fp := filepath.Join(s.rp.Path(), "logfs", key, fmt.Sprintf("%d.log", i))
+
+				fr, err := sdk.GetFileReceipt(sdk.ServerURL, au, fname)
+				if err == nil {
+					er, err := sdk.ListEdge(sdk.ServerURL, au, types.StreamType)
+					if err != nil {
+						continue
+					}
+					for _, pn := range fr.Pieces {
+						for _, st := range er.Edges {
+							pr, err := sdk.GetPieceReceipt(st.ExposeURL, au, pn)
+							if err == nil && pr.Serial == 0 {
+								err = contract.AddPiece(sk, pr.PieceCore)
+								if err != nil {
+									continue
+								}
+							}
+						}
+					}
+					buf := make([]byte, 4)
+					binary.BigEndian.PutUint32(buf, i+1)
+					s.rp.MetaStore().Put(dsKey, buf)
+					continue
+				}
 				// upload to stream and submit to gateway
 				res, streamer, err := sdk.Upload(sdk.ServerURL, au, policy, fp, fname)
 				if err != nil {
@@ -180,7 +208,9 @@ func (s *Server) uploadTo() {
 				if err != nil {
 					break
 				}
-				uploadMap[key] = i
+				buf := make([]byte, 4)
+				binary.BigEndian.PutUint32(buf, i+1)
+				s.rp.MetaStore().Put(dsKey, buf)
 			}
 		}
 	}
