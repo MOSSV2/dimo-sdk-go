@@ -56,7 +56,7 @@ note: 启动时会从服务器自动获取0.002 gas token和100 UB token
 Web Browser: 
 
 ```
-http://52.76.75.134:8080/api/download?name=<your file name>
+http://52.76.75.134:8080/api/download?id=<your file name>&&owner=<your file owner>
 ```
 
 #### upload
