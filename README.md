@@ -48,24 +48,38 @@ note: 启动时会从服务器自动获取0.002 gas token和100 UB token
 > ./hub --name=CompVis/stable-diffusion-v1-1
 ```
 
-## web downloader
+## hub 
 
 ### public web downloader
 
+#### download
 Web Browser: 
 
 ```
 http://52.76.75.134:8080/api/download?name=<your file name>
 ```
 
+#### upload
+
++ upload using json 
+
+```shell
+# output: {"File":"0xabcd-0.log","Start":41,"Size":41}
+> curl -X POST http://52.76.75.134:8080/api/upload -d '{
+    "id": "test1", 
+    "owner":"0xabcd",
+    "message":"Here is a story about llamas eating grass"
+  }'
+```
+
 
 ### private web downloader
 
 ```shell
-> cd app/download
+> cd app/hub
 > go build
-> ./download init
+> ./hub init
 # run
-> ./download daemon run -b 0.0.0.0:8086
+> ./hub daemon run -b 0.0.0.0:8086
 # download your file by get http://<ip>:8086/api/download?name=<your file name> 
 ```

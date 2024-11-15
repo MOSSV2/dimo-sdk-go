@@ -1,6 +1,7 @@
 package hub
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -18,9 +19,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (s *Server) addUpload(g *gin.RouterGroup) {
-	g.Group("/").POST("/upload", func(c *gin.Context) {
-		addr := c.PostForm("address")
+func (s *Server) addUploadData(g *gin.RouterGroup) {
+	g.Group("/").POST("/uploadData", func(c *gin.Context) {
+		addr := c.PostForm("owner")
 
 		file, err := c.FormFile("file")
 		if err != nil {
@@ -43,17 +44,40 @@ func (s *Server) addUpload(g *gin.RouterGroup) {
 			c.JSON(599, lerror.ToAPIError("hub", fmt.Errorf("empty file")))
 			return
 		}
-		err = s.logFSWrite(addr, file.Filename, fr)
+		mm, err := s.logFSWrite(addr, file.Filename, fr)
 		if err != nil {
 			c.JSON(599, lerror.ToAPIError("hub", err))
 			return
 		}
 
-		c.JSON(http.StatusOK, "success")
+		c.JSON(http.StatusOK, mm)
 	})
 }
 
-func (s *Server) logFSWrite(addr string, key string, r io.Reader) error {
+func (s *Server) addUpload(g *gin.RouterGroup) {
+	g.Group("/").POST("/upload", func(c *gin.Context) {
+		var mjson types.MemeStruct
+
+		err := c.ShouldBindJSON(&mjson)
+		if err != nil {
+			c.JSON(599, lerror.ToAPIError("hub", err))
+			return
+		}
+
+		var buf bytes.Buffer
+		buf.WriteString(mjson.Message)
+
+		mm, err := s.logFSWrite(mjson.Owner, mjson.ID, &buf)
+		if err != nil {
+			c.JSON(599, lerror.ToAPIError("hub", err))
+			return
+		}
+
+		c.JSON(http.StatusOK, mm)
+	})
+}
+
+func (s *Server) logFSWrite(addr string, key string, r io.Reader) (types.MemeMeta, error) {
 	var err error
 	if addr == "" {
 		addr = s.local.String()
@@ -65,23 +89,42 @@ func (s *Server) logFSWrite(addr string, key string, r io.Reader) error {
 		fs, err = logfs.New(s.rp.MetaStore(), fspath, addr)
 		if err != nil {
 			s.Unlock()
-			return err
+			return types.MemeMeta{}, err
 		}
 		s.lfs[addr] = fs
-		s.kskeys = append(s.kskeys, addr)
+
+		dsKey := types.NewKey(types.DsLogFS, "instance", s.fscnt)
+		s.rp.MetaStore().Put(dsKey, []byte(addr))
+
+		dsKey = types.NewKey(types.DsLogFS, "instance")
+		buf := make([]byte, 4)
+		s.fscnt++
+		binary.BigEndian.PutUint32(buf, s.fscnt)
+		s.rp.MetaStore().Put(dsKey, buf)
 	}
 	s.Unlock()
 	rbytes, err := io.ReadAll(r)
 	if err != nil {
-		return err
+		return types.MemeMeta{}, err
 	}
 
 	err = fs.Put([]byte(key), rbytes)
 	if err != nil {
-		return err
+		return types.MemeMeta{}, err
 	}
 
-	return nil
+	lm, err := fs.GetMeta([]byte(key))
+	if err != nil {
+		return types.MemeMeta{}, err
+	}
+
+	mm := types.MemeMeta{
+		File:  fmt.Sprintf("%s-%d.log", addr, lm.Index),
+		Start: lm.Start,
+		Size:  lm.Size,
+	}
+
+	return mm, nil
 }
 
 func (s *Server) logFSRead(addr string, key string, w io.Writer) (int64, error) {
@@ -100,7 +143,15 @@ func (s *Server) logFSRead(addr string, key string, w io.Writer) (int64, error) 
 			return 0, err
 		}
 		s.lfs[addr] = fs
-		s.kskeys = append(s.kskeys, addr)
+
+		dsKey := types.NewKey(types.DsLogFS, "instance", s.fscnt)
+		s.rp.MetaStore().Put(dsKey, []byte(addr))
+
+		dsKey = types.NewKey(types.DsLogFS, "instance")
+		buf := make([]byte, 4)
+		s.fscnt++
+		binary.BigEndian.PutUint32(buf, s.fscnt)
+		s.rp.MetaStore().Put(dsKey, buf)
 	}
 	s.Unlock()
 
@@ -120,6 +171,33 @@ func (s *Server) logFSRead(addr string, key string, w io.Writer) (int64, error) 
 	}
 
 	return int64(n), nil
+}
+
+func (s *Server) load() error {
+	fspath := filepath.Join(s.rp.Path(), "logfs")
+	fs, err := logfs.New(s.rp.MetaStore(), fspath, s.local.String())
+	if err != nil {
+		return err
+	}
+	s.lfs[s.local.String()] = fs
+
+	dsKey := types.NewKey(types.DsLogFS, "instance")
+	val, err := s.rp.MetaStore().Get(dsKey)
+	if err == nil && len(val) == 4 {
+		s.fscnt = binary.BigEndian.Uint32(val)
+	}
+
+	if s.fscnt == 0 {
+		s.fscnt = 1
+		buf := make([]byte, 4)
+		binary.BigEndian.PutUint32(buf, s.fscnt)
+		s.rp.MetaStore().Put(dsKey, buf)
+
+		dsKey := types.NewKey(types.DsLogFS, "instance", 0)
+		s.rp.MetaStore().Put(dsKey, []byte(s.local.String()))
+	}
+
+	return nil
 }
 
 func (s *Server) uploadTo() {
@@ -144,9 +222,26 @@ func (s *Server) uploadTo() {
 			continue
 		}
 
-		for _, key := range s.kskeys {
-			dsKey := types.NewKey(types.DsLogFS, key)
+		dsKey := types.NewKey(types.DsLogFS, "instance")
+		val, err := s.rp.MetaStore().Get(dsKey)
+		if err != nil || len(val) != 4 {
+			continue
+		}
+
+		totalIns := binary.BigEndian.Uint32(val)
+
+		for i := uint32(1); i < totalIns; i++ {
+			dsKey := types.NewKey(types.DsLogFS, "instance", i)
 			val, err := s.rp.MetaStore().Get(dsKey)
+			if err != nil {
+				break
+			}
+
+			key := string(val)
+
+			logger.Debugf("check: %s %d", key, i)
+			dsKey = types.NewKey(types.DsLogFS, key)
+			val, err = s.rp.MetaStore().Get(dsKey)
 			if err != nil || len(val) != 4 {
 				continue
 			}
@@ -159,12 +254,13 @@ func (s *Server) uploadTo() {
 				next = binary.BigEndian.Uint32(val)
 			}
 
+			logger.Debugf("check: %s %d %d", key, next, curIndex)
 			if next >= curIndex {
 				continue
 			}
 
 			for i := next; i < curIndex; i++ {
-				fname := key + "-" + fmt.Sprintf("%d.log", i)
+				fname := fmt.Sprintf("%s-%d.log", key, i)
 				fp := filepath.Join(s.rp.Path(), "logfs", key, fmt.Sprintf("%d.log", i))
 
 				fr, err := sdk.GetFileReceipt(sdk.ServerURL, au, fname)

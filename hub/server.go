@@ -2,7 +2,6 @@ package hub
 
 import (
 	"net/http"
-	"path/filepath"
 	"sync"
 
 	"github.com/MOSSV2/dimo-sdk-go/lib/log"
@@ -27,8 +26,8 @@ type Server struct {
 	ps types.IPieceStore
 
 	sync.RWMutex
-	kskeys []string
-	lfs    map[string]*logfs.LogFS
+	fscnt uint32
+	lfs   map[string]*logfs.LogFS
 
 	local common.Address
 
@@ -60,18 +59,10 @@ func NewServer(rp repo.Repo) (*http.Server, error) {
 		ps:    piece.New(rp.MetaStore(), rp.DataStore()),
 		auth:  auth,
 
-		kskeys: make([]string, 0, 128),
-		lfs:    make(map[string]*logfs.LogFS),
+		lfs: make(map[string]*logfs.LogFS),
 	}
 
-	fspath := filepath.Join(s.rp.Path(), "logfs")
-	fs, err := logfs.New(s.rp.MetaStore(), fspath, localAddr.String())
-	if err != nil {
-		return nil, err
-	}
-	s.lfs[localAddr.String()] = fs
-	s.kskeys = append(s.kskeys, localAddr.String())
-
+	s.load()
 	go s.uploadTo()
 
 	s.registRoute()
@@ -90,6 +81,7 @@ func (s Server) registRoute() {
 	s.addInfo(r)
 	s.addDownload(r)
 	s.addUpload(r)
+	s.addUploadData(r)
 }
 
 func (s Server) addInfo(g *gin.RouterGroup) {
