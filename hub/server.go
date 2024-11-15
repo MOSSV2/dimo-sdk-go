@@ -2,6 +2,7 @@ package hub
 
 import (
 	"net/http"
+	"path/filepath"
 	"sync"
 
 	"github.com/MOSSV2/dimo-sdk-go/lib/log"
@@ -62,6 +63,14 @@ func NewServer(rp repo.Repo) (*http.Server, error) {
 		kskeys: make([]string, 0, 128),
 		lfs:    make(map[string]*logfs.LogFS),
 	}
+
+	fspath := filepath.Join(s.rp.Path(), "logfs")
+	fs, err := logfs.New(s.rp.MetaStore(), fspath, localAddr.String())
+	if err != nil {
+		return nil, err
+	}
+	s.lfs[localAddr.String()] = fs
+	s.kskeys = append(s.kskeys, localAddr.String())
 
 	go s.uploadTo()
 
