@@ -68,6 +68,7 @@ func (s *Server) logFSWrite(addr string, key string, r io.Reader) error {
 			return err
 		}
 		s.lfs[addr] = fs
+		s.kskeys = append(s.kskeys, addr)
 	}
 	s.Unlock()
 	rbytes, err := io.ReadAll(r)
@@ -99,6 +100,7 @@ func (s *Server) logFSRead(addr string, key string, w io.Writer) (int64, error) 
 			return 0, err
 		}
 		s.lfs[addr] = fs
+		s.kskeys = append(s.kskeys, addr)
 	}
 	s.Unlock()
 
