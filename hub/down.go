@@ -24,7 +24,7 @@ func (s Server) downloadByGET(c *gin.Context) {
 	mn := c.Query("id")
 	addr := c.Query("owner")
 
-	head := fmt.Sprintf("attachment; filename=%s" + mn)
+	head := fmt.Sprintf("attachment; filename=\"%s\"", mn)
 	extraHeaders := map[string]string{
 		"Content-Disposition": head,
 	}
@@ -36,7 +36,7 @@ func (s Server) downloadByGET(c *gin.Context) {
 		return
 	}
 
-	c.DataFromReader(http.StatusOK, size, "application/octet-stream", &w, extraHeaders)
+	c.DataFromReader(http.StatusOK, size, "text/plain", &w, extraHeaders)
 }
 
 func (s Server) downloadByPOST(c *gin.Context) {

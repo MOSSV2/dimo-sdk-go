@@ -275,6 +275,7 @@ func (s *Server) uploadTo() {
 
 				fr, err := sdk.GetFileReceipt(sdk.ServerURL, au, fname)
 				if err == nil {
+					logger.Infof("%s-%d.log is already uploaded, check its piece onchain", key, i)
 					er, err := sdk.ListEdge(sdk.ServerURL, au, types.StreamType)
 					if err != nil {
 						break
@@ -283,7 +284,7 @@ func (s *Server) uploadTo() {
 					for _, pn := range fr.Pieces {
 						for _, st := range er.Edges {
 							pr, err := sdk.GetPieceReceipt(st.ExposeURL, au, pn)
-							if err == nil && pr.Serial == 0 {
+							if err == nil {
 								if pr.Serial > 0 {
 									suc++
 								} else {
@@ -300,9 +301,8 @@ func (s *Server) uploadTo() {
 						binary.BigEndian.PutUint32(buf, i+1)
 						s.rp.MetaStore().Put(dsKey, buf)
 						continue
-					} else {
-						break
 					}
+					break
 				}
 				// upload to stream and submit to gateway
 				res, streamer, err := sdk.Upload(sdk.ServerURL, au, policy, fp, fname)
