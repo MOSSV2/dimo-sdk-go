@@ -6,6 +6,9 @@ import (
 	"encoding/json"
 	"io"
 	"mime/multipart"
+	"net/url"
+	"strings"
+	"time"
 
 	"github.com/MOSSV2/dimo-sdk-go/lib/types"
 )
@@ -64,4 +67,20 @@ func UploadHubData(baseUrl, owner, filename string, data []byte) error {
 	logger.Info("upload done: ", res)
 
 	return nil
+}
+
+func DownloadHubData(baseUrl string, id, owner string) ([]byte, error) {
+	form := url.Values{}
+	form.Set("id", id)
+	form.Set("owner", owner)
+
+	logger.Debugf("download %s %s from hub %s", id, owner, baseUrl)
+	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Minute)
+	defer cancle()
+	resByte, err := doRequest(ctx, baseUrl, "/api/download", "", types.Auth{}, strings.NewReader(form.Encode()))
+	if err != nil {
+		return nil, err
+	}
+
+	return resByte, nil
 }

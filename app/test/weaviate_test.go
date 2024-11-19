@@ -5,24 +5,29 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
+	"time"
 
+	"github.com/MOSSV2/dimo-sdk-go/sdk"
 	"github.com/weaviate/weaviate-go-client/v4/weaviate"
 	"github.com/weaviate/weaviate/entities/models"
 )
 
-func GetSchema() {
+const classname = "test"
+const tenantname = "tenant6"
+
+func GetSchema() error {
 	cfg := weaviate.Config{
 		Host:   "localhost:8080",
 		Scheme: "http",
 	}
 	client, err := weaviate.NewClient(cfg)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	ctx := context.TODO()
 	class := &models.Class{
-		Class: "JeopardyQuestion1",
+		Class: classname,
 		Properties: []*models.Property{
 			{Name: "textProp", DataType: []string{"text"}},
 		},
@@ -33,27 +38,29 @@ func GetSchema() {
 	}
 	err = client.Schema().ClassCreator().WithClass(class).Do(ctx)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 
 	tenants, err := client.Schema().TenantsGetter().
-		WithClassName("JeopardyQuestion1").
+		WithClassName(classname).
 		Do(ctx)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	fmt.Printf("%v\n", tenants)
 
 	schema, err := client.Schema().Getter().Do(context.Background())
 	if err != nil {
-		panic(err)
+		return err
 	}
 	fmt.Printf("%v\n", schema)
+	return nil
 }
 
 func TestGet(t *testing.T) {
-	GetSchema()
+	err := GetSchema()
+	t.Log(err)
 }
 
 func TestCreate(t *testing.T) {
@@ -66,13 +73,13 @@ func TestCreate(t *testing.T) {
 		t.Fatal(err)
 	}
 	w, err := client.Data().Creator().
-		WithClassName("JeopardyQuestion1").
+		WithClassName(classname).
 		WithProperties(map[string]interface{}{
 			"question":    "This vector DB is OSS and supports automatic property type inference on import",
-			"answer":      "Weaviate", // schema properties can be omitted
-			"newProperty": 123,        // will be automatically added as a number property
+			"answer":      "Weaviate1", // schema properties can be omitted
+			"newProperty": 1234567890,  // will be automatically added as a number property
 		}).
-		WithTenant("test1").
+		WithTenant(tenantname).
 		Do(context.TODO())
 	if err != nil {
 		t.Fatal(err)
@@ -80,6 +87,25 @@ func TestCreate(t *testing.T) {
 
 	// the returned value is a wrapped object
 	b, err := json.MarshalIndent(w.Object, "", "  ")
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(string(b))
+
+	time.Sleep(5 * time.Second)
+
+	resb, err := sdk.DownloadHubData(url, w.Object.ID.String(), w.Object.Tenant)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	res := new(models.Object)
+	err = res.UnmarshalBinary(resb)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	b, err = json.MarshalIndent(res, "", "  ")
 	if err != nil {
 		t.Fatal(err)
 	}
