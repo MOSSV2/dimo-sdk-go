@@ -75,16 +75,15 @@ func NewServer(rp repo.Repo) (*http.Server, error) {
 	return srv, nil
 }
 
-func (s Server) registRoute() {
+func (s *Server) registRoute() {
 	r := s.Router.Group("/api")
 
 	s.addInfo(r)
 	s.addDownload(r)
 	s.addUpload(r)
-	s.addUploadData(r)
 }
 
-func (s Server) addInfo(g *gin.RouterGroup) {
+func (s *Server) addInfo(g *gin.RouterGroup) {
 	g.Group("/").GET("/info", func(c *gin.Context) {
 		res := types.EdgeReceipt{
 			EdgeMeta: types.EdgeMeta{

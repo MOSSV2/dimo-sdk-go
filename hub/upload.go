@@ -19,62 +19,63 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (s *Server) addUploadData(g *gin.RouterGroup) {
-	g.Group("/").POST("/uploadData", func(c *gin.Context) {
-		addr := c.PostForm("owner")
-
-		file, err := c.FormFile("file")
-		if err != nil {
-			c.JSON(599, lerror.ToAPIError("hub", err))
-			return
-		}
-
-		if file == nil {
-			c.JSON(599, lerror.ToAPIError("hub", fmt.Errorf("file is nil")))
-			return
-		}
-
-		fr, err := file.Open()
-		if err != nil {
-			c.JSON(599, lerror.ToAPIError("hub", err))
-			return
-		}
-
-		if file.Size == 0 {
-			c.JSON(599, lerror.ToAPIError("hub", fmt.Errorf("empty file")))
-			return
-		}
-		mm, err := s.logFSWrite(addr, file.Filename, fr)
-		if err != nil {
-			c.JSON(599, lerror.ToAPIError("hub", err))
-			return
-		}
-
-		c.JSON(http.StatusOK, mm)
-	})
+func (s *Server) addUpload(g *gin.RouterGroup) {
+	g.Group("/").POST("/uploadData", s.uploadData)
+	g.Group("/").POST("/upload", s.upload)
 }
 
-func (s *Server) addUpload(g *gin.RouterGroup) {
-	g.Group("/").POST("/upload", func(c *gin.Context) {
-		var mjson types.MemeStruct
+func (s *Server) uploadData(c *gin.Context) {
+	addr := c.PostForm("owner")
 
-		err := c.ShouldBindJSON(&mjson)
-		if err != nil {
-			c.JSON(599, lerror.ToAPIError("hub", err))
-			return
-		}
+	file, err := c.FormFile("file")
+	if err != nil {
+		c.JSON(599, lerror.ToAPIError("hub", err))
+		return
+	}
 
-		var buf bytes.Buffer
-		buf.WriteString(mjson.Message)
+	if file == nil {
+		c.JSON(599, lerror.ToAPIError("hub", fmt.Errorf("file is nil")))
+		return
+	}
 
-		mm, err := s.logFSWrite(mjson.Owner, mjson.ID, &buf)
-		if err != nil {
-			c.JSON(599, lerror.ToAPIError("hub", err))
-			return
-		}
+	fr, err := file.Open()
+	if err != nil {
+		c.JSON(599, lerror.ToAPIError("hub", err))
+		return
+	}
 
-		c.JSON(http.StatusOK, mm)
-	})
+	if file.Size == 0 {
+		c.JSON(599, lerror.ToAPIError("hub", fmt.Errorf("empty file")))
+		return
+	}
+	mm, err := s.logFSWrite(addr, file.Filename, fr)
+	if err != nil {
+		c.JSON(599, lerror.ToAPIError("hub", err))
+		return
+	}
+
+	c.JSON(http.StatusOK, mm)
+}
+
+func (s *Server) upload(c *gin.Context) {
+	var mjson types.MemeStruct
+
+	err := c.ShouldBindJSON(&mjson)
+	if err != nil {
+		c.JSON(599, lerror.ToAPIError("hub", err))
+		return
+	}
+
+	var buf bytes.Buffer
+	buf.WriteString(mjson.Message)
+
+	mm, err := s.logFSWrite(mjson.Owner, mjson.ID, &buf)
+	if err != nil {
+		c.JSON(599, lerror.ToAPIError("hub", err))
+		return
+	}
+
+	c.JSON(http.StatusOK, mm)
 }
 
 func (s *Server) logFSWrite(addr string, key string, r io.Reader) (types.MemeMeta, error) {
@@ -239,6 +240,8 @@ func (s *Server) uploadTo() {
 			time.Sleep(time.Minute)
 			continue
 		}
+
+		logger.Info("check log inst: ", s.fscnt)
 
 		for i := uint32(0); i < s.fscnt; i++ {
 			dsKey := types.NewKey(types.DsLogFS, LOGINST, i)

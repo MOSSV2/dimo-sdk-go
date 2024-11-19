@@ -108,7 +108,7 @@ func (sf *LogFS) forward() error {
 	}
 	sf.curFi = fi
 	sf.curSize = 0
-	logger.Infof("logfs forward to: %d", sf.curIndex)
+	logger.Infof("logfs %s forward to: %d", sf.addr, sf.curIndex)
 	return nil
 }
 
@@ -124,7 +124,7 @@ func (sf *LogFS) Put(key, val []byte) error {
 
 	has, err := sf.ds.Has(dskey)
 	if err == nil && has {
-		logger.Infof("overwrite key: %s", string(key))
+		logger.Infof("%s overwrite key: %s", sf.addr, string(key))
 	}
 
 	n, err := sf.curFi.WriteAt(val, sf.curSize)
@@ -132,7 +132,7 @@ func (sf *LogFS) Put(key, val []byte) error {
 		return err
 	}
 
-	logger.Debugf("logfs write at: %d %d %d %d", sf.curIndex, sf.curSize, n, len(val))
+	logger.Debugf("logfs write at: %s %d %d %d %d", sf.addr, sf.curIndex, sf.curSize, n, len(val))
 
 	lm := LogMeta{
 		Index: sf.curIndex,
@@ -188,7 +188,7 @@ func (sf *LogFS) GetMeta(key []byte) (*LogMeta, error) {
 }
 
 func (sf *LogFS) GetData(lm *LogMeta, opts ...int) ([]byte, error) {
-	logger.Infof("logfs read at: %d %d %d", lm.Index, lm.Start, lm.Size)
+	logger.Infof("logfs read at: %s %d %d %d", sf.addr, lm.Index, lm.Start, lm.Size)
 	curlog := filepath.Join(sf.basedir, fmt.Sprintf("%d.log", lm.Index))
 	fi, err := os.OpenFile(curlog, os.O_RDONLY, os.ModePerm)
 	if err != nil {

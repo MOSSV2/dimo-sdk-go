@@ -10,8 +10,9 @@ import (
 	"golang.org/x/exp/rand"
 )
 
+const url = "http://127.0.0.1:8086"
+
 func TestUploadJson(t *testing.T) {
-	url := "http://127.0.0.1:8086"
 
 	for i := 0; i < 100; i++ {
 		length := rand.Int31n(16) + 16
@@ -33,8 +34,6 @@ func TestUploadJson(t *testing.T) {
 }
 
 func TestUploadData(t *testing.T) {
-
-	url := "http://127.0.0.1:8086"
 
 	for i := 0; i < 100; i++ {
 		length := rand.Int31n(16) + 16

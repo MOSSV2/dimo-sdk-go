@@ -14,12 +14,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (s Server) addDownload(g *gin.RouterGroup) {
+func (s *Server) addDownload(g *gin.RouterGroup) {
 	g.Group("/").POST("/download", s.downloadByPOST)
 	g.Group("/").GET("/download", s.downloadByGET)
 }
 
-func (s Server) downloadByGET(c *gin.Context) {
+func (s *Server) downloadByGET(c *gin.Context) {
 	ctx := c.Request.Context()
 	mn := c.Query("id")
 	addr := c.Query("owner")
@@ -39,7 +39,7 @@ func (s Server) downloadByGET(c *gin.Context) {
 	c.DataFromReader(http.StatusOK, size, "text/plain", &w, extraHeaders)
 }
 
-func (s Server) downloadByPOST(c *gin.Context) {
+func (s *Server) downloadByPOST(c *gin.Context) {
 	ctx := c.Request.Context()
 	mn := c.PostForm("id")
 	addr := c.PostForm("owner")
@@ -51,7 +51,7 @@ func (s Server) downloadByPOST(c *gin.Context) {
 
 	var w bytes.Buffer
 	size, err := s.download(ctx, mn, addr, &w)
-	if err == nil {
+	if err != nil {
 		c.JSON(599, lerror.ToAPIError("hub", err))
 		return
 	}
