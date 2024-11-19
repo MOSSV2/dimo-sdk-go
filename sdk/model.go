@@ -27,7 +27,7 @@ func SubmitModelRepo(baseUrl string, auth types.Auth, mr types.RepoCore) error {
 	form := url.Values{}
 	form.Set("repo", hex.EncodeToString(mmb))
 
-	res, err := doRequest(context.TODO(), baseUrl, "/api/submitRepo", auth, strings.NewReader(form.Encode()))
+	res, err := doRequest(context.TODO(), baseUrl, "/api/submitRepo", "", auth, strings.NewReader(form.Encode()))
 	if err != nil {
 		return err
 	}
@@ -42,7 +42,7 @@ func GetModelRepo(baseUrl string, auth types.Auth, rc types.RepoCore) (types.Rep
 	form := url.Values{}
 	form.Set("name", rc.ID())
 
-	res, err := doRequest(context.TODO(), baseUrl, "/api/getRepo", auth, strings.NewReader(form.Encode()))
+	res, err := doRequest(context.TODO(), baseUrl, "/api/getRepo", "", auth, strings.NewReader(form.Encode()))
 	if err != nil {
 		return *rm, err
 	}
@@ -64,7 +64,7 @@ func SubmitModel(baseUrl string, auth types.Auth, mr types.ModelMeta) error {
 	form := url.Values{}
 	form.Set("txMsg", hex.EncodeToString(mmb))
 
-	res, err := doRequest(context.TODO(), baseUrl, "/api/submitModel", auth, strings.NewReader(form.Encode()))
+	res, err := doRequest(context.TODO(), baseUrl, "/api/submitModel", "", auth, strings.NewReader(form.Encode()))
 	if err != nil {
 		return err
 	}
@@ -81,7 +81,7 @@ func BuyModel(baseUrl string, auth types.Auth, modelName string) error {
 	form := url.Values{}
 	form.Set("name", modelName)
 
-	_, err := doRequest(context.TODO(), baseUrl, "/api/buyModel", auth, strings.NewReader(form.Encode()))
+	_, err := doRequest(context.TODO(), baseUrl, "/api/buyModel", "", auth, strings.NewReader(form.Encode()))
 	if err != nil {
 		return err
 	}
@@ -104,7 +104,7 @@ func ListModel(baseUrl string, auth types.Auth, filter string) (types.ListModelR
 	form := url.Values{}
 	form.Set("option", hex.EncodeToString(optyByte))
 
-	resByte, err := doRequest(context.TODO(), baseUrl, "/api/listModel", auth, strings.NewReader(form.Encode()))
+	resByte, err := doRequest(context.TODO(), baseUrl, "/api/listModel", "", auth, strings.NewReader(form.Encode()))
 	if err != nil {
 		return res, err
 	}
@@ -123,7 +123,7 @@ func GetModel(baseUrl string, auth types.Auth, modelName string) (types.ModelRes
 	form.Set("name", modelName)
 
 	re := types.ModelResult{}
-	resByte, err := doRequest(context.TODO(), baseUrl, "/api/getModel", auth, strings.NewReader(form.Encode()))
+	resByte, err := doRequest(context.TODO(), baseUrl, "/api/getModel", "", auth, strings.NewReader(form.Encode()))
 	if err != nil {
 		return re, err
 	}

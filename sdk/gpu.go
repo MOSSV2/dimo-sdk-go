@@ -19,7 +19,7 @@ func SubmitGPU(baseUrl string, auth types.Auth, mr types.GPUCore) error {
 	form := url.Values{}
 	form.Set("txMsg", hex.EncodeToString(mmb))
 
-	_, err = doRequest(context.TODO(), baseUrl, "/api/submitGPU", auth, strings.NewReader(form.Encode()))
+	_, err = doRequest(context.TODO(), baseUrl, "/api/submitGPU", "", auth, strings.NewReader(form.Encode()))
 	if err != nil {
 		return err
 	}
@@ -32,7 +32,7 @@ func GetGPU(baseUrl string, auth types.Auth, GPUName string) (types.GPUMeta, err
 	form.Set("name", GPUName)
 
 	re := types.GPUMeta{}
-	resByte, err := doRequest(context.TODO(), baseUrl, "/api/getGPU", auth, strings.NewReader(form.Encode()))
+	resByte, err := doRequest(context.TODO(), baseUrl, "/api/getGPU", "", auth, strings.NewReader(form.Encode()))
 	if err != nil {
 		return re, err
 	}
@@ -60,7 +60,7 @@ func ListGPU(baseUrl string, auth types.Auth, filter string) (types.ListGPUResul
 	form := url.Values{}
 	form.Set("option", hex.EncodeToString(optyByte))
 
-	resByte, err := doRequest(context.TODO(), baseUrl, "/api/listGPU", auth, strings.NewReader(form.Encode()))
+	resByte, err := doRequest(context.TODO(), baseUrl, "/api/listGPU", "", auth, strings.NewReader(form.Encode()))
 	if err != nil {
 		return res, err
 	}

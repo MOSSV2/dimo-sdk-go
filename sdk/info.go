@@ -36,7 +36,7 @@ func Info(baseUrl string) (types.EdgeReceipt, error) {
 }
 
 func Login(baseUrl string, auth types.Auth) error {
-	_, err := doRequest(context.TODO(), baseUrl, "/api/login", auth, nil)
+	_, err := doRequest(context.TODO(), baseUrl, "/api/login", "", auth, nil)
 	if err != nil {
 		return err
 	}

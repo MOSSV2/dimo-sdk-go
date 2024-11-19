@@ -16,7 +16,7 @@ func CreateBucket(baseUrl string, auth types.Auth, bn string) (minio.BucketInfo,
 	form := url.Values{}
 	form.Set("bucket", bn)
 
-	resByte, err := doRequest(context.TODO(), baseUrl, "/api/createBucket", auth, strings.NewReader(form.Encode()))
+	resByte, err := doRequest(context.TODO(), baseUrl, "/api/createBucket", "", auth, strings.NewReader(form.Encode()))
 	if err != nil {
 		return res, err
 	}
@@ -36,7 +36,7 @@ func GetBucket(baseUrl string, auth types.Auth, bn string) (minio.BucketInfo, er
 	form := url.Values{}
 	form.Set("bucket", bn)
 
-	resByte, err := doRequest(context.TODO(), baseUrl, "/api/getBucket", auth, strings.NewReader(form.Encode()))
+	resByte, err := doRequest(context.TODO(), baseUrl, "/api/getBucket", "", auth, strings.NewReader(form.Encode()))
 	if err != nil {
 		return res, err
 	}
@@ -53,7 +53,7 @@ func DeleteBucket(baseUrl string, auth types.Auth, bn string) error {
 	form := url.Values{}
 	form.Set("bucket", bn)
 
-	_, err := doRequest(context.TODO(), baseUrl, "/api/deleteBucket", auth, strings.NewReader(form.Encode()))
+	_, err := doRequest(context.TODO(), baseUrl, "/api/deleteBucket", "", auth, strings.NewReader(form.Encode()))
 	if err != nil {
 		return err
 	}
@@ -63,7 +63,7 @@ func DeleteBucket(baseUrl string, auth types.Auth, bn string) error {
 
 func ListBucket(baseUrl string, auth types.Auth) ([]minio.BucketInfo, error) {
 	res := []minio.BucketInfo{}
-	resByte, err := doRequest(context.TODO(), baseUrl, "/api/listBucket", auth, nil)
+	resByte, err := doRequest(context.TODO(), baseUrl, "/api/listBucket", "", auth, nil)
 	if err != nil {
 		return res, err
 	}
@@ -86,7 +86,7 @@ func PutObject(baseUrl string, auth types.Auth, bn, on string, nm types.NeedleMe
 		return err
 	}
 	form.Set("needle", hex.EncodeToString(nmb))
-	_, err = doRequest(context.TODO(), baseUrl, "/api/putObject", auth, strings.NewReader(form.Encode()))
+	_, err = doRequest(context.TODO(), baseUrl, "/api/putObject", "", auth, strings.NewReader(form.Encode()))
 	if err != nil {
 		return err
 	}
@@ -100,7 +100,7 @@ func GetObject(baseUrl string, auth types.Auth, bn, on string) (minio.ObjectInfo
 	form.Set("bucket", bn)
 	form.Set("object", on)
 
-	resByte, err := doRequest(context.TODO(), baseUrl, "/api/getObject", auth, strings.NewReader(form.Encode()))
+	resByte, err := doRequest(context.TODO(), baseUrl, "/api/getObject", "", auth, strings.NewReader(form.Encode()))
 	if err != nil {
 		return res, err
 	}
@@ -118,7 +118,7 @@ func DeleteObject(baseUrl string, auth types.Auth, bn, on string) error {
 	form.Set("bucket", bn)
 	form.Set("object", on)
 
-	_, err := doRequest(context.TODO(), baseUrl, "/api/deleteObject", auth, strings.NewReader(form.Encode()))
+	_, err := doRequest(context.TODO(), baseUrl, "/api/deleteObject", "", auth, strings.NewReader(form.Encode()))
 	if err != nil {
 		return err
 	}
@@ -137,7 +137,7 @@ func ListObject(baseUrl string, auth types.Auth, bn string, opt types.Options) (
 	}
 	form.Set("option", hex.EncodeToString(optyByte))
 
-	resByte, err := doRequest(context.TODO(), baseUrl, "/api/listObject", auth, strings.NewReader(form.Encode()))
+	resByte, err := doRequest(context.TODO(), baseUrl, "/api/listObject", "", auth, strings.NewReader(form.Encode()))
 	if err != nil {
 		return res, err
 	}

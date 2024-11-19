@@ -113,10 +113,6 @@ func (sf *LogFS) forward() error {
 }
 
 func (sf *LogFS) Put(key, val []byte) error {
-	if len(val) > MaxSize {
-		return fmt.Errorf("size exceed %d", MaxSize)
-	}
-
 	sum := sha256.Sum256(val)
 	if len(key) == 0 {
 		key = sum[:]
@@ -128,14 +124,7 @@ func (sf *LogFS) Put(key, val []byte) error {
 
 	has, err := sf.ds.Has(dskey)
 	if err == nil && has {
-		return fmt.Errorf("already has key: %s", string(key))
-	}
-
-	if len(val)+int(sf.curSize) > MaxSize {
-		err := sf.forward()
-		if err != nil {
-			return err
-		}
+		logger.Infof("overwrite key: %s", string(key))
 	}
 
 	n, err := sf.curFi.WriteAt(val, sf.curSize)
@@ -162,6 +151,13 @@ func (sf *LogFS) Put(key, val []byte) error {
 	err = sf.ds.Put(dskey, lmv)
 	if err != nil {
 		return err
+	}
+
+	if int(sf.curSize) > MaxSize {
+		err := sf.forward()
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
