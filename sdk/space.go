@@ -20,7 +20,7 @@ func SubmitSpace(baseUrl string, auth types.Auth, msm types.SpaceMeta) (types.Sp
 	form := url.Values{}
 	form.Set("txMsg", hex.EncodeToString(mmb))
 
-	res, err := doRequest(context.TODO(), baseUrl, "/api/submitSpace", auth, strings.NewReader(form.Encode()))
+	res, err := doRequest(context.TODO(), baseUrl, "/api/submitSpace", "", auth, strings.NewReader(form.Encode()))
 	if err != nil {
 		return re, err
 	}
@@ -39,7 +39,7 @@ func ConfirmSpace(baseUrl string, auth types.Auth, sn, sroot string, pf []byte) 
 	form.Set("root", sroot)
 	form.Set("proof", hex.EncodeToString(pf))
 
-	_, err := doRequest(context.TODO(), baseUrl, "/api/confirmSpace", auth, strings.NewReader(form.Encode()))
+	_, err := doRequest(context.TODO(), baseUrl, "/api/confirmSpace", "", auth, strings.NewReader(form.Encode()))
 	if err != nil {
 		return err
 	}
@@ -50,7 +50,7 @@ func UpdateSpace(baseUrl string, auth types.Auth, sn string) error {
 	form := url.Values{}
 	form.Set("name", sn)
 
-	_, err := doRequest(context.TODO(), baseUrl, "/api/updateSpace", auth, strings.NewReader(form.Encode()))
+	_, err := doRequest(context.TODO(), baseUrl, "/api/updateSpace", "", auth, strings.NewReader(form.Encode()))
 	if err != nil {
 		return err
 	}
@@ -62,7 +62,7 @@ func GetSpace(baseUrl string, auth types.Auth, name string) (types.SpaceResult, 
 	form := url.Values{}
 	form.Set("name", name)
 
-	resByte, err := doRequest(context.TODO(), baseUrl, "/api/getSpace", auth, strings.NewReader(form.Encode()))
+	resByte, err := doRequest(context.TODO(), baseUrl, "/api/getSpace", "", auth, strings.NewReader(form.Encode()))
 	if err != nil {
 		return res, err
 	}
@@ -90,7 +90,7 @@ func ListSpace(baseUrl string, auth types.Auth, filter string) (types.ListSpaceR
 	form := url.Values{}
 	form.Set("option", hex.EncodeToString(optyByte))
 
-	resByte, err := doRequest(context.TODO(), baseUrl, "/api/listSpace", auth, strings.NewReader(form.Encode()))
+	resByte, err := doRequest(context.TODO(), baseUrl, "/api/listSpace", "", auth, strings.NewReader(form.Encode()))
 	if err != nil {
 		return res, err
 	}

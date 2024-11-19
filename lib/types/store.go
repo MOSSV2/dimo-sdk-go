@@ -28,6 +28,7 @@ const (
 	DsBucket
 	DsObject
 	DsNeedle
+	DsLogFS
 )
 
 const (

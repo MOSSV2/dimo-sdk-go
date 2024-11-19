@@ -270,20 +270,25 @@ func BuildAuth(addr, privk string, hash []byte) types.Auth {
 	return au
 }
 
-func doRequest(ctx context.Context, baseUrl, method string, au types.Auth, r io.Reader) ([]byte, error) {
+func doRequest(ctx context.Context, baseUrl, method, ctype string, au types.Auth, r io.Reader) ([]byte, error) {
 	haddr := baseUrl + method
 	hreq, err := http.NewRequestWithContext(ctx, "POST", haddr, r)
 	if err != nil {
 		return nil, err
 	}
 
-	aub, err := json.Marshal(au)
-	if err != nil {
-		return nil, err
+	if len(au.Sign) > 0 {
+		aub, err := json.Marshal(au)
+		if err != nil {
+			return nil, err
+		}
+		hreq.Header.Add("Authorization", hex.EncodeToString(aub))
 	}
 
-	hreq.Header.Add("Authorization", hex.EncodeToString(aub))
-	hreq.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	if ctype == "" {
+		ctype = "application/x-www-form-urlencoded"
+	}
+	hreq.Header.Add("Content-Type", ctype)
 
 	defaultHTTPClient := &http.Client{
 		Transport: &http.Transport{

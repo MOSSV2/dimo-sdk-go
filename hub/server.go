@@ -1,9 +1,11 @@
-package downloader
+package hub
 
 import (
 	"net/http"
+	"sync"
 
 	"github.com/MOSSV2/dimo-sdk-go/lib/log"
+	"github.com/MOSSV2/dimo-sdk-go/lib/logfs"
 	"github.com/MOSSV2/dimo-sdk-go/lib/piece"
 	"github.com/MOSSV2/dimo-sdk-go/lib/repo"
 	"github.com/MOSSV2/dimo-sdk-go/lib/types"
@@ -12,7 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var logger = log.Logger("downloader")
+var logger = log.Logger("hub")
 
 type Server struct {
 	Router *gin.Engine
@@ -22,6 +24,10 @@ type Server struct {
 	rp repo.Repo
 
 	ps types.IPieceStore
+
+	sync.RWMutex
+	fscnt uint32
+	lfs   map[string]*logfs.LogFS
 
 	local common.Address
 
@@ -35,11 +41,11 @@ func NewServer(rp repo.Repo) (*http.Server, error) {
 
 	localAddr := rp.Key().Address()
 
-	logger.Infof("downloader %s starting...", localAddr)
+	logger.Infof("hub %s starting...", localAddr)
 
 	router := gin.Default()
 
-	auth, err := rp.Key().BuildAuth([]byte("down"))
+	auth, err := rp.Key().BuildAuth([]byte("hub"))
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +58,12 @@ func NewServer(rp repo.Repo) (*http.Server, error) {
 		rp:    rp,
 		ps:    piece.New(rp.MetaStore(), rp.DataStore()),
 		auth:  auth,
+
+		lfs: make(map[string]*logfs.LogFS),
 	}
+
+	s.load()
+	go s.uploadTo()
 
 	s.registRoute()
 
@@ -69,6 +80,8 @@ func (s Server) registRoute() {
 
 	s.addInfo(r)
 	s.addDownload(r)
+	s.addUpload(r)
+	s.addUploadData(r)
 }
 
 func (s Server) addInfo(g *gin.RouterGroup) {

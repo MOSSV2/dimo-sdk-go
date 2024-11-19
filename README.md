@@ -1,5 +1,5 @@
-# dimo-sdk-go
-go sdk for dimo，include file, model and contract operations
+# intro
+go sdk，include file, model and contract operations, hub usage
 
 ## usage 
 
@@ -48,24 +48,44 @@ note: 启动时会从服务器自动获取0.002 gas token和100 UB token
 > ./hub --name=CompVis/stable-diffusion-v1-1
 ```
 
-## web downloader
+## hub 
 
-### public web downloader
+### public hub
 
-Web Browser: 
+#### download
 
-```
-http://52.76.75.134:8080/api/download?name=<your file name>
-```
++ web browser: http://52.76.75.134:8080/api/download?id=<your file name>&owner=<your file owner>
 
-
-### private web downloader
++ shell 
 
 ```shell
-> cd app/download
+> wget http://52.76.75.134:8080/api/download?id=<your file name>\&owner=<your file owner> -O <saved name>
+# or display 
+> curl http://52.76.75.134:8080/api/download?id=<your file name>\&owner=<your file owner>
+
+```
+
+#### upload
+
++ upload using json 
+
+```shell
+# output: {"File":"0xabcd-0.log","Start":0,"Size":41}
+> curl -X POST http://52.76.75.134:8080/api/upload -d '{
+    "id": "test1", 
+    "owner":"0xabcd",
+    "message":"Here is a story about llamas eating grass"
+  }'
+```
+
+
+### private hub
+
+```shell
+> cd app/hub
 > go build
-> ./download init
+> ./hub init
 # run
-> ./download daemon run -b 0.0.0.0:8086
-# download your file by get http://<ip>:8086/api/download?name=<your file name> 
+> ./hub daemon run -b 0.0.0.0:8086
+# download your file by get http://<ip>:8086/api/download?id=<your file name> 
 ```
