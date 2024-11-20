@@ -2,7 +2,7 @@ services:
   hub:
     command:
     build:
-      context: ./
+      context: ../
       dockerfile: Dockerfile
     #image: hub:local
     ports:
