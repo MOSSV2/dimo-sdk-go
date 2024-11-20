@@ -14,10 +14,12 @@ import (
 
 const classname = "test"
 const tenantname = "tenant6"
+const weaviatehost = "localhost:8081"
+const hubhost = "http://localhost:8080"
 
 func GetSchema() error {
 	cfg := weaviate.Config{
-		Host:   "localhost:8080",
+		Host:   weaviatehost,
 		Scheme: "http",
 	}
 	client, err := weaviate.NewClient(cfg)
@@ -65,7 +67,7 @@ func TestGet(t *testing.T) {
 
 func TestCreate(t *testing.T) {
 	cfg := weaviate.Config{
-		Host:   "localhost:8080",
+		Host:   weaviatehost,
 		Scheme: "http",
 	}
 	client, err := weaviate.NewClient(cfg)
@@ -77,7 +79,7 @@ func TestCreate(t *testing.T) {
 		WithProperties(map[string]interface{}{
 			"question":    "This vector DB is OSS and supports automatic property type inference on import",
 			"answer":      "Weaviate1", // schema properties can be omitted
-			"newProperty": 1234567890,  // will be automatically added as a number property
+			"newProperty": 11245,       // will be automatically added as a number property
 		}).
 		WithTenant(tenantname).
 		Do(context.TODO())
@@ -94,7 +96,7 @@ func TestCreate(t *testing.T) {
 
 	time.Sleep(5 * time.Second)
 
-	resb, err := sdk.DownloadHubData(url, w.Object.ID.String(), w.Object.Tenant)
+	resb, err := sdk.DownloadHubData(hubhost, w.Object.ID.String(), w.Object.Tenant)
 	if err != nil {
 		t.Fatal(err)
 	}

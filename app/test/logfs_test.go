@@ -10,18 +10,31 @@ import (
 	"golang.org/x/exp/rand"
 )
 
-const url = "http://127.0.0.1:8086"
+const url = "http://localhost:8080"
+
+var jsonaddr = "/testjson"
+var dataaddr = "/testdata"
+
+func init() {
+	er, err := sdk.Info(url)
+	if err != nil {
+		jsonaddr = url + jsonaddr
+		dataaddr = url + dataaddr
+	}
+	jsonaddr = er.Name.String() + jsonaddr
+	dataaddr = er.Name.String() + dataaddr
+}
 
 func TestUploadJson(t *testing.T) {
 
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 1; i++ {
 		length := rand.Int31n(16) + 16
 		nkey := utils.RandomBytes(int(length))
 		length = rand.Int31n(1024 * 1024)
 		nval := utils.RandomBytes(int(length))
 
 		mm := types.MemeStruct{
-			Owner:   "commonjson",
+			Owner:   jsonaddr,
 			ID:      hex.EncodeToString(nkey),
 			Message: hex.EncodeToString(nval),
 		}
@@ -35,13 +48,13 @@ func TestUploadJson(t *testing.T) {
 
 func TestUploadData(t *testing.T) {
 
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 30; i++ {
 		length := rand.Int31n(16) + 16
 		nkey := utils.RandomBytes(int(length))
-		length = rand.Int31n(1024 * 1024)
+		length = rand.Int31n(50 * 1024 * 1024)
 		nval := utils.RandomBytes(int(length))
 
-		err := sdk.UploadHubData(url, "common", hex.EncodeToString(nkey), nval)
+		err := sdk.UploadHubData(url, dataaddr, hex.EncodeToString(nkey), nval)
 		if err != nil {
 			t.Fatal(err)
 		}
