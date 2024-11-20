@@ -1,14 +1,16 @@
----
 services:
   hub:
     command:
     build:
       context: ./
       dockerfile: Dockerfile
-    image: hub:local
+    #image: hub:local
     ports:
-    - 8086:8086
+    - 8080:8080
     volumes:
     - ~/hub_data:/root/.hub
     restart: on-failure:0
-...
+networks:
+  default:
+    driver: bridge
+
