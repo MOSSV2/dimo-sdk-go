@@ -93,6 +93,7 @@ func (s *Server) logFSWrite(addr string, key string, r io.Reader) (types.MemeMet
 			return types.MemeMeta{}, err
 		}
 		s.lfs[addr] = fs
+		s.addAccount(addr)
 		logger.Infof("start new log inst: %s %d", addr, s.fscnt)
 
 		dsKey := types.NewKey(types.DsLogFS, LOGINST, addr)
@@ -126,6 +127,8 @@ func (s *Server) logFSWrite(addr string, key string, r io.Reader) (types.MemeMet
 	if err != nil {
 		return types.MemeMeta{}, err
 	}
+
+	s.addNeedle(addr, key, lm.Index, lm.Start, lm.Size)
 
 	mm := types.MemeMeta{
 		File:  fmt.Sprintf("%s-%d.log", addr, lm.Index),
@@ -214,7 +217,15 @@ func (s *Server) load() error {
 		dsKey := types.NewKey(types.DsLogFS, LOGINST, 0)
 		s.rp.MetaStore().Put(dsKey, []byte(s.local.String()))
 	}
+	for i := uint32(0); i < s.fscnt; i++ {
+		dsKey := types.NewKey(types.DsLogFS, LOGINST, i)
+		val, err := s.rp.MetaStore().Get(dsKey)
+		if err != nil {
+			break
+		}
 
+		s.addAccount(string(val))
+	}
 	logger.Infof("load log inst: %d", s.fscnt)
 	return nil
 }

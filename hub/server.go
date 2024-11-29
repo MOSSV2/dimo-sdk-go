@@ -2,6 +2,8 @@ package hub
 
 import (
 	"net/http"
+	"os"
+	"path/filepath"
 	"sync"
 
 	"github.com/MOSSV2/dimo-sdk-go/lib/log"
@@ -12,6 +14,8 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/gin-gonic/gin"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
 var logger = log.Logger("hub")
@@ -22,6 +26,8 @@ type Server struct {
 	typ string
 
 	rp repo.Repo
+
+	gdb *gorm.DB
 
 	ps types.IPieceStore
 
@@ -62,6 +68,18 @@ func NewServer(rp repo.Repo) (*http.Server, error) {
 		lfs: make(map[string]*logfs.LogFS),
 	}
 
+	gpath := filepath.Join(rp.Path(), "gorm")
+
+	os.MkdirAll(gpath, os.ModeDir)
+	gpath = filepath.Join(gpath, "gorm.db")
+	db, err := gorm.Open(sqlite.Open(gpath), &gorm.Config{})
+	if err != nil {
+		panic("failed to connect database")
+	}
+	db.AutoMigrate(&types.Account{})
+	db.AutoMigrate(&types.Needle{})
+	s.gdb = db
+
 	s.load()
 	go s.uploadTo()
 
@@ -81,6 +99,7 @@ func (s *Server) registRoute() {
 	s.addInfo(r)
 	s.addDownload(r)
 	s.addUpload(r)
+	s.addList(r)
 }
 
 func (s *Server) addInfo(g *gin.RouterGroup) {
