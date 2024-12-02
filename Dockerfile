@@ -19,15 +19,18 @@ ARG BUILD_USER="unknown"
 ARG BUILD_DATE="unknown"
 ARG EXTRA_BUILD_ARGS=""
 COPY . .
-COPY scripts/start.sh /start
+COPY scripts/start.sh /app/start
 RUN GOOS=linux GOARCH=$TARGETARCH go build $EXTRA_BUILD_ARGS \
       -ldflags '-w -extldflags "-static"' \
-      -o /hub ./app/hub
+      -o /app/hub ./app/hub
 
 ################################################################################
 FROM alpine AS hub
-ENTRYPOINT ["/start"]
-COPY --from=server_builder /start /start
-COPY --from=server_builder /hub /bin/hub
+
+WORKDIR /app
+ENTRYPOINT ["./start"]
+COPY --from=server_builder /app/start /app/start
+COPY --from=server_builder /app/hub /app/hub
+COPY --from=server_builder /opt/dimo/app/hub/assets /app/assets
 #RUN apk add --no-cache --upgrade bc ca-certificates openssl
 #CMD ["--bind", "0.0.0.0:8080"]

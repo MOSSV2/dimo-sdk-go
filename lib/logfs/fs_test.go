@@ -4,12 +4,24 @@ import (
 	"bytes"
 	"math/rand"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/MOSSV2/dimo-sdk-go/lib/kv"
 	"github.com/MOSSV2/dimo-sdk-go/lib/utils"
+	"github.com/alecthomas/units"
 	"github.com/mitchellh/go-homedir"
 )
+
+func TestBB(t *testing.T) {
+	dd := "10 MB"
+	de := strings.TrimSpace(dd)
+	bb, err := units.ParseBase2Bytes(de)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Fatal(int(bb))
+}
 
 func TestFs(t *testing.T) {
 	basedir, _ := homedir.Expand("~/test/logfs")

@@ -132,14 +132,14 @@ func RegisterNode(sk *ecdsa.PrivateKey, _typ uint8, val *big.Int) error {
 	return err
 }
 
-func AddPiece(sk *ecdsa.PrivateKey, pc types.PieceCore) error {
+func AddPiece(sk *ecdsa.PrivateKey, pc types.PieceCore) (string, error) {
 	logger.Debug("add piece: ", pc)
 	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Minute)
 	defer cancle()
 
 	ce, err := GetEpoch()
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	if pc.Expire == 0 {
@@ -160,49 +160,49 @@ func AddPiece(sk *ecdsa.PrivateKey, pc types.PieceCore) error {
 
 	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	ti, err := NewToken(ctx)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	gtoken := BalanceOf(DevChain, au.From)
 	fmt.Println("submitpiece0: ", gtoken)
 	tx, err := ti.IncreaseAllowance(au, BankAddr, val)
 	if err != nil {
-		return err
+		return "", err
 	}
 	err = CheckTx(DevChain, tx.Hash())
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	fi, err := NewPiece(ctx)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	pb, err := G1StringInSolidity(pc.Name)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	logger.Debug("add piece: ", pc)
 	fmt.Println("submitpiece1: ", BalanceOf(DevChain, au.From))
 	tx, err = fi.AddPiece(au, pb, pc.Price, uint64(pc.Size), pc.Expire, pc.Policy.N, pc.Policy.K, pc.Streamer)
 	if err != nil {
-		return err
+		return "", err
 	}
 	err = CheckTx(DevChain, tx.Hash())
 	if err != nil {
-		return err
+		return "", err
 	}
 	fmt.Println("submitpiece2: ", BalanceOf(DevChain, au.From))
 	fmt.Println("submitpiece cost: ", utils.FormatEth(gtoken.Sub(gtoken, BalanceOf(DevChain, au.From))))
 
-	return nil
+	return tx.Hash().String(), nil
 }
 
 func AddReplica(sk *ecdsa.PrivateKey, rc types.ReplicaCore, pf []byte) error {

@@ -2,9 +2,9 @@ package hub
 
 import (
 	"net/http"
-	"os"
-	"path/filepath"
+	"strings"
 	"sync"
+	"time"
 
 	"github.com/MOSSV2/dimo-sdk-go/lib/log"
 	"github.com/MOSSV2/dimo-sdk-go/lib/logfs"
@@ -13,12 +13,34 @@ import (
 	"github.com/MOSSV2/dimo-sdk-go/lib/types"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/gin-contrib/static"
+	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
-	"gorm.io/driver/sqlite"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	"github.com/swaggo/swag/example/basic/docs"
 	"gorm.io/gorm"
 )
 
 var logger = log.Logger("hub")
+
+func Cors() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		method := c.Request.Method
+		origin := c.Request.Header.Get("Origin")
+		if origin != "" {
+			c.Header("Access-Control-Allow-Origin", "*")
+			c.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
+			c.Header("Access-Control-Allow-Headers", "Content-Type,AccessToken,X-CSRF-Token, Authorization, Token")
+			c.Header("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Cache-Control, Content-Language, Content-Type")
+			c.Header("Access-Control-Allow-Credentials", "true")
+		}
+		if method == "OPTIONS" {
+			c.AbortWithStatus(http.StatusNoContent)
+		}
+		c.Next()
+	}
+}
 
 type Server struct {
 	Router *gin.Engine
@@ -68,17 +90,7 @@ func NewServer(rp repo.Repo) (*http.Server, error) {
 		lfs: make(map[string]*logfs.LogFS),
 	}
 
-	gpath := filepath.Join(rp.Path(), "gorm")
-
-	os.MkdirAll(gpath, os.ModeDir)
-	gpath = filepath.Join(gpath, "gorm.db")
-	db, err := gorm.Open(sqlite.Open(gpath), &gorm.Config{})
-	if err != nil {
-		panic("failed to connect database")
-	}
-	db.AutoMigrate(&types.Account{})
-	db.AutoMigrate(&types.Needle{})
-	s.gdb = db
+	s.loadGORM()
 
 	s.load()
 	go s.uploadTo()
@@ -94,6 +106,20 @@ func NewServer(rp repo.Repo) (*http.Server, error) {
 }
 
 func (s *Server) registRoute() {
+	swaghost := s.rp.Config().API.Expose
+	if swaghost != "" {
+		swaghost = strings.TrimPrefix(swaghost, "http://")
+		docs.SwaggerInfo.Host = swaghost
+	}
+
+	s.Router.Use(Cors())
+
+	s.Router.Use(ginzap.Ginzap(log.Logger("gin").Desugar(), time.RFC3339, true))
+
+	s.Router.Use(static.Serve("/", static.LocalFile("assets", true)))
+
+	s.Router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 	r := s.Router.Group("/api")
 
 	s.addInfo(r)

@@ -1,6 +1,10 @@
 package types
 
-import "gorm.io/gorm"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type Account struct {
 	gorm.Model
@@ -9,9 +13,29 @@ type Account struct {
 
 type Needle struct {
 	gorm.Model
-	Name  string
-	Owner string
-	File  uint32
-	Start uint64
-	Size  uint64
+	Name   string
+	Owner  string
+	File   uint32
+	Start  uint64
+	Size   uint64
+	Commit string
+}
+
+type Volume struct {
+	gorm.Model
+	Owner  string
+	File   uint32
+	Piece  string
+	TxHash string
+}
+
+type NeedleDisplay struct {
+	CreatedAt time.Time
+	Name      string
+	Owner     string
+	File      uint32
+	Start     uint64
+	Size      uint64
+	Piece     string
+	TxHash    string
 }

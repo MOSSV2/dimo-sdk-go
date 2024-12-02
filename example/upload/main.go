@@ -97,7 +97,7 @@ func UploadFile(sk *ecdsa.PrivateKey, fp string, fname bool) error {
 
 		// submit meta to chain
 		for _, pc := range pcs {
-			err = contract.AddPiece(sk, pc)
+			_, err = contract.AddPiece(sk, pc)
 			if err != nil {
 				return err
 			}
@@ -132,7 +132,7 @@ func UploadFile(sk *ecdsa.PrivateKey, fp string, fname bool) error {
 
 		// submit meta to chain
 		for _, pc := range pcs {
-			err = contract.AddPiece(sk, pc)
+			_, err = contract.AddPiece(sk, pc)
 			if err != nil {
 				return err
 			}

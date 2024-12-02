@@ -6,11 +6,12 @@ services:
       dockerfile: Dockerfile
     #image: hub:local
     ports:
-    - 8080:8080
+      - 8080:8080
     volumes:
-    - ~/hub_data:/root/.hub
+      - ~/hub_data:/root/.hub
     restart: on-failure:0
+    environment:
+      HUB_SIZE: "4MB"
 networks:
   default:
     driver: bridge
-

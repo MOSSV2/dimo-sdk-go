@@ -21,7 +21,10 @@ func (s *Server) addDownload(g *gin.RouterGroup) {
 
 func (s *Server) downloadByGET(c *gin.Context) {
 	ctx := c.Request.Context()
-	mn := c.Query("id")
+	mn := c.Query("name")
+	if mn == "" {
+		mn = c.Query("id")
+	}
 	addr := c.Query("owner")
 
 	head := fmt.Sprintf("attachment; filename=\"%s\"", mn)
@@ -41,7 +44,10 @@ func (s *Server) downloadByGET(c *gin.Context) {
 
 func (s *Server) downloadByPOST(c *gin.Context) {
 	ctx := c.Request.Context()
-	mn := c.PostForm("id")
+	mn := c.PostForm("name")
+	if mn == "" {
+		mn = c.PostForm("id")
+	}
 	addr := c.PostForm("owner")
 
 	head := fmt.Sprintf("attachment; filename=\"%s\"", mn)
