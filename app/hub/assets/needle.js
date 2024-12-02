@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
 function createCard(meta) {
   const card = document.createElement("div");
   card.className = "card";
+  card.onclick = () => download(meta.Owner, meta.Name);
 
   const h2 = document.createElement("h2");
   h2.textContent = meta.Name;
@@ -98,3 +99,38 @@ function displayResults(data) {
     });
   }
 }
+
+function download(owner, name) {
+  fetch(`/api/download?owner=${owner}&name=${name}`)
+    .then((response) => response.text())
+    .then((data) => {
+      displayData(data);
+    })
+    .catch((error) => console.error("Error:", error));
+}
+
+function displayData(data) {
+  const resultsElement = document.getElementById("cardContainer");
+  resultsElement.innerHTML = ""; // 清空先前的结果
+
+  //resultsElement.style.whiteSpace = 'pre-wrap';
+  //resultsElement.style.wordWrap = 'break-word';
+
+  if (data.length === 0) {
+    resultsElement.innerText = "No results found.";
+  } else {
+    const card = createDataCard(data);
+    cardContainer.appendChild(card);
+  }
+}
+
+function createDataCard(meta) {
+  const card = document.createElement("div");
+  card.className = "card";
+
+  const p0 = document.createElement("p");
+  p0.textContent = `Content: ${meta}`;
+  card.appendChild(p0);
+
+  return card
+} 
