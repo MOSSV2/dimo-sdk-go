@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
 function createCard(meta) {
   const card = document.createElement("div");
   card.className = "card";
-  card.onclick = () => download(meta.Owner, meta.Name);
+  //card.onclick = () => download(meta.Owner, meta.Name);
 
   const h2 = document.createElement("h2");
   h2.textContent = meta.Name;
@@ -54,6 +54,11 @@ function createCard(meta) {
     p5.innerHTML = "TxHash: <a href='https://sepolia-optimism.etherscan.io/tx/" + meta.TxHash + "' target='_blank'>" + meta.TxHash + "</a >";
     card.appendChild(p5);
   }
+
+  const p6 = document.createElement("p");
+  p6.textContent = `Content: [click to show]`;
+  p6.onclick = () => download(meta.Owner, meta.Name);
+  card.appendChild(p6);
 
   return card;
 }
@@ -129,7 +134,9 @@ function createDataCard(meta) {
   card.className = "card";
 
   const p0 = document.createElement("p");
-  p0.textContent = `Content: ${meta}`;
+  //p0.textContent = `Content: ${meta}`;
+  p0.innerHTML = "<p>Content:</p>";
+  p0.innerHTML += meta;
   card.appendChild(p0);
 
   return card

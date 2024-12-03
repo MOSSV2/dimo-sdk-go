@@ -25,12 +25,12 @@ function createCard(meta) {
   card.appendChild(p0);
 
   const p1 = document.createElement("p");
-  p1.textContent = `Needle List (click to expand)`;
+  p1.textContent = `Needle List: [click to expand]`;
   p1.onclick = () => toNeedle(meta.Name);
   card.appendChild(p1);
 
   const p2 = document.createElement("p");
-  p2.textContent = `Volume List (click to expand)`;
+  p2.textContent = `Volume List: [click to expand]`;
   p2.onclick = () => toVolume(meta.Name);
   card.appendChild(p2);
 

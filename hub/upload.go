@@ -142,7 +142,12 @@ func (s *Server) logFSWrite(addr string, key string, r io.Reader) (types.MemeMet
 func (s *Server) logFSRead(addr string, key string, w io.Writer) (int64, error) {
 	var err error
 	if addr == "" {
-		addr = s.local.String()
+		ns, err := s.getNeedle(addr, key)
+		if err != nil {
+			addr = s.local.String()
+		} else {
+			addr = ns[0].Owner
+		}
 	}
 
 	s.Lock()
