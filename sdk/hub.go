@@ -29,13 +29,13 @@ func ListAccountHub(baseUrl string) error {
 	return nil
 }
 
-func ListFileHub(baseUrl string, owner string) error {
+func ListNeedleHub(baseUrl string, owner string) error {
 	form := url.Values{}
 	form.Set("owner", owner)
 
 	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Minute)
 	defer cancle()
-	resb, err := doRequest(ctx, baseUrl, "/api/listFile", "", types.Auth{}, strings.NewReader(form.Encode()))
+	resb, err := doRequest(ctx, baseUrl, "/api/listNeedle", "", types.Auth{}, strings.NewReader(form.Encode()))
 	if err != nil {
 		return err
 	}
@@ -45,7 +45,7 @@ func ListFileHub(baseUrl string, owner string) error {
 	if err != nil {
 		return err
 	}
-	logger.Info("got file: ", res)
+	logger.Info("got needle: ", res)
 
 	return nil
 }

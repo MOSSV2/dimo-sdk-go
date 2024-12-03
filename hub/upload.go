@@ -142,7 +142,12 @@ func (s *Server) logFSWrite(addr string, key string, r io.Reader) (types.MemeMet
 func (s *Server) logFSRead(addr string, key string, w io.Writer) (int64, error) {
 	var err error
 	if addr == "" {
-		addr = s.local.String()
+		ns, err := s.getNeedle(addr, key)
+		if err != nil {
+			addr = s.local.String()
+		} else {
+			addr = ns[0].Owner
+		}
 	}
 
 	s.Lock()
@@ -302,8 +307,9 @@ func (s *Server) uploadTo() {
 								if pr.Serial > 0 {
 									suc++
 								} else {
-									err = contract.AddPiece(sk, pr.PieceCore)
+									txn, err := contract.AddPiece(sk, pr.PieceCore)
 									if err == nil {
+										s.addVolume(key, i, pr.Name, txn)
 										suc++
 									}
 								}
@@ -331,10 +337,11 @@ func (s *Server) uploadTo() {
 				log.Printf("submit %s to chain\n", res.Name)
 				// submit meta to chain
 				for _, pc := range pcs {
-					err = contract.AddPiece(sk, pc)
+					txn, err := contract.AddPiece(sk, pc)
 					if err != nil {
 						break
 					}
+					s.addVolume(key, i, pc.Name, txn)
 				}
 				if err != nil {
 					break

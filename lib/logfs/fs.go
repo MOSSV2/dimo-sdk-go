@@ -12,6 +12,7 @@ import (
 	"github.com/MOSSV2/dimo-sdk-go/lib/log"
 	"github.com/MOSSV2/dimo-sdk-go/lib/types"
 	"github.com/MOSSV2/dimo-sdk-go/lib/utils"
+	"github.com/alecthomas/units"
 	"github.com/fxamacker/cbor/v2"
 )
 
@@ -19,9 +20,15 @@ var logger = log.Logger("logfs")
 
 var _ types.IFileStore = (*LogFS)(nil)
 
-const (
-	MaxSize = 31 * 1024 * 1024
-)
+var MaxSize = 31 * 1024 * 1024
+
+func init() {
+	hs := os.Getenv("HUB_SIZE")
+	bb, err := units.ParseBase2Bytes(hs)
+	if err == nil && int(bb) > 0 {
+		MaxSize = int(bb)
+	}
+}
 
 type LogMeta struct {
 	Index uint32 // which log
@@ -53,7 +60,7 @@ type LogFS struct {
 func New(ds types.IKVStore, dir string, addr string) (*LogFS, error) {
 	//log.SetLogLevel("debug")
 	dir = filepath.Join(dir, addr)
-	logger.Infof("logfs start at: %s", dir)
+	logger.Infof("logfs start at: %s with maxsize: %d", dir, MaxSize)
 	err := os.MkdirAll(dir, 0755)
 	if err != nil {
 		return nil, err

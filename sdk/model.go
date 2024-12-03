@@ -190,7 +190,7 @@ func UploadModelFiles(url string, sk *ecdsa.PrivateKey, au types.Auth, fp string
 		}
 
 		for _, pc := range pcs {
-			err = contract.AddPiece(sk, pc)
+			_, err = contract.AddPiece(sk, pc)
 			if err != nil {
 				return mrm, err
 			}

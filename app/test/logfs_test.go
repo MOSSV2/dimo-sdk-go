@@ -24,6 +24,17 @@ func init() {
 	dataaddr = er.Name.String() + dataaddr
 }
 
+func TestList(t *testing.T) {
+	err := sdk.ListAccountHub(url)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = sdk.ListNeedleHub(url, jsonaddr)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestUploadJson(t *testing.T) {
 
 	for i := 0; i < 10; i++ {
@@ -42,7 +53,7 @@ func TestUploadJson(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = sdk.ListFileHub(url, jsonaddr)
+	err = sdk.ListNeedleHub(url, jsonaddr)
 	if err != nil {
 		t.Fatal(err)
 	}
