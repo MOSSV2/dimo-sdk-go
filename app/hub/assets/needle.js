@@ -109,35 +109,49 @@ function download(owner, name) {
   fetch(`/api/download?owner=${owner}&name=${name}`)
     .then((response) => response.text())
     .then((data) => {
-      displayData(data);
+      displayData(owner, name, data);
     })
     .catch((error) => console.error("Error:", error));
 }
 
-function displayData(data) {
+function displayData(owner, name, data) {
   const resultsElement = document.getElementById("cardContainer");
   resultsElement.innerHTML = ""; // 清空先前的结果
-
-  //resultsElement.style.whiteSpace = 'pre-wrap';
-  //resultsElement.style.wordWrap = 'break-word';
 
   if (data.length === 0) {
     resultsElement.innerText = "No results found.";
   } else {
-    const card = createDataCard(data);
+    const card = createDataCard(owner, name, data);
     cardContainer.appendChild(card);
   }
 }
 
-function createDataCard(meta) {
+function createDataCard(owner, name, meta) {
   const card = document.createElement("div");
   card.className = "card";
 
+  const h2 = document.createElement("h2");
+  h2.textContent = name;
+  card.appendChild(h2);
+
+  const p5 = document.createElement("p");
+  p5.textContent = `Owner: ${owner}`;
+  card.appendChild(p5);
+
   const p0 = document.createElement("p");
-  //p0.textContent = `Content: ${meta}`;
   p0.innerHTML = "<p>Content:</p>";
-  p0.innerHTML += meta;
+  p0.innerHTML += "<pre>" + formatString(meta) + "</pre>"
+  //p0.innerHTML += "</pre >"
   card.appendChild(p0);
 
   return card
-} 
+}
+
+function formatString(str) {
+  try {
+    o = JSON.parse(str);
+    return JSON.stringify(o, null, 2);
+  } catch (e) {
+    return str;
+  }
+}
