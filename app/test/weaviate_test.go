@@ -13,8 +13,9 @@ import (
 	"github.com/weaviate/weaviate/entities/models"
 )
 
-const classname = "Test11221"
-const tenantname = "tenant11"
+const classname = "Vector_index_b336533e_f79e_4e58_a7e1_546492f7b0be_Node"
+const tenantname = "unibase"
+const newtenant = "7249ca19-3c38-4ca0-b1bf-c36c46f1c01b"
 const weaviatehost = "192.168.1.21:8081"
 const hubhost = "http://192.168.1.21:8080"
 
@@ -64,12 +65,46 @@ func GetSchema() error {
 		return err
 	}
 	fmt.Println(string(b))
+	return nil
+}
+
+func Migrate(host, cn, old, new string) error {
+	cfg := weaviate.Config{
+		Host:   host,
+		Scheme: "http",
+	}
+	client, err := weaviate.NewClient(cfg)
+	if err != nil {
+		return err
+	}
+
+	ctx := context.TODO()
+
+	mo, err := client.Data().ObjectsGetter().WithClassName(cn).WithTenant(old).WithVector().Do(ctx)
+	if err != nil {
+		return err
+	}
+
+	for i := 0; i < len(mo); i++ {
+		w, err := client.Data().Creator().
+			WithClassName(cn).
+			WithProperties(mo[i].Properties).
+			WithTenant(new).
+			WithVectors(mo[i].Vectors).
+			WithVector(mo[i].Vector).
+			WithID(mo[i].ID.String()).
+			Do(ctx)
+		if err != nil {
+			return err
+		}
+		fmt.Println(mo[i].ID, " migrate to:", w.Object.ID, w.Object.Tenant)
+	}
 
 	return nil
 }
 
 func TestGet(t *testing.T) {
-	err := GetSchema()
+	err := Migrate(weaviatehost, classname, tenantname, newtenant)
 	t.Fatal(err)
 }
 

@@ -1,18 +1,44 @@
-document.addEventListener("DOMContentLoaded", () => {
+const urlParams = new URLSearchParams(window.location.search);
+const eaddr = urlParams.get("owner");
+
+const itemsPerPage = 10;
+let currentPage = 1;
+
+function renderPage() {
   const cardContainer = document.getElementById("cardContainer");
+  // Clear the current content
+  cardContainer.innerHTML = '';
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const eaddr = urlParams.get("owner");
-
-  listNeedle(eaddr)
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  listNeedle(eaddr, startIndex, itemsPerPage)
     .then((data) => {
       data.forEach((fileMeta) => {
         const card = createCard(fileMeta);
         cardContainer.appendChild(card);
       });
     })
-    .catch((error) => console.error("Error fetching fileMeta:", error));
+    .catch((error) => console.error("Error fetching needle:", error));
+
+  // Update the page number
+  document.getElementById('pageNumber').innerText = `Page: ${currentPage}`;
+}
+
+// Handle "Previous" button click
+document.getElementById('prevBtn').addEventListener('click', function () {
+  if (currentPage > 1) {
+    currentPage--;
+    renderPage();
+  }
 });
+
+// Handle "Next" button click
+document.getElementById('nextBtn').addEventListener('click', function () {
+  currentPage++;
+  renderPage();
+});
+
+// Initial page render
+renderPage();
 
 function createCard(meta) {
   const card = document.createElement("div");
@@ -56,23 +82,24 @@ function createCard(meta) {
   }
 
   const p6 = document.createElement("p");
-  p6.textContent = `Content: [click to show]`;
-  p6.onclick = () => download(meta.Owner, meta.Name);
+  //p6.textContent = `Content: [click to show]`;
+  //p6.onclick = () => download(meta.Owner, meta.Name);
+  p6.innerHTML = "Content: <a href='content.html?owner=" + meta.Owner + "&name=" + meta.Name + "' target='_blank'> [click to show] </a >";
   card.appendChild(p6);
 
   return card;
 }
 
-function listNeedle(eaddr) {
+function listNeedle(eaddr, offset, length) {
   if (eaddr) {
-    return fetch(`/api/listNeedle?owner=${eaddr}`)
+    return fetch(`/api/listNeedle?owner=${eaddr}&offset=${offset}&length=${length}`)
       .then((response) => response.json())
       .then((data) => {
         return data;
       })
       .catch((error) => console.error("Error fetching needles:", error))
   } else {
-    return fetch(`/api/listNeedle`)
+    return fetch(`/api/listNeedle?offset=${offset}&length=${length}`)
       .then((response) => response.json())
       .then((data) => {
         return data;
@@ -105,53 +132,4 @@ function displayResults(data) {
   }
 }
 
-function download(owner, name) {
-  fetch(`/api/download?owner=${owner}&name=${name}`)
-    .then((response) => response.text())
-    .then((data) => {
-      displayData(owner, name, data);
-    })
-    .catch((error) => console.error("Error:", error));
-}
 
-function displayData(owner, name, data) {
-  const resultsElement = document.getElementById("cardContainer");
-  resultsElement.innerHTML = ""; // 清空先前的结果
-
-  if (data.length === 0) {
-    resultsElement.innerText = "No results found.";
-  } else {
-    const card = createDataCard(owner, name, data);
-    cardContainer.appendChild(card);
-  }
-}
-
-function createDataCard(owner, name, meta) {
-  const card = document.createElement("div");
-  card.className = "card";
-
-  const h2 = document.createElement("h2");
-  h2.textContent = name;
-  card.appendChild(h2);
-
-  const p5 = document.createElement("p");
-  p5.textContent = `Owner: ${owner}`;
-  card.appendChild(p5);
-
-  const p0 = document.createElement("p");
-  p0.innerHTML = "<p>Content:</p>";
-  p0.innerHTML += "<pre>" + formatString(meta) + "</pre>"
-  //p0.innerHTML += "</pre >"
-  card.appendChild(p0);
-
-  return card
-}
-
-function formatString(str) {
-  try {
-    o = JSON.parse(str);
-    return JSON.stringify(o, null, 2);
-  } catch (e) {
-    return str;
-  }
-}
