@@ -25,13 +25,15 @@ function createCard(meta) {
   card.appendChild(p0);
 
   const p1 = document.createElement("p");
-  p1.textContent = `Needle List: [click to expand]`;
-  p1.onclick = () => toNeedle(meta.Name);
+  //p1.textContent = `Needle List: [click to expand]`;
+  //p1.onclick = () => toNeedle(meta.Name);
+  p1.innerHTML = "Needle List: <a href='needle.html?owner=" + meta.Name + "'> [click to show] </a >";
   card.appendChild(p1);
 
   const p2 = document.createElement("p");
-  p2.textContent = `Volume List: [click to expand]`;
-  p2.onclick = () => toVolume(meta.Name);
+  //p2.textContent = `Volume List: [click to expand]`;
+  //p2.onclick = () => toVolume(meta.Name);
+  p2.innerHTML = "Volume List: <a href='volume.html?owner=" + meta.Name + "'> [click to show] </a >";
   card.appendChild(p2);
 
   return card;
