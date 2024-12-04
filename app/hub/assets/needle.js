@@ -1,18 +1,44 @@
-document.addEventListener("DOMContentLoaded", () => {
+const urlParams = new URLSearchParams(window.location.search);
+const eaddr = urlParams.get("owner");
+
+const itemsPerPage = 10;
+let currentPage = 1;
+
+function renderPage() {
   const cardContainer = document.getElementById("cardContainer");
+  // Clear the current content
+  cardContainer.innerHTML = '';
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const eaddr = urlParams.get("owner");
-
-  listNeedle(eaddr)
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  listNeedle(eaddr, startIndex, itemsPerPage)
     .then((data) => {
       data.forEach((fileMeta) => {
         const card = createCard(fileMeta);
         cardContainer.appendChild(card);
       });
     })
-    .catch((error) => console.error("Error fetching fileMeta:", error));
+    .catch((error) => console.error("Error fetching needle:", error));
+
+  // Update the page number
+  document.getElementById('pageNumber').innerText = `Page: ${currentPage}`;
+}
+
+// Handle "Previous" button click
+document.getElementById('prevBtn').addEventListener('click', function () {
+  if (currentPage > 1) {
+    currentPage--;
+    renderPage();
+  }
 });
+
+// Handle "Next" button click
+document.getElementById('nextBtn').addEventListener('click', function () {
+  currentPage++;
+  renderPage();
+});
+
+// Initial page render
+renderPage();
 
 function createCard(meta) {
   const card = document.createElement("div");
@@ -64,16 +90,16 @@ function createCard(meta) {
   return card;
 }
 
-function listNeedle(eaddr) {
+function listNeedle(eaddr, offset, length) {
   if (eaddr) {
-    return fetch(`/api/listNeedle?owner=${eaddr}`)
+    return fetch(`/api/listNeedle?owner=${eaddr}&offset=${offset}&length=${length}`)
       .then((response) => response.json())
       .then((data) => {
         return data;
       })
       .catch((error) => console.error("Error fetching needles:", error))
   } else {
-    return fetch(`/api/listNeedle`)
+    return fetch(`/api/listNeedle?offset=${offset}&length=${length}`)
       .then((response) => response.json())
       .then((data) => {
         return data;

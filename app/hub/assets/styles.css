@@ -318,7 +318,7 @@ button {
 }
 
 button:hover {
-    background-color: darkblue;
+    background-color: lightblue;
 }
 
 /* 设置结果框样式 */
@@ -337,4 +337,29 @@ pre {
     white-space: pre-wrap;
     word-break: keep-all;
     word-wrap: break-word;
+}
+
+pagination-container {
+    display: flex;
+    justify-content: center;
+    padding: 10px;
+}
+
+.pagination-btn {
+    padding: 10px 20px;
+    margin: 10px 5px;
+    color: black;
+    border: 5px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.pagination-btn:hover {
+    background-color: lightblue;
+}
+
+.pagination-info {
+    margin: 0 10px;
+    font-size: 16px;
+    line-height: 30px;
 }
