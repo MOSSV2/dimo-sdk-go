@@ -141,10 +141,20 @@ func (sf *LogFS) Put(key, val []byte) error {
 
 	logger.Debugf("logfs write at: %s %d %d %d %d", sf.addr, sf.curIndex, sf.curSize, n, len(val))
 
+	if n%31 != 0 {
+		data := make([]byte, 31-n%31)
+		pn, err := sf.curFi.WriteAt(data, sf.curSize+int64(n))
+		if err != nil {
+			return err
+		}
+		n += pn
+		logger.Debugf("logfs write padding: %d", pn)
+	}
+
 	lm := LogMeta{
 		Index: sf.curIndex,
 		Start: uint64(sf.curSize),
-		Size:  uint64(n),
+		Size:  uint64(len(val)),
 		Hash:  sum[:],
 		Name:  key,
 	}
