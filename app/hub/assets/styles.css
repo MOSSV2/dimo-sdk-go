@@ -311,14 +311,14 @@ img {
 button {
     padding: 10px 20px;
     border-radius: 4px;
-    background-color: lightgray;
+    background-color: lightblue;
     color: black;
     border: none;
     cursor: pointer;
 }
 
 button:hover {
-    background-color: lightblue;
+    background-color: lightskyblue;
 }
 
 /* 设置结果框样式 */
@@ -355,7 +355,7 @@ pagination-container {
 }
 
 .pagination-btn:hover {
-    background-color: lightblue;
+    background-color: lightskyblue;
 }
 
 .pagination-info {
