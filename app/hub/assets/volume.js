@@ -59,13 +59,12 @@ function listVolume(eaddr) {
       })
       .catch((error) => console.error("Error fetching volume:", error))
   }
-
 }
 
 
 function search() {
   const searchInput = document.getElementById("searchInput").value;
-  fetch(`/api/getVolume?name=${searchInput}`)
+  fetch(`/api/getVolume?owner=${searchInput}`)
     .then((response) => response.json())
     .then((data) => {
       displayResults(data);
@@ -80,7 +79,9 @@ function displayResults(data) {
   if (data.length === 0) {
     resultsElement.innerText = "No results found.";
   } else {
-    const card = createCard(data)
-    resultsElement.appendChild(card)
+    data.forEach((meta) => {
+      const card = createCard(meta);
+      resultsElement.appendChild(card);
+    });
   }
 }

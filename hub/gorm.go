@@ -38,13 +38,13 @@ func (s *Server) addAccount(owner string) {
 	logger.Info("create account: ", owner)
 }
 
-func (s *Server) getAccount(owner string) (types.Account, error) {
-	var account types.Account
-	result := s.gdb.Where(&types.Account{Name: owner}).Last(&account)
+func (s *Server) getAccount(owner string) ([]types.Account, error) {
+	var accounts []types.Account
+	result := s.gdb.Where(&types.Account{Name: owner}).Find(&accounts)
 	if result.Error != nil {
-		return account, result.Error
+		return accounts, result.Error
 	}
-	return account, nil
+	return accounts, nil
 }
 
 func (s *Server) listAccount(offset, limit int) ([]types.Account, error) {
@@ -94,9 +94,9 @@ func (s *Server) getNeedleDisplay(owner, name string) ([]types.NeedleDisplay, er
 			Size:      needle[i].Size,
 		}
 		vol, err := s.getVolume(needle[i].Owner, needle[i].File)
-		if err == nil {
-			nd.Piece = vol.Piece
-			nd.TxHash = vol.TxHash
+		if err == nil && len(vol) > 0 {
+			nd.Piece = vol[0].Piece
+			nd.TxHash = vol[0].TxHash
 		}
 		res = append(res, nd)
 	}
@@ -133,9 +133,9 @@ func (s *Server) listNeedleDisplay(owner string, offset, limit int) ([]types.Nee
 			Size:      needle[i].Size,
 		}
 		vol, err := s.getVolume(needle[i].Owner, needle[i].File)
-		if err == nil {
-			nd.Piece = vol.Piece
-			nd.TxHash = vol.TxHash
+		if err == nil && len(vol) > 0 {
+			nd.Piece = vol[0].Piece
+			nd.TxHash = vol[0].TxHash
 		}
 		res = append(res, nd)
 	}
@@ -153,9 +153,9 @@ func (s *Server) addVolume(owner string, findex uint32, piece, txn string) {
 	logger.Info("create volume: ", piece)
 }
 
-func (s *Server) getVolume(owner string, fid uint32) (types.Volume, error) {
-	var vol types.Volume
-	result := s.gdb.Where(&types.Volume{Owner: owner, File: fid}).Last(&vol)
+func (s *Server) getVolume(owner string, fid uint32) ([]types.Volume, error) {
+	var vol []types.Volume
+	result := s.gdb.Where(&types.Volume{Owner: owner, File: fid}).Find(&vol)
 	if result.Error != nil {
 		return vol, result.Error
 	}

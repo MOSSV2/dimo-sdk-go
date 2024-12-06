@@ -74,7 +74,9 @@ function displayResults(data) {
   if (data.length === 0) {
     resultsElement.innerText = "No results found.";
   } else {
-    const card = createCard(data);
-    cardContainer.appendChild(card);
+    data.forEach((meta) => {
+      const card = createCard(meta);
+      resultsElement.appendChild(card);
+    });
   }
 }
