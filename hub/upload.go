@@ -242,8 +242,6 @@ func (s *Server) uploadTo() {
 		panic(err)
 	}
 
-	sdk.Login(sdk.ServerURL, au)
-
 	policy := types.Policy{
 		N: 6,
 		K: 4,

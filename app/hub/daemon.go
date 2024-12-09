@@ -48,6 +48,12 @@ var runCmd = &cli.Command{
 			Usage:   "input remote server url",
 			Value:   build.ServerURL,
 		},
+		&cli.StringFlag{
+			Name:    cmd.ExposeStr,
+			Aliases: []string{"e"},
+			Usage:   "input expose url for external access",
+			Value:   "http://127.0.0.1:8086",
+		},
 	},
 	Action: func(cctx *cli.Context) error {
 		rpath, err := homedir.Expand(cctx.String(cmd.RepoStr))
@@ -66,6 +72,8 @@ var runCmd = &cli.Command{
 		cfg := rp.Config()
 		cfg.API.Endpoint = cctx.String(cmd.EndpointStr)
 		cfg.Remote.URL = cctx.String(cmd.RemoteURLStr)
+		cfg.API.Expose = cctx.String(cmd.ExposeStr)
+
 		_, err = sdk.Info(cfg.Remote.URL)
 		if err != nil {
 			return err
