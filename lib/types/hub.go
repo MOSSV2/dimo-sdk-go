@@ -15,7 +15,7 @@ type Needle struct {
 	gorm.Model
 	Name   string
 	Owner  string
-	File   uint32
+	File   uint64
 	Start  uint64
 	Size   uint64
 	Commit string
@@ -24,7 +24,7 @@ type Needle struct {
 type Volume struct {
 	gorm.Model
 	Owner  string
-	File   uint32
+	File   uint64
 	Piece  string
 	TxHash string
 }
@@ -33,7 +33,7 @@ type NeedleDisplay struct {
 	CreatedAt time.Time
 	Name      string
 	Owner     string
-	File      uint32
+	File      uint64
 	Start     uint64
 	Size      uint64
 	Piece     string

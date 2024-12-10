@@ -11,6 +11,8 @@ import (
 	"github.com/MOSSV2/dimo-sdk-go/lib/piece"
 	"github.com/MOSSV2/dimo-sdk-go/lib/repo"
 	"github.com/MOSSV2/dimo-sdk-go/lib/types"
+	"github.com/MOSSV2/dimo-sdk-go/lib/utils"
+	"github.com/MOSSV2/dimo-sdk-go/sdk"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/gin-contrib/static"
@@ -81,13 +83,18 @@ func NewServer(rp repo.Repo) (*http.Server, error) {
 	s := &Server{
 		Router: router,
 
-		typ:   types.DownloaderType,
+		typ:   types.HubType,
 		local: localAddr,
 		rp:    rp,
 		ps:    piece.New(rp.MetaStore(), rp.DataStore()),
 		auth:  auth,
 
 		lfs: make(map[string]*logfs.LogFS),
+	}
+
+	err = s.register()
+	if err != nil {
+		return nil, err
 	}
 
 	s.loadGORM()
@@ -126,6 +133,37 @@ func (s *Server) registRoute() {
 	s.addDownload(r)
 	s.addUpload(r)
 	s.addList(r)
+}
+
+func login(url string, auth types.Auth) {
+	for {
+		sdk.Login(url, auth)
+		time.Sleep(time.Hour)
+	}
+}
+
+func (s *Server) register() error {
+	auth, err := s.rp.Key().BuildAuth([]byte("register"))
+	if err != nil {
+		return err
+	}
+
+	go login(s.rp.Config().Remote.URL, auth)
+
+	mm := types.EdgeMeta{
+		Type:      s.typ,
+		Name:      auth.Addr,
+		PublicKey: s.rp.Key().Public(),
+		ExposeURL: s.rp.Config().API.Expose,
+		Hardware:  utils.GetHardwareInfo(),
+	}
+
+	err = sdk.RegisterEdge(s.rp.Config().Remote.URL, auth, mm)
+	if err != nil {
+		logger.Debug("register hub fail:", err)
+		return err
+	}
+	return nil
 }
 
 func (s *Server) addInfo(g *gin.RouterGroup) {

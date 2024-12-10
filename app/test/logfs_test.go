@@ -10,7 +10,7 @@ import (
 	"golang.org/x/exp/rand"
 )
 
-const url = "http://localhost:8080"
+const url = "http://localhost:8086"
 
 var jsonaddr = "/testjson"
 var dataaddr = "/testdata"
@@ -75,7 +75,7 @@ func TestUploadJson(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for i := 0; i < 0; i++ {
+	for i := 0; i < 50; i++ {
 		length := rand.Int31n(16) + 16
 		nkey := utils.RandomBytes(int(length))
 		length = rand.Int31n(1024 * 1024)

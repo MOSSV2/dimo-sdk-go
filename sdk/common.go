@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/MOSSV2/dimo-sdk-go/build"
 	"github.com/MOSSV2/dimo-sdk-go/lib/bls"
 	"github.com/MOSSV2/dimo-sdk-go/lib/bls/erasure"
 	"github.com/MOSSV2/dimo-sdk-go/lib/log"
@@ -37,7 +38,7 @@ func init() {
 	log.SetLogLevel("DEBUG")
 }
 
-var ServerURL = "http://52.220.254.5:8080"
+var ServerURL = build.ServerURL
 
 const InHashID = hash.MIMC_BW6_761
 

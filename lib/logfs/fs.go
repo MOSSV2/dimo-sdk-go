@@ -31,7 +31,7 @@ func init() {
 }
 
 type LogMeta struct {
-	Index uint32 // which log
+	Index uint64 // which volume
 	Start uint64
 	Size  uint64
 	Hash  []byte // 32byte
@@ -51,13 +51,13 @@ type LogFS struct {
 	ds       types.IKVStore
 	addr     string
 	curSize  int64
-	curIndex uint32
+	curIndex uint64
 	curFi    *os.File
 	basedir  string
 }
 
 // todo: each one has its own maxsize
-func New(ds types.IKVStore, dir string, addr string) (*LogFS, error) {
+func New(ds types.IKVStore, dir string, local, addr string) (*LogFS, error) {
 	//log.SetLogLevel("debug")
 	dir = filepath.Join(dir, addr)
 	logger.Infof("logfs start at: %s with maxsize: %d", dir, MaxSize)
@@ -74,11 +74,13 @@ func New(ds types.IKVStore, dir string, addr string) (*LogFS, error) {
 
 	dsKey := types.NewKey(types.DsLogFS, addr)
 	val, err := sf.ds.Get(dsKey)
-	if err == nil && len(val) == 4 {
-		sf.curIndex = binary.BigEndian.Uint32(val)
+	if err == nil && len(val) == 8 {
+		sf.curIndex = binary.BigEndian.Uint64(val)
+	} else {
+		sf.curIndex = GetIndex(local, addr)
 	}
 
-	curlog := filepath.Join(sf.basedir, fmt.Sprintf("%d.log", sf.curIndex))
+	curlog := filepath.Join(sf.basedir, fmt.Sprintf("%d.vol", sf.curIndex))
 	sf.curFi, err = os.OpenFile(curlog, os.O_CREATE|os.O_RDWR, os.ModePerm)
 	if err != nil {
 		return nil, err
@@ -93,6 +95,15 @@ func New(ds types.IKVStore, dir string, addr string) (*LogFS, error) {
 	return sf, nil
 }
 
+func GetIndex(local, addr string) uint64 {
+	h := sha256.New()
+	h.Write([]byte(local))
+	h.Write([]byte(addr))
+	res := h.Sum(nil)
+	st := binary.BigEndian.Uint32(res[:4])
+	return uint64(st)
+}
+
 func (sf *LogFS) forward() error {
 	err := sf.curFi.Close()
 	if err != nil {
@@ -101,14 +112,14 @@ func (sf *LogFS) forward() error {
 	sf.curIndex++
 
 	dsKey := types.NewKey(types.DsLogFS, sf.addr)
-	val := make([]byte, 4)
-	binary.BigEndian.PutUint32(val, sf.curIndex)
+	val := make([]byte, 8)
+	binary.BigEndian.PutUint64(val, sf.curIndex)
 	err = sf.ds.Put(dsKey, val)
 	if err != nil {
 		return err
 	}
 
-	curlog := filepath.Join(sf.basedir, fmt.Sprintf("%d.log", sf.curIndex))
+	curlog := filepath.Join(sf.basedir, fmt.Sprintf("%d.vol", sf.curIndex))
 	fi, err := os.OpenFile(curlog, os.O_CREATE|os.O_RDWR, os.ModePerm)
 	if err != nil {
 		return err
@@ -206,7 +217,7 @@ func (sf *LogFS) GetMeta(key []byte) (*LogMeta, error) {
 
 func (sf *LogFS) GetData(lm *LogMeta, opts ...int) ([]byte, error) {
 	logger.Infof("logfs read at: %s %d %d %d", sf.addr, lm.Index, lm.Start, lm.Size)
-	curlog := filepath.Join(sf.basedir, fmt.Sprintf("%d.log", lm.Index))
+	curlog := filepath.Join(sf.basedir, fmt.Sprintf("%d.vol", lm.Index))
 	fi, err := os.OpenFile(curlog, os.O_RDONLY, os.ModePerm)
 	if err != nil {
 		return nil, err

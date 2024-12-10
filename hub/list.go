@@ -143,7 +143,7 @@ func (s *Server) listVolumeByPost(c *gin.Context) {
 func (s *Server) getVolumeByGet(c *gin.Context) {
 	owner := c.Query("owner")
 	fid, _ := strconv.Atoi(c.Query("file"))
-	res, err := s.getVolume(owner, uint32(fid))
+	res, err := s.getVolume(owner, uint64(fid))
 	if err != nil {
 		c.JSON(599, lerror.ToAPIError("hub", err))
 		return

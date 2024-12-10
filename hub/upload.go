@@ -87,7 +87,7 @@ func (s *Server) logFSWrite(addr string, key string, r io.Reader) (types.MemeMet
 	fs, ok := s.lfs[addr]
 	if !ok {
 		fspath := filepath.Join(s.rp.Path(), LOGFS)
-		fs, err = logfs.New(s.rp.MetaStore(), fspath, addr)
+		fs, err = logfs.New(s.rp.MetaStore(), fspath, s.local.String(), addr)
 		if err != nil {
 			s.Unlock()
 			return types.MemeMeta{}, err
@@ -131,7 +131,7 @@ func (s *Server) logFSWrite(addr string, key string, r io.Reader) (types.MemeMet
 	s.addNeedle(addr, key, lm.Index, lm.Start, lm.Size)
 
 	mm := types.MemeMeta{
-		File:  fmt.Sprintf("%s-%d.log", addr, lm.Index),
+		File:  fmt.Sprintf("%s/%d.log", addr, lm.Index),
 		Start: lm.Start,
 		Size:  lm.Size,
 	}
@@ -154,7 +154,7 @@ func (s *Server) logFSRead(addr string, key string, w io.Writer) (int64, error) 
 	fs, ok := s.lfs[addr]
 	if !ok {
 		fspath := filepath.Join(s.rp.Path(), LOGFS)
-		fs, err = logfs.New(s.rp.MetaStore(), fspath, addr)
+		fs, err = logfs.New(s.rp.MetaStore(), fspath, s.local.String(), addr)
 		if err != nil {
 			s.Unlock()
 			return 0, err
@@ -201,7 +201,7 @@ func (s *Server) logFSRead(addr string, key string, w io.Writer) (int64, error) 
 
 func (s *Server) load() error {
 	fspath := filepath.Join(s.rp.Path(), LOGFS)
-	fs, err := logfs.New(s.rp.MetaStore(), fspath, s.local.String())
+	fs, err := logfs.New(s.rp.MetaStore(), fspath, s.local.String(), s.local.String())
 	if err != nil {
 		return err
 	}
@@ -242,8 +242,6 @@ func (s *Server) uploadTo() {
 		panic(err)
 	}
 
-	sdk.Login(sdk.ServerURL, au)
-
 	policy := types.Policy{
 		N: 6,
 		K: 4,
@@ -271,16 +269,16 @@ func (s *Server) uploadTo() {
 			logger.Debugf("check: %s %d", key, i)
 			dsKey = types.NewKey(types.DsLogFS, key)
 			val, err = s.rp.MetaStore().Get(dsKey)
-			if err != nil || len(val) != 4 {
+			if err != nil || len(val) != 8 {
 				continue
 			}
-			curIndex := binary.BigEndian.Uint32(val)
+			curIndex := binary.BigEndian.Uint64(val)
 
-			next := uint32(0)
+			next := logfs.GetIndex(s.local.String(), key)
 			dsKey = types.NewKey(types.DsLogFS, LOGINST, key)
 			val, err = s.rp.MetaStore().Get(dsKey)
-			if err == nil && len(val) == 4 {
-				next = binary.BigEndian.Uint32(val)
+			if err == nil && len(val) == 8 {
+				next = binary.BigEndian.Uint64(val)
 			}
 
 			logger.Debugf("check: %s %d %d", key, next, curIndex)
@@ -289,12 +287,12 @@ func (s *Server) uploadTo() {
 			}
 
 			for i := next; i < curIndex; i++ {
-				fname := fmt.Sprintf("%s-%d.log", key, i)
-				fp := filepath.Join(s.rp.Path(), LOGFS, key, fmt.Sprintf("%d.log", i))
+				fname := fmt.Sprintf("%s/%d.vol", key, i)
+				fp := filepath.Join(s.rp.Path(), LOGFS, key, fmt.Sprintf("%d.vol", i))
 
 				fr, err := sdk.GetFileReceipt(sdk.ServerURL, au, fname)
 				if err == nil {
-					logger.Infof("%s-%d.log is already uploaded, check its piece onchain", key, i)
+					logger.Infof("%s/%d.vol is already uploaded, check its piece onchain", key, i)
 					er, err := sdk.ListEdge(sdk.ServerURL, au, types.StreamType)
 					if err != nil {
 						break
@@ -317,8 +315,8 @@ func (s *Server) uploadTo() {
 						}
 					}
 					if suc == len(fr.Pieces) {
-						buf := make([]byte, 4)
-						binary.BigEndian.PutUint32(buf, i+1)
+						buf := make([]byte, 8)
+						binary.BigEndian.PutUint64(buf, i+1)
 						s.rp.MetaStore().Put(dsKey, buf)
 						continue
 					}
@@ -346,8 +344,8 @@ func (s *Server) uploadTo() {
 				if err != nil {
 					break
 				}
-				buf := make([]byte, 4)
-				binary.BigEndian.PutUint32(buf, i+1)
+				buf := make([]byte, 8)
+				binary.BigEndian.PutUint64(buf, i+1)
 				s.rp.MetaStore().Put(dsKey, buf)
 			}
 		}

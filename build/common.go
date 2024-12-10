@@ -1,5 +1,5 @@
 package build
 
 const (
-	ServerURL = "http://52.220.254.5:8080"
+	ServerURL = "http://54.251.11.180:8080"
 )

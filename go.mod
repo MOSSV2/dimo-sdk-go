@@ -38,7 +38,7 @@ require (
 	golang.org/x/image v0.15.0
 	golang.org/x/sync v0.8.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
-	gorm.io/datatypes v1.2.4
+	gorm.io/datatypes v1.2.5
 	gorm.io/driver/sqlite v1.5.6
 	gorm.io/gorm v1.25.11
 )
