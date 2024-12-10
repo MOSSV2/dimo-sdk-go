@@ -74,6 +74,11 @@ var runCmd = &cli.Command{
 		cfg.Remote.URL = cctx.String(cmd.RemoteURLStr)
 		cfg.API.Expose = cctx.String(cmd.ExposeStr)
 
+		he := os.Getenv("HUB_EXPOSE")
+		if he != "" {
+			cfg.API.Expose = he
+		}
+
 		_, err = sdk.Info(cfg.Remote.URL)
 		if err != nil {
 			return err
