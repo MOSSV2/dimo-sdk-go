@@ -57,7 +57,7 @@ func (s *Server) listAccount(offset, limit int) ([]types.Account, error) {
 	return accounts, nil
 }
 
-func (s *Server) addNeedle(owner, name string, findex uint32, start, length uint64) {
+func (s *Server) addNeedle(owner, name string, findex uint64, start, length uint64) {
 	s.gdb.Create(&types.Needle{
 		Owner: owner,
 		Name:  name,
@@ -143,7 +143,7 @@ func (s *Server) listNeedleDisplay(owner string, offset, limit int) ([]types.Nee
 	return res, nil
 }
 
-func (s *Server) addVolume(owner string, findex uint32, piece, txn string) {
+func (s *Server) addVolume(owner string, findex uint64, piece, txn string) {
 	s.gdb.Create(&types.Volume{
 		Owner:  owner,
 		File:   findex,
@@ -153,7 +153,7 @@ func (s *Server) addVolume(owner string, findex uint32, piece, txn string) {
 	logger.Info("create volume: ", piece)
 }
 
-func (s *Server) getVolume(owner string, fid uint32) ([]types.Volume, error) {
+func (s *Server) getVolume(owner string, fid uint64) ([]types.Volume, error) {
 	var vol []types.Volume
 	result := s.gdb.Where(&types.Volume{Owner: owner, File: fid}).Find(&vol)
 	if result.Error != nil {

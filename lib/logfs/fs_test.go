@@ -32,7 +32,7 @@ func TestFs(t *testing.T) {
 	}
 
 	rdir := filepath.Join(basedir, "data")
-	fs, err := New(ds, rdir, "0xaaa")
+	fs, err := New(ds, rdir, "0xaaa", "0xbcd")
 	if err != nil {
 		t.Fatal(err)
 	}

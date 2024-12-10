@@ -70,7 +70,7 @@ note: 启动时会从服务器自动获取0.002 gas token和100 UB token
 + upload using json 
 
 ```shell
-# output: {"File":"0xabcd-0.log","Start":0,"Size":41}
+# output: {"File":"0xabcd-0.vol","Start":0,"Size":41}
 > curl -X POST http://52.76.75.134:8080/api/upload -d '{
     "id": "test1", 
     "owner":"0xabcd",
