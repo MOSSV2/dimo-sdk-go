@@ -28,9 +28,9 @@ RUN GOOS=linux GOARCH=$TARGETARCH go build $EXTRA_BUILD_ARGS \
 FROM alpine AS hub
 
 WORKDIR /app
-ENTRYPOINT ["./start"]
+ENTRYPOINT ["/app/start"]
 COPY --from=server_builder /app/start /app/start
-COPY --from=server_builder /app/hub /app/hub
+COPY --from=server_builder /app/hub /app/dimo
 COPY --from=server_builder /opt/dimo/app/hub/assets /app/assets
 #RUN apk add --no-cache --upgrade bc ca-certificates openssl
 #CMD ["--bind", "0.0.0.0:8080"]

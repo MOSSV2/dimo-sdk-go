@@ -1,6 +1,5 @@
 services:
   dimo-hub:
-    command:
     image: mossv2/dimo:hub-latest
     ports:
       - 8080:8080
