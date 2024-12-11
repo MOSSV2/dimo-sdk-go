@@ -74,7 +74,7 @@ var runCmd = &cli.Command{
 		cfg.Remote.URL = cctx.String(cmd.RemoteURLStr)
 		cfg.API.Expose = cctx.String(cmd.ExposeStr)
 
-		he := os.Getenv("HUB_EXPOSE")
+		he := os.Getenv("EXPOSE_URL")
 		if he != "" {
 			cfg.API.Expose = he
 		}

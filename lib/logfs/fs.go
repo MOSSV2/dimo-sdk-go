@@ -23,7 +23,7 @@ var _ types.IFileStore = (*LogFS)(nil)
 var MaxSize = 31 * 1024 * 1024
 
 func init() {
-	hs := os.Getenv("HUB_SIZE")
+	hs := os.Getenv("MAX_SIZE")
 	bb, err := units.ParseBase2Bytes(hs)
 	if err == nil && int(bb) > 0 {
 		MaxSize = int(bb)
