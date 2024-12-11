@@ -19,7 +19,7 @@ import (
 var logger = log.Logger("param")
 
 const (
-	gateway   = "https://unibase-param.s3.ap-southeast-1.amazonaws.com/"
+	gateway   = "https://unibase-params.s3.ap-southeast-1.amazonaws.com/"
 	chunkSize = 8 * 1024 * 1024
 	paramdir  = "~/.plonk"
 )

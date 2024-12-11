@@ -7,10 +7,11 @@ import (
 
 	"github.com/MOSSV2/dimo-sdk-go/lib/utils"
 	"github.com/MOSSV2/dimo-sdk-go/sdk"
+	"github.com/google/uuid"
 	"golang.org/x/exp/rand"
 )
 
-const url = "http://localhost:8086"
+const url = "http://54.151.130.2"
 
 var jsonaddr = "/testjson"
 var dataaddr = "/testdata"
@@ -21,7 +22,8 @@ func init() {
 		jsonaddr = url + jsonaddr
 		dataaddr = url + dataaddr
 	}
-	jsonaddr = er.Name.String() + jsonaddr
+
+	jsonaddr = uuid.New().String()
 	dataaddr = er.Name.String() + dataaddr
 }
 
