@@ -14,10 +14,10 @@ import (
 )
 
 const classname = "Vector_index_b336533e_f79e_4e58_a7e1_546492f7b0be_Node"
-const tenantname = "unibase"
+const tenantname = "7249ca19-3c38-4ca0-b1bf-c36c46f1c01b"
 const newtenant = "7249ca19-3c38-4ca0-b1bf-c36c46f1c01b"
-const weaviatehost = "192.168.1.21:8081"
-const hubhost = "http://192.168.1.21:8080"
+const weaviatehost = "18.141.185.111:8080"
+const hubhost = "http://54.151.130.2:8080"
 
 func GetSchema() error {
 	cfg := weaviate.Config{
@@ -124,7 +124,7 @@ func TestCreate(t *testing.T) {
 		WithProperties(map[string]interface{}{
 			"question":    "This vector DB is OSS and supports automatic property type inference on import",
 			"answer":      "Weaviate1", // schema properties can be omitted
-			"newProperty": 1235,        // will be automatically added as a number property
+			"newProperty": 12356789,    // will be automatically added as a number property
 		}).
 		WithTenant(tenantname).
 		Do(context.TODO())

@@ -1,18 +1,15 @@
 services:
-  hub:
-    command:
-    build:
-      context: ../
-      dockerfile: Dockerfile
-    #image: hub:local
+  dimo-hub:
+    image: mossv2/dimo:hub-latest
     ports:
       - 8080:8080
     volumes:
-      - ~/data/hub:/data
+      - ~/data:/data
+      - ~/.plonk:/root/.plonk
     restart: on-failure:0
     environment:
-      MAX_SIZE: "4MB"
       EXPOSE_URL: ""
+      MAX_SIZE: "4MB"
 networks:
   default:
     driver: bridge
