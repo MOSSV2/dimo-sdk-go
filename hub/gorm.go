@@ -68,9 +68,9 @@ func (s *Server) addNeedle(owner, name string, findex uint64, start, length uint
 	logger.Info("create needle: ", owner)
 }
 
-func (s *Server) getNeedle(owner, name string) ([]types.Needle, error) {
+func (s *Server) getNeedleByName(name string) ([]types.Needle, error) {
 	var needle []types.Needle
-	result := s.gdb.Where(&types.Needle{Name: name, Owner: owner}).Find(&needle)
+	result := s.gdb.Where(&types.Needle{Name: name}).Find(&needle)
 	if result.Error != nil {
 		return needle, result.Error
 	}
