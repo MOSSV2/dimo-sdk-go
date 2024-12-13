@@ -142,9 +142,9 @@ func (s *Server) logFSWrite(addr string, key string, r io.Reader) (types.MemeMet
 func (s *Server) logFSRead(addr string, key string, w io.Writer) (int64, error) {
 	var err error
 	if addr == "" {
-		ns, err := s.getNeedle(addr, key)
-		if err != nil {
-			addr = s.local.String()
+		ns, err := s.getNeedleByName(key)
+		if err != nil || len(ns) == 0 {
+			return 0, fmt.Errorf("no such needle %s", key)
 		} else {
 			addr = ns[0].Owner
 		}
@@ -153,30 +153,20 @@ func (s *Server) logFSRead(addr string, key string, w io.Writer) (int64, error) 
 	s.Lock()
 	fs, ok := s.lfs[addr]
 	if !ok {
-		fspath := filepath.Join(s.rp.Path(), LOGFS)
-		fs, err = logfs.New(s.rp.MetaStore(), fspath, s.local.String(), addr)
-		if err != nil {
-			s.Unlock()
-			return 0, err
-		}
-		s.lfs[addr] = fs
-
-		logger.Infof("start new log inst: %s %d", addr, s.fscnt)
-
 		dsKey := types.NewKey(types.DsLogFS, LOGINST, addr)
 		has, err := s.rp.MetaStore().Has(dsKey)
-		if err != nil || !has {
-			buf := make([]byte, 4)
-			binary.BigEndian.PutUint32(buf, 0)
-			s.rp.MetaStore().Put(dsKey, buf)
-
-			dsKey = types.NewKey(types.DsLogFS, LOGINST, s.fscnt)
-			s.rp.MetaStore().Put(dsKey, []byte(addr))
-
-			dsKey = types.NewKey(types.DsLogFS, LOGINST)
-			s.fscnt++
-			binary.BigEndian.PutUint32(buf, s.fscnt)
-			s.rp.MetaStore().Put(dsKey, buf)
+		if err == nil && has {
+			fspath := filepath.Join(s.rp.Path(), LOGFS)
+			fs, err = logfs.New(s.rp.MetaStore(), fspath, s.local.String(), addr)
+			if err != nil {
+				s.Unlock()
+				return 0, err
+			}
+			s.lfs[addr] = fs
+			logger.Infof("start exist log inst: %s %d", addr, s.fscnt)
+		} else {
+			s.Unlock()
+			return 0, fmt.Errorf("no such owner: %s", addr)
 		}
 	}
 	s.Unlock()
@@ -222,15 +212,17 @@ func (s *Server) load() error {
 		dsKey := types.NewKey(types.DsLogFS, LOGINST, 0)
 		s.rp.MetaStore().Put(dsKey, []byte(s.local.String()))
 	}
-	for i := uint32(0); i < s.fscnt; i++ {
-		dsKey := types.NewKey(types.DsLogFS, LOGINST, i)
-		val, err := s.rp.MetaStore().Get(dsKey)
-		if err != nil {
-			break
-		}
+	/*
+		for i := uint32(0); i < s.fscnt; i++ {
+			dsKey := types.NewKey(types.DsLogFS, LOGINST, i)
+			val, err := s.rp.MetaStore().Get(dsKey)
+			if err != nil {
+				break
+			}
 
-		s.addAccount(string(val))
-	}
+			s.addAccount(string(val))
+		}
+	*/
 	logger.Infof("load log inst: %d", s.fscnt)
 	return nil
 }
