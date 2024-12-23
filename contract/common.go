@@ -16,7 +16,6 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 )
@@ -69,25 +68,16 @@ var (
 )
 
 var (
-	DevChain   = "https://optimism-sepolia-rpc.publicnode.com"
-	DevChainID = 11155420
-	BankAddr   = common.HexToAddress("0xdb85334d1061162080Be9436C037183f61E25ed7")
-	TokenAddr  = common.HexToAddress("0x15716bcAe684F6c93013e6834Cdd98eF1c35844a")
-	SyncHeight = 17_764_000
+	OPSepoliaChain      = "https://optimism-sepolia-rpc.publicnode.com"
+	OPSepoliaChainID    = 11155420
+	OPSepoliaBankAddr   = common.HexToAddress("0xdb85334d1061162080Be9436C037183f61E25ed7")
+	OPSepoliaTokenAddr  = common.HexToAddress("0x15716bcAe684F6c93013e6834Cdd98eF1c35844a")
+	OPSepoliaSyncHeight = 17_764_000
 )
 
 var logger = dlog.Logger("contract")
 
-func MakeAuth(chainID *big.Int, hexSk string) (*bind.TransactOpts, error) {
-	sk, err := crypto.HexToECDSA(hexSk)
-	if err != nil {
-		return nil, err
-	}
-
-	return makeAuth(chainID, sk)
-}
-
-func makeAuth(chainID *big.Int, sk *ecdsa.PrivateKey) (*bind.TransactOpts, error) {
+func makeAuth(ep string, chainID *big.Int, sk *ecdsa.PrivateKey) (*bind.TransactOpts, error) {
 	auth := &bind.TransactOpts{}
 	auth, err := bind.NewKeyedTransactorWithChainID(sk, chainID)
 	if err != nil {
@@ -96,7 +86,7 @@ func makeAuth(chainID *big.Int, sk *ecdsa.PrivateKey) (*bind.TransactOpts, error
 
 	auth.Value = big.NewInt(0)
 	auth.GasLimit = uint64(DefaultGasLimit)
-	client, err := ethclient.Dial(DevChain)
+	client, err := ethclient.Dial(ep)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +101,7 @@ func makeAuth(chainID *big.Int, sk *ecdsa.PrivateKey) (*bind.TransactOpts, error
 	return auth, nil
 }
 
-func GetTransactionReceipt(endPoint string, hash common.Hash) (*types.Receipt, error) {
+func getTransactionReceipt(endPoint string, hash common.Hash) (*types.Receipt, error) {
 	client, err := ethclient.Dial(endPoint)
 	if err != nil {
 		return nil, err
@@ -122,10 +112,10 @@ func GetTransactionReceipt(endPoint string, hash common.Hash) (*types.Receipt, e
 	return client.TransactionReceipt(ctx, hash)
 }
 
-func GetTransactionRetry(h common.Hash) (*types.Transaction, error) {
+func getTransactionRetry(endpoint string, h common.Hash) (*types.Transaction, error) {
 	retry := 0
 	for retry < 10 {
-		tx, err := GetTransaction(h)
+		tx, err := getTransaction(endpoint, h)
 		if err == nil {
 			return tx, nil
 		}
@@ -135,8 +125,8 @@ func GetTransactionRetry(h common.Hash) (*types.Transaction, error) {
 	return nil, fmt.Errorf("fail to get tx")
 }
 
-func GetTransaction(h common.Hash) (*types.Transaction, error) {
-	client, err := ethclient.Dial(DevChain)
+func getTransaction(endpoint string, h common.Hash) (*types.Transaction, error) {
+	client, err := ethclient.Dial(endpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +137,7 @@ func GetTransaction(h common.Hash) (*types.Transaction, error) {
 	return res, err
 }
 
-func CheckTx(endPoint string, txHash common.Hash) error {
+func checkTx(endPoint string, txHash common.Hash) error {
 	logger.Debug("check tx: ", txHash.String())
 	var receipt *types.Receipt
 	var err error
@@ -156,7 +146,7 @@ func CheckTx(endPoint string, txHash common.Hash) error {
 	for i := 0; i < 10; i++ {
 		t = 2*t + 1
 		time.Sleep(time.Duration(t) * time.Second)
-		receipt, err = GetTransactionReceipt(endPoint, txHash)
+		receipt, err = getTransactionReceipt(endPoint, txHash)
 		if err == nil {
 			break
 		}
@@ -170,7 +160,7 @@ func CheckTx(endPoint string, txHash common.Hash) error {
 		for _, elog := range receipt.Logs {
 			log.Printf("Log: %v\n", elog) // 打印日志信息
 		}
-		err = AnalyzeTransactionFailure(txHash)
+		err = analyzeTransactionFailure(endPoint, txHash)
 		if err != nil {
 			logger.Warn("tx revert: ", err)
 			return err
@@ -185,8 +175,8 @@ func CheckTx(endPoint string, txHash common.Hash) error {
 	return nil
 }
 
-func AnalyzeTransactionFailure(txHash common.Hash) error {
-	client, err := ethclient.Dial(DevChain)
+func analyzeTransactionFailure(endPoint string, txHash common.Hash) error {
+	client, err := ethclient.Dial(endPoint)
 	if err != nil {
 		return err
 	}
@@ -260,7 +250,7 @@ func getFrom(tx *types.Transaction) common.Address {
 	return from
 }
 
-func Transfer(ep string, sk *ecdsa.PrivateKey, toAddr common.Address, value *big.Int) error {
+func transfer(ep string, sk *ecdsa.PrivateKey, toAddr common.Address, value *big.Int) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()
 	client, err := ethclient.DialContext(ctx, ep)
@@ -270,8 +260,8 @@ func Transfer(ep string, sk *ecdsa.PrivateKey, toAddr common.Address, value *big
 	defer client.Close()
 
 	fromAddr := utils.ECDSAToAddr(sk)
-	logger.Debugf("%s from has: %d", fromAddr, BalanceOf(ep, fromAddr))
-	logger.Debugf("%s to has: %d", toAddr, BalanceOf(ep, toAddr))
+	logger.Debugf("%s from has: %d", fromAddr, balanceOf(ep, fromAddr))
+	logger.Debugf("%s to has: %d", toAddr, balanceOf(ep, toAddr))
 
 	nonce, err := client.PendingNonceAt(ctx, fromAddr)
 	if err != nil {
@@ -290,7 +280,7 @@ func Transfer(ep string, sk *ecdsa.PrivateKey, toAddr common.Address, value *big
 
 	chainID, err := client.NetworkID(ctx)
 	if err != nil {
-		chainID = big.NewInt(int64(DevChainID))
+		return err
 	}
 	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(chainID), sk)
 	if err != nil {
@@ -302,15 +292,15 @@ func Transfer(ep string, sk *ecdsa.PrivateKey, toAddr common.Address, value *big
 		return err
 	}
 
-	err = CheckTx(ep, signedTx.Hash())
+	err = checkTx(ep, signedTx.Hash())
 	if err != nil {
 		return err
 	}
-	logger.Debugf("%s to has: %d", toAddr, BalanceOf(ep, toAddr))
+	logger.Debugf("%s to has: %d", toAddr, balanceOf(ep, toAddr))
 	return nil
 }
 
-func BalanceOf(ep string, addr common.Address) *big.Int {
+func balanceOf(ep string, addr common.Address) *big.Int {
 	client, err := rpc.Dial(ep)
 	if err != nil {
 		return big.NewInt(0)
@@ -330,7 +320,7 @@ func BalanceOf(ep string, addr common.Address) *big.Int {
 	return val
 }
 
-func TransferToken(ep string, sk *ecdsa.PrivateKey, tokenAddr, toaddr common.Address, val *big.Int) error {
+func transferToken(ep string, chainID *big.Int, sk *ecdsa.PrivateKey, tokenAddr, toaddr common.Address, val *big.Int) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()
 	client, err := ethclient.DialContext(ctx, ep)
@@ -342,7 +332,7 @@ func TransferToken(ep string, sk *ecdsa.PrivateKey, tokenAddr, toaddr common.Add
 	if err != nil {
 		return err
 	}
-	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	au, err := makeAuth(ep, chainID, sk)
 	if err != nil {
 		return err
 	}
@@ -362,7 +352,7 @@ func TransferToken(ep string, sk *ecdsa.PrivateKey, tokenAddr, toaddr common.Add
 	if err != nil {
 		return err
 	}
-	err = CheckTx(ep, tx.Hash())
+	err = checkTx(ep, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -375,17 +365,17 @@ func TransferToken(ep string, sk *ecdsa.PrivateKey, tokenAddr, toaddr common.Add
 	return nil
 }
 
-func BalanceOfToken(addr common.Address) *big.Int {
+func balanceOfToken(ep string, tokenaddr, addr common.Address) *big.Int {
 	ctx, cancle := context.WithTimeout(context.TODO(), 10*time.Second)
 	defer cancle()
 
-	client, err := ethclient.DialContext(ctx, DevChain)
+	client, err := ethclient.DialContext(ctx, ep)
 	if err != nil {
 		return big.NewInt(0)
 	}
 	defer client.Close()
 
-	ti, err := token.NewToken(TokenAddr, client)
+	ti, err := token.NewToken(tokenaddr, client)
 	if err != nil {
 		return big.NewInt(0)
 	}

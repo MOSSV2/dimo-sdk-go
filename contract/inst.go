@@ -23,24 +23,24 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-func NewBank(ctx context.Context) (*bank.Bank, error) {
-	client, err := ethclient.DialContext(ctx, DevChain)
+func (c *ContractManage) NewBank(ctx context.Context) (*bank.Bank, error) {
+	client, err := ethclient.DialContext(ctx, c.EndPoint)
 	if err != nil {
 		return nil, err
 	}
 	defer client.Close()
 
-	return bank.NewBank(BankAddr, client)
+	return bank.NewBank(c.BankAddr, client)
 }
 
-func NewToken(ctx context.Context) (*token.Token, error) {
-	client, err := ethclient.DialContext(ctx, DevChain)
+func (c *ContractManage) NewToken(ctx context.Context) (*token.Token, error) {
+	client, err := ethclient.DialContext(ctx, c.EndPoint)
 	if err != nil {
 		return nil, err
 	}
 	defer client.Close()
 
-	bi, err := bank.NewBank(BankAddr, client)
+	bi, err := bank.NewBank(c.BankAddr, client)
 	if err != nil {
 		return nil, err
 	}
@@ -51,14 +51,14 @@ func NewToken(ctx context.Context) (*token.Token, error) {
 	return token.NewToken(taddr, client)
 }
 
-func NewEpoch(ctx context.Context) (*epoch.Epoch, error) {
-	client, err := ethclient.DialContext(ctx, DevChain)
+func (c *ContractManage) NewEpoch(ctx context.Context) (*epoch.Epoch, error) {
+	client, err := ethclient.DialContext(ctx, c.EndPoint)
 	if err != nil {
 		return nil, err
 	}
 	defer client.Close()
 
-	bi, err := bank.NewBank(BankAddr, client)
+	bi, err := bank.NewBank(c.BankAddr, client)
 	if err != nil {
 		return nil, err
 	}
@@ -69,14 +69,14 @@ func NewEpoch(ctx context.Context) (*epoch.Epoch, error) {
 	return epoch.NewEpoch(eaddr, client)
 }
 
-func NewControl(ctx context.Context) (*control.Control, error) {
-	client, err := ethclient.DialContext(ctx, DevChain)
+func (c *ContractManage) NewControl(ctx context.Context) (*control.Control, error) {
+	client, err := ethclient.DialContext(ctx, c.EndPoint)
 	if err != nil {
 		return nil, err
 	}
 	defer client.Close()
 
-	bi, err := bank.NewBank(BankAddr, client)
+	bi, err := bank.NewBank(c.BankAddr, client)
 	if err != nil {
 		return nil, err
 	}
@@ -87,14 +87,14 @@ func NewControl(ctx context.Context) (*control.Control, error) {
 	return control.NewControl(caddr, client)
 }
 
-func NewNode(ctx context.Context) (*node.Node, error) {
-	client, err := ethclient.DialContext(ctx, DevChain)
+func (c *ContractManage) NewNode(ctx context.Context) (*node.Node, error) {
+	client, err := ethclient.DialContext(ctx, c.EndPoint)
 	if err != nil {
 		return nil, err
 	}
 	defer client.Close()
 
-	bi, err := bank.NewBank(BankAddr, client)
+	bi, err := bank.NewBank(c.BankAddr, client)
 	if err != nil {
 		return nil, err
 	}
@@ -105,14 +105,14 @@ func NewNode(ctx context.Context) (*node.Node, error) {
 	return node.NewNode(naddr, client)
 }
 
-func NewPiece(ctx context.Context) (*piece.Piece, error) {
-	client, err := ethclient.DialContext(ctx, DevChain)
+func (c *ContractManage) NewPiece(ctx context.Context) (*piece.Piece, error) {
+	client, err := ethclient.DialContext(ctx, c.EndPoint)
 	if err != nil {
 		return nil, err
 	}
 	defer client.Close()
 
-	bi, err := bank.NewBank(BankAddr, client)
+	bi, err := bank.NewBank(c.BankAddr, client)
 	if err != nil {
 		return nil, err
 	}
@@ -123,14 +123,14 @@ func NewPiece(ctx context.Context) (*piece.Piece, error) {
 	return piece.NewPiece(faddr, client)
 }
 
-func NewReward(ctx context.Context) (*reward.Reward, error) {
-	client, err := ethclient.DialContext(ctx, DevChain)
+func (c *ContractManage) NewReward(ctx context.Context) (*reward.Reward, error) {
+	client, err := ethclient.DialContext(ctx, c.EndPoint)
 	if err != nil {
 		return nil, err
 	}
 	defer client.Close()
 
-	bi, err := bank.NewBank(BankAddr, client)
+	bi, err := bank.NewBank(c.BankAddr, client)
 	if err != nil {
 		return nil, err
 	}
@@ -141,14 +141,14 @@ func NewReward(ctx context.Context) (*reward.Reward, error) {
 	return reward.NewReward(faddr, client)
 }
 
-func NewRSProof(ctx context.Context) (*rsproof.RSProof, error) {
-	client, err := ethclient.DialContext(ctx, DevChain)
+func (c *ContractManage) NewRSProof(ctx context.Context) (*rsproof.RSProof, error) {
+	client, err := ethclient.DialContext(ctx, c.EndPoint)
 	if err != nil {
 		return nil, err
 	}
 	defer client.Close()
 
-	bi, err := bank.NewBank(BankAddr, client)
+	bi, err := bank.NewBank(c.BankAddr, client)
 	if err != nil {
 		return nil, err
 	}
@@ -159,14 +159,14 @@ func NewRSProof(ctx context.Context) (*rsproof.RSProof, error) {
 	return rsproof.NewRSProof(faddr, client)
 }
 
-func NewRSOne(ctx context.Context) (*rsone.PlonkVerifier, error) {
-	client, err := ethclient.DialContext(ctx, DevChain)
+func (c *ContractManage) NewRSOne(ctx context.Context) (*rsone.PlonkVerifier, error) {
+	client, err := ethclient.DialContext(ctx, c.EndPoint)
 	if err != nil {
 		return nil, err
 	}
 	defer client.Close()
 
-	bi, err := bank.NewBank(BankAddr, client)
+	bi, err := bank.NewBank(c.BankAddr, client)
 	if err != nil {
 		return nil, err
 	}
@@ -177,14 +177,14 @@ func NewRSOne(ctx context.Context) (*rsone.PlonkVerifier, error) {
 	return rsone.NewPlonkVerifier(faddr, client)
 }
 
-func NewKZGPlonk(ctx context.Context) (*kzg.PlonkVerifier, error) {
-	client, err := ethclient.DialContext(ctx, DevChain)
+func (c *ContractManage) NewKZGPlonk(ctx context.Context) (*kzg.PlonkVerifier, error) {
+	client, err := ethclient.DialContext(ctx, c.EndPoint)
 	if err != nil {
 		return nil, err
 	}
 	defer client.Close()
 
-	bi, err := bank.NewBank(BankAddr, client)
+	bi, err := bank.NewBank(c.BankAddr, client)
 	if err != nil {
 		return nil, err
 	}
@@ -195,14 +195,14 @@ func NewKZGPlonk(ctx context.Context) (*kzg.PlonkVerifier, error) {
 	return kzg.NewPlonkVerifier(faddr, client)
 }
 
-func NewMulPlonk(ctx context.Context) (*kzg.PlonkVerifier, error) {
-	client, err := ethclient.DialContext(ctx, DevChain)
+func (c *ContractManage) NewMulPlonk(ctx context.Context) (*kzg.PlonkVerifier, error) {
+	client, err := ethclient.DialContext(ctx, c.EndPoint)
 	if err != nil {
 		return nil, err
 	}
 	defer client.Close()
 
-	bi, err := bank.NewBank(BankAddr, client)
+	bi, err := bank.NewBank(c.BankAddr, client)
 	if err != nil {
 		return nil, err
 	}
@@ -213,14 +213,14 @@ func NewMulPlonk(ctx context.Context) (*kzg.PlonkVerifier, error) {
 	return kzg.NewPlonkVerifier(faddr, client)
 }
 
-func NewAddPlonk(ctx context.Context) (*kzg.PlonkVerifier, error) {
-	client, err := ethclient.DialContext(ctx, DevChain)
+func (c *ContractManage) NewAddPlonk(ctx context.Context) (*kzg.PlonkVerifier, error) {
+	client, err := ethclient.DialContext(ctx, c.EndPoint)
 	if err != nil {
 		return nil, err
 	}
 	defer client.Close()
 
-	bi, err := bank.NewBank(BankAddr, client)
+	bi, err := bank.NewBank(c.BankAddr, client)
 	if err != nil {
 		return nil, err
 	}
@@ -231,14 +231,14 @@ func NewAddPlonk(ctx context.Context) (*kzg.PlonkVerifier, error) {
 	return kzg.NewPlonkVerifier(faddr, client)
 }
 
-func NewEProof(ctx context.Context) (*eproof.EProof, error) {
-	client, err := ethclient.DialContext(ctx, DevChain)
+func (c *ContractManage) NewEProof(ctx context.Context) (*eproof.EProof, error) {
+	client, err := ethclient.DialContext(ctx, c.EndPoint)
 	if err != nil {
 		return nil, err
 	}
 	defer client.Close()
 
-	bi, err := bank.NewBank(BankAddr, client)
+	bi, err := bank.NewBank(c.BankAddr, client)
 	if err != nil {
 		return nil, err
 	}
@@ -249,14 +249,14 @@ func NewEProof(ctx context.Context) (*eproof.EProof, error) {
 	return eproof.NewEProof(faddr, client)
 }
 
-func NewEVerify(ctx context.Context) (*everify.EVerify, error) {
-	client, err := ethclient.DialContext(ctx, DevChain)
+func (c *ContractManage) NewEVerify(ctx context.Context) (*everify.EVerify, error) {
+	client, err := ethclient.DialContext(ctx, c.EndPoint)
 	if err != nil {
 		return nil, err
 	}
 	defer client.Close()
 
-	bi, err := bank.NewBank(BankAddr, client)
+	bi, err := bank.NewBank(c.BankAddr, client)
 	if err != nil {
 		return nil, err
 	}
@@ -267,14 +267,14 @@ func NewEVerify(ctx context.Context) (*everify.EVerify, error) {
 	return everify.NewEVerify(faddr, client)
 }
 
-func NewGPU(ctx context.Context) (*gpu.GPU, error) {
-	client, err := ethclient.DialContext(ctx, DevChain)
+func (c *ContractManage) NewGPU(ctx context.Context) (*gpu.GPU, error) {
+	client, err := ethclient.DialContext(ctx, c.EndPoint)
 	if err != nil {
 		return nil, err
 	}
 	defer client.Close()
 
-	bi, err := bank.NewBank(BankAddr, client)
+	bi, err := bank.NewBank(c.BankAddr, client)
 	if err != nil {
 		return nil, err
 	}
@@ -285,14 +285,14 @@ func NewGPU(ctx context.Context) (*gpu.GPU, error) {
 	return gpu.NewGPU(gaddr, client)
 }
 
-func NewModel(ctx context.Context) (*model.Model, error) {
-	client, err := ethclient.DialContext(ctx, DevChain)
+func (c *ContractManage) NewModel(ctx context.Context) (*model.Model, error) {
+	client, err := ethclient.DialContext(ctx, c.EndPoint)
 	if err != nil {
 		return nil, err
 	}
 	defer client.Close()
 
-	bi, err := bank.NewBank(BankAddr, client)
+	bi, err := bank.NewBank(c.BankAddr, client)
 	if err != nil {
 		return nil, err
 	}
@@ -303,14 +303,14 @@ func NewModel(ctx context.Context) (*model.Model, error) {
 	return model.NewModel(maddr, client)
 }
 
-func NewSpace(ctx context.Context) (*space.Space, error) {
-	client, err := ethclient.DialContext(ctx, DevChain)
+func (c *ContractManage) NewSpace(ctx context.Context) (*space.Space, error) {
+	client, err := ethclient.DialContext(ctx, c.EndPoint)
 	if err != nil {
 		return nil, err
 	}
 	defer client.Close()
 
-	bi, err := bank.NewBank(BankAddr, client)
+	bi, err := bank.NewBank(c.BankAddr, client)
 	if err != nil {
 		return nil, err
 	}
