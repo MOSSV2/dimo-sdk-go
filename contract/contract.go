@@ -8,7 +8,6 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/crypto"
 )
 
 type ContractManage struct {
@@ -17,13 +16,12 @@ type ContractManage struct {
 	BankAddr   common.Address
 	TokenAddr  common.Address
 	SyncHeight int
-	local      common.Address
 	sk         *ecdsa.PrivateKey
 }
 
-func NewContractManage(hexSk string, local common.Address, chainType string) (*ContractManage, error) {
+func NewContractManage(sk *ecdsa.PrivateKey, chainType string) (*ContractManage, error) {
 	cm := &ContractManage{
-		local: local,
+		sk: sk,
 	}
 
 	switch chainType {
@@ -35,14 +33,6 @@ func NewContractManage(hexSk string, local common.Address, chainType string) (*C
 		cm.SyncHeight = OPSepoliaSyncHeight
 	default:
 		return nil, fmt.Errorf("supportted chain type: op-sepolia")
-	}
-
-	if hexSk != "" {
-		sk, err := crypto.HexToECDSA(hexSk)
-		if err != nil {
-			return nil, err
-		}
-		cm.sk = sk
 	}
 
 	return cm, nil

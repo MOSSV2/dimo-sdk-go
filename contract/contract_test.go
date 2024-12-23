@@ -17,7 +17,7 @@ import (
 
 func TestTransfer(t *testing.T) {
 	admin := common.HexToAddress("0xC653B3b33702F3F80336274734f14c2C31885b02")
-	cm, err := NewContractManage("", admin, "op-sepolia")
+	cm, err := NewContractManage(nil, "op-sepolia")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -44,7 +44,7 @@ func TestFakeReplica(t *testing.T) {
 
 	pkey, paddr := makeAccount()
 
-	cm, err := NewContractManage(pkey, paddr, "op-sepolia")
+	cm, err := NewContractManage(pkey, "op-sepolia")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -97,7 +97,7 @@ func TestReward(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	cm, err := NewContractManage(sk, addr, "op-sepolia")
+	cm, err := NewContractManage(sk, "op-sepolia")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -123,7 +123,7 @@ func TestReward(t *testing.T) {
 }
 
 func TestTotalReward(t *testing.T) {
-	cm, err := NewContractManage("", Base, "op-sepolia")
+	cm, err := NewContractManage(nil, "op-sepolia")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -156,7 +156,7 @@ func TestTotalReward(t *testing.T) {
 
 func TestNodeCheck(t *testing.T) {
 	psk, paddr := makeAccount()
-	cm, err := NewContractManage(psk, paddr, "op-sepolia")
+	cm, err := NewContractManage(psk, "op-sepolia")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -181,8 +181,12 @@ func testtransfer(to common.Address, val, valt *big.Int) error {
 	if err != nil {
 		return err
 	}
-	sk := string(skbyte[:64])
-	cm, err := NewContractManage(sk, Base, "op-sepolia")
+	hexSk := string(skbyte[:64])
+	sk, err := crypto.HexToECDSA(hexSk)
+	if err != nil {
+		return err
+	}
+	cm, err := NewContractManage(sk, "op-sepolia")
 	if err != nil {
 		return err
 	}
@@ -194,7 +198,7 @@ func testtransfer(to common.Address, val, valt *big.Int) error {
 	return cm.TransferToken(to, valt)
 }
 
-func makeAccount() (string, common.Address) {
+func makeAccount() (*ecdsa.PrivateKey, common.Address) {
 	privk, err := crypto.GenerateKey()
 	if err != nil {
 		panic("generate")
@@ -207,14 +211,15 @@ func makeAccount() (string, common.Address) {
 
 	addr := crypto.PubkeyToAddress(*publicKeyECDSA)
 	fmt.Println("generate: ", addr)
-	skbyte := crypto.FromECDSA(privk)
+	//skbyte := crypto.FromECDSA(privk)
+	//common.Bytes2Hex(skbyte)
 
-	return common.Bytes2Hex(skbyte), addr
+	return privk, addr
 }
 
 func TestBlock(t *testing.T) {
-	sk, addr := makeAccount()
-	cm, err := NewContractManage(sk, addr, "op-sepolia")
+	sk, _ := makeAccount()
+	cm, err := NewContractManage(sk, "op-sepolia")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -252,7 +257,7 @@ func TestBlock(t *testing.T) {
 
 func TestChoose(t *testing.T) {
 	sk, addr := makeAccount()
-	cm, err := NewContractManage(sk, addr, "op-sepolia")
+	cm, err := NewContractManage(sk, "op-sepolia")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -273,8 +278,8 @@ func TestChoose(t *testing.T) {
 }
 
 func TestOrder(t *testing.T) {
-	sk, addr := makeAccount()
-	cm, err := NewContractManage(sk, addr, "op-sepolia")
+	sk, _ := makeAccount()
+	cm, err := NewContractManage(sk, "op-sepolia")
 	if err != nil {
 		t.Fatal(err)
 	}

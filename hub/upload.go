@@ -239,9 +239,14 @@ func (s *Server) uploadTo() {
 		K: 4,
 	}
 
+	cm, err := contract.NewContractManage(sk, "op-sepolia")
+	if err != nil {
+		panic(err)
+	}
+
 	for {
 		time.Sleep(time.Minute)
-		err := contract.CheckBalance(au.Addr)
+		err := cm.CheckBalance(au.Addr)
 		if err != nil {
 			time.Sleep(time.Minute)
 			continue
@@ -297,7 +302,7 @@ func (s *Server) uploadTo() {
 								if pr.Serial > 0 {
 									suc++
 								} else {
-									txn, err := contract.AddPiece(sk, pr.PieceCore)
+									txn, err := cm.AddPiece(pr.PieceCore)
 									if err == nil {
 										s.addVolume(key, i, pr.Name, txn)
 										suc++
@@ -327,7 +332,7 @@ func (s *Server) uploadTo() {
 				log.Printf("submit %s to chain\n", res.Name)
 				// submit meta to chain
 				for _, pc := range pcs {
-					txn, err := contract.AddPiece(sk, pc)
+					txn, err := cm.AddPiece(pc)
 					if err != nil {
 						break
 					}
