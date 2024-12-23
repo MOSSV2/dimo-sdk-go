@@ -77,7 +77,8 @@ func (ei *EProofInChain) Deserialize(b []byte) error {
 }
 
 type ProofStat struct {
-	Owner common.Address
-	Epoch []uint64
-	Stat  []string
+	Owner  common.Address
+	Epoch  []uint64
+	TxHash []string
+	Fake   []bool
 }

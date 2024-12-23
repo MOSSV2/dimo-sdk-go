@@ -63,7 +63,7 @@ type ListEdgeResult struct {
 }
 
 type ListReplicaResult struct {
-	Replicas []ReplicaCore
+	Replicas []ReplicaReceipt
 }
 
 type ListProofResult struct {

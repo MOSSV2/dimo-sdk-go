@@ -51,15 +51,6 @@ var (
 
 	//https://sepolia-optimism.etherscan.io/
 	//DevChain   = "https://11155420.rpc.thirdweb.com"
-	DevChain   = "https://optimism-sepolia-rpc.publicnode.com"
-	DevChainID = 11155420
-	BankAddr   = common.HexToAddress("0xdb85334d1061162080Be9436C037183f61E25ed7")
-	TokenAddr  = common.HexToAddress("0x15716bcAe684F6c93013e6834Cdd98eF1c35844a")
-	// piece 0x45a593415B4A9ED20d2372668D13923cD60e12F5
-
-	DevBlockTime = 2 // seconds/block
-	EpochBlocks  = 1200
-	SyncHeight   = 17_764_000
 
 	DefaultGasLimit = 8_000_000
 	DefaultGasPrice = 1000
@@ -75,6 +66,14 @@ var (
 	DefaultPenalty = 1e18
 
 	Base = common.HexToAddress("0x61Ea24745A3F7Bcbb67eD95B674fEcfbb331ABd0")
+)
+
+var (
+	DevChain   = "https://optimism-sepolia-rpc.publicnode.com"
+	DevChainID = 11155420
+	BankAddr   = common.HexToAddress("0xdb85334d1061162080Be9436C037183f61E25ed7")
+	TokenAddr  = common.HexToAddress("0x15716bcAe684F6c93013e6834Cdd98eF1c35844a")
+	SyncHeight = 17_764_000
 )
 
 var logger = dlog.Logger("contract")

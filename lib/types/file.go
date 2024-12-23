@@ -96,6 +96,7 @@ func (pc *PieceCore) Deserialize(b []byte) error {
 
 type PieceReceipt struct {
 	PieceCore
+	Creation time.Time
 	Replicas []string
 	StoredOn []common.Address
 }
@@ -119,8 +120,9 @@ type ReplicaCore struct {
 	Serial   uint64
 	Size     int64  // stored size
 	Piece    string // belongs to which piece
-	Index    uint8
+	Index    uint8  // index in piece
 	StoredOn common.Address
+	Ordinal  uint64 // index of store
 	TX       string
 }
 
@@ -130,6 +132,19 @@ func (rc *ReplicaCore) Serialize() ([]byte, error) {
 
 func (rc *ReplicaCore) Deserialize(b []byte) error {
 	return cbor.Unmarshal(b, rc)
+}
+
+type ReplicaReceipt struct {
+	ReplicaCore
+	Creation time.Time
+}
+
+func (rr *ReplicaReceipt) Serialize() ([]byte, error) {
+	return cbor.Marshal(rr)
+}
+
+func (rr *ReplicaReceipt) Deserialize(b []byte) error {
+	return cbor.Unmarshal(b, rr)
 }
 
 type ReplicaWitness struct {
@@ -153,7 +168,7 @@ type IFile interface {
 
 	ListFile(context.Context, common.Address, Options) ([]FileReceipt, error)
 	ListPiece(context.Context, common.Address, Options) ([]PieceReceipt, error)
-	ListReplica(context.Context, common.Address, Options) ([]ReplicaCore, error)
+	ListReplica(context.Context, common.Address, Options) ([]ReplicaReceipt, error)
 }
 
 type IPieceStore interface {

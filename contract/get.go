@@ -108,6 +108,18 @@ func GetBlockNumber() (uint64, error) {
 	return client.BlockNumber(ctx)
 }
 
+func GetEpochBlocks() (uint64, error) {
+	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Second)
+	defer cancle()
+
+	ei, err := NewEpoch(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	return ei.Slots(&bind.CallOpts{From: Base})
+}
+
 func GetEpoch() (uint64, error) {
 	ctx, cancle := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancle()
