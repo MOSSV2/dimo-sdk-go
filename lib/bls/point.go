@@ -355,6 +355,14 @@ func NewPointPublicKey(data []byte) (*PointPublicKey, error) {
 	return ppk, err
 }
 
+func (ppk *PointPublicKey) WriteDump(w io.Writer, maxPkPoints ...int) error {
+	return fmt.Errorf("method unsupported")
+}
+
+func (ppk *PointPublicKey) ReadDump(r io.Reader, maxPkPoints ...int) error {
+	return fmt.Errorf("method unsupported")
+}
+
 func (ppk *PointPublicKey) ToKZG() *PublicKey {
 	return &PublicKey{
 		SRS: &kzg.SRS{

@@ -120,23 +120,19 @@ func (vk *VerifyKey) VerifyProof1(ir types.IChallenge, ip types.IProof) error {
 	}
 
 	// [f(r)]G₁
-	var claimedValueG1Aff G1Jac
+	var left G1
 	bval := new(big.Int)
 	pf.ClaimedValue.BigInt(bval)
-	claimedValueG1Aff.ScalarMultiplicationAffine(&vk.G1, bval)
+	left.ScalarMultiplication(&vk.G1, bval)
 
 	// [f(r) - f(s)]G₁
-	var comG1Jac G1Jac
-	comG1Jac.FromAffine(&com.Value)
-	claimedValueG1Aff.SubAssign(&comG1Jac)
+	left.Sub(&left, &com.Value)
 
+	var comG1 G1
 	// [f(r) - f(s)]G₁ - r*H
 	fr_r.BigInt(bval)
-	comG1Jac.ScalarMultiplicationAffine(&pf.H, bval)
-	claimedValueG1Aff.SubAssign(&comG1Jac)
-
-	var left G1
-	left.FromJacobian(&claimedValueG1Aff)
+	comG1.ScalarMultiplication(&pf.H, bval)
+	left.Sub(&left, &comG1)
 
 	// e([f(r) - f(s)]G₁-r*H, G₂).e(H, [s]G₂) ==? 1
 	check, err := bls.PairingCheck(

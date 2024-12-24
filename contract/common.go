@@ -16,6 +16,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 )
@@ -67,6 +68,7 @@ var (
 	Base = common.HexToAddress("0x61Ea24745A3F7Bcbb67eD95B674fEcfbb331ABd0")
 )
 
+// op-sepolia
 var (
 	OPSepoliaChain      = "https://optimism-sepolia-rpc.publicnode.com"
 	OPSepoliaChainID    = 11155420
@@ -76,6 +78,19 @@ var (
 )
 
 var logger = dlog.Logger("contract")
+
+func MakeAuth(ep string, chainID int64, hexSk string) (*bind.TransactOpts, error) {
+	sk, err := crypto.HexToECDSA(hexSk)
+	if err != nil {
+		return nil, err
+	}
+
+	return makeAuth(ep, big.NewInt(chainID), sk)
+}
+
+func CheckTx(ep string, txHash common.Hash) error {
+	return checkTx(ep, txHash)
+}
 
 func makeAuth(ep string, chainID *big.Int, sk *ecdsa.PrivateKey) (*bind.TransactOpts, error) {
 	auth := &bind.TransactOpts{}

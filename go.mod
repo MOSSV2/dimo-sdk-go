@@ -6,7 +6,7 @@ toolchain go1.22.2
 
 require (
 	github.com/alecthomas/units v0.0.0-20240927000941-0f3dac36c52b
-	github.com/consensys/gnark-crypto v0.12.2-0.20231023220848-538dff926c15
+	github.com/consensys/gnark-crypto v0.14.0
 	github.com/dgraph-io/badger/v2 v2.2007.4
 	github.com/disintegration/imaging v1.6.2
 	github.com/docker/docker v27.1.1+incompatible
@@ -51,7 +51,7 @@ require (
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
-	github.com/bits-and-blooms/bitset v1.10.0 // indirect
+	github.com/bits-and-blooms/bitset v1.14.2 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.2.0 // indirect
 	github.com/bytedance/sonic v1.12.1 // indirect
 	github.com/bytedance/sonic/loader v0.2.0 // indirect

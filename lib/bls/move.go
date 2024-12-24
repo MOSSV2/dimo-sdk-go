@@ -162,28 +162,28 @@ func (vk *VerifyKey) VerifyProof2(ir types.IChallenge, ip types.IProof) error {
 	brk := new(big.Int)
 
 	// com0 + v1*com1+v2*com2
-	var comsum, hsum, temp G1Jac
-	comsum.FromAffine(&chal.Digests[0])
+	var comsum, hsum, temp G1
+	comsum.Set(&chal.Digests[0])
 	fr_vrandom1.BigInt(brk)
-	temp.ScalarMultiplicationAffine(&chal.Digests[1], brk)
-	comsum.AddAssign(&temp)
+	temp.ScalarMultiplication(&chal.Digests[1], brk)
+	comsum.Add(&comsum, &temp)
 	fr_vrandom2.BigInt(brk)
-	temp.ScalarMultiplicationAffine(&chal.Digests[2], brk)
-	comsum.AddAssign(&temp)
+	temp.ScalarMultiplication(&chal.Digests[2], brk)
+	comsum.Add(&comsum, &temp)
 
 	// H0 + v1*H1 + v2*H2
-	hsum.FromAffine(&pf.H[0])
+	hsum.Set(&pf.H[0])
 	fr_vrandom1.BigInt(brk)
-	temp.ScalarMultiplicationAffine(&pf.H[1], brk)
-	hsum.AddAssign(&temp)
+	temp.ScalarMultiplication(&pf.H[1], brk)
+	hsum.Add(&hsum, &temp)
 	fr_vrandom2.BigInt(brk)
-	temp.ScalarMultiplicationAffine(&pf.H[2], brk)
-	hsum.AddAssign(&temp)
+	temp.ScalarMultiplication(&pf.H[2], brk)
+	hsum.Add(&hsum, &temp)
 
 	// C+r*H
 	fr_r.BigInt(brk)
 	temp.ScalarMultiplication(&hsum, brk)
-	comsum.AddAssign(&temp)
+	comsum.Add(&comsum, &temp)
 
 	// y(1+v1*r^k1+v2*r^k2)
 	var cv, fr_rk Fr
@@ -199,16 +199,14 @@ func (vk *VerifyKey) VerifyProof2(ir types.IChallenge, ip types.IProof) error {
 	cv.Mul(&cv, &pf.ClaimedValue)
 
 	// [f(r)]G₁
-	var claimedValueG1Aff G1Jac
+	var left, right G1
 	cv.BigInt(brk)
-	claimedValueG1Aff.ScalarMultiplicationAffine(&vk.G1, brk)
+	left.ScalarMultiplication(&vk.G1, brk)
 
 	// [f(r) - f(s)]G₁ - r*H
-	claimedValueG1Aff.SubAssign(&comsum)
+	left.Sub(&left, &comsum)
 
-	var left, right G1
-	left.FromJacobian(&claimedValueG1Aff)
-	right.FromJacobian(&hsum)
+	right.Set(&hsum)
 
 	// e([f(r) - f(s)]G₁-r*H, G₂).e(H, [s]G₂) ==? 1
 	check, err := bls12377.PairingCheck(

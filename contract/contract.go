@@ -32,9 +32,8 @@ func NewContractManage(sk *ecdsa.PrivateKey, chainType string) (*ContractManage,
 		cm.TokenAddr = OPSepoliaTokenAddr
 		cm.SyncHeight = OPSepoliaSyncHeight
 	default:
-		return nil, fmt.Errorf("supportted chain type: op-sepolia")
+		return nil, fmt.Errorf("unsupportted chain type: %s, use 'op-sepolia'", chainType)
 	}
-
 	return cm, nil
 }
 
