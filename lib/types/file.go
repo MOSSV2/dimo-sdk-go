@@ -48,7 +48,8 @@ func (frc *FileCore) Deserialize(b []byte) error {
 
 type FileReceipt struct {
 	FileCore
-	Pieces []string
+	ChainType string
+	Pieces    []string
 }
 
 func (fr *FileReceipt) Serialize() ([]byte, error) {
@@ -96,9 +97,10 @@ func (pc *PieceCore) Deserialize(b []byte) error {
 
 type PieceReceipt struct {
 	PieceCore
-	Creation time.Time
-	Replicas []string
-	StoredOn []common.Address
+	Creation  time.Time
+	ChainType string
+	Replicas  []string
+	StoredOn  []common.Address
 }
 
 func (cr *PieceReceipt) Serialize() ([]byte, error) {
@@ -136,7 +138,8 @@ func (rc *ReplicaCore) Deserialize(b []byte) error {
 
 type ReplicaReceipt struct {
 	ReplicaCore
-	Creation time.Time
+	Creation  time.Time
+	ChainType string
 }
 
 func (rr *ReplicaReceipt) Serialize() ([]byte, error) {
@@ -164,7 +167,7 @@ type IFile interface {
 	AddFile(context.Context, FileReceipt) error
 	GetFile(context.Context, string, Options) (FileReceipt, error)
 	GetPiece(context.Context, string, Options) (PieceReceipt, error)
-	GetReplica(context.Context, string, io.Writer, Options) (ReplicaCore, error)
+	GetReplica(context.Context, string, io.Writer, Options) (ReplicaReceipt, error)
 
 	ListFile(context.Context, common.Address, Options) ([]FileReceipt, error)
 	ListPiece(context.Context, common.Address, Options) ([]PieceReceipt, error)

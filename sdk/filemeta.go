@@ -23,8 +23,8 @@ func UploadFileMeta(baseUrl string, auth types.Auth, fcws types.FileReceipt) err
 	return err
 }
 
-func GetReplicaReceipt(baseUrl string, auth types.Auth, name string) (types.ReplicaCore, error) {
-	var res types.ReplicaCore
+func GetReplicaReceipt(baseUrl string, auth types.Auth, name string) (types.ReplicaReceipt, error) {
+	var res types.ReplicaReceipt
 	form := url.Values{}
 	form.Set("name", name)
 

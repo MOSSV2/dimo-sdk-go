@@ -22,9 +22,10 @@ const (
 
 type EdgeReceipt struct {
 	EdgeMeta
-	OnChain bool
-	Revenue *big.Int
-	Last    time.Time
+	OnChain   bool
+	Revenue   *big.Int
+	Last      time.Time
+	ChainType string
 }
 
 type EdgeMeta struct {

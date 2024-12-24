@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/MOSSV2/dimo-sdk-go/build"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
 type ContractManage struct {
+	Type       string
 	ChainID    *big.Int
 	EndPoint   string
 	BankAddr   common.Address
@@ -21,11 +23,12 @@ type ContractManage struct {
 
 func NewContractManage(sk *ecdsa.PrivateKey, chainType string) (*ContractManage, error) {
 	cm := &ContractManage{
-		sk: sk,
+		Type: chainType,
+		sk:   sk,
 	}
 
 	switch chainType {
-	case "op-sepolia":
+	case build.ChainType:
 		cm.EndPoint = OPSepoliaChain
 		cm.ChainID = big.NewInt(int64(OPSepoliaChainID))
 		cm.BankAddr = OPSepoliaBankAddr

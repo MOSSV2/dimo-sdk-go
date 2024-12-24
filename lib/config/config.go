@@ -18,6 +18,7 @@ type Config struct {
 	Wallet WalletConfig `json:"wallet"`
 	API    APIConfig    `json:"api"`
 	Remote RemoteConfig `json:"remote"`
+	Chain  ChainConfig  `json:"chain"`
 	Store  StoreConfig  `json:"store"`
 }
 
@@ -33,6 +34,16 @@ type APIConfig struct {
 func newDefaultAPIConfig() APIConfig {
 	return APIConfig{
 		Endpoint: "127.0.0.1:8081",
+	}
+}
+
+type ChainConfig struct {
+	Type string `json:"type"`
+}
+
+func newDefaultChainConfig() ChainConfig {
+	return ChainConfig{
+		Type: "op-sepolia",
 	}
 }
 
@@ -62,6 +73,7 @@ func NewDefaultConfig() *Config {
 	return &Config{
 		API:    newDefaultAPIConfig(),
 		Remote: newDefaultRemoteConfig(),
+		Chain:  newDefaultChainConfig(),
 		Store:  newDefaultStoreConfig(),
 	}
 }
