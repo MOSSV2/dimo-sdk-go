@@ -31,55 +31,63 @@ func init() {
 
 	// bw6_761
 	paramMap["kzgsrs-bw6_761-canonical"] = paramInfo{
-		size: 402799492,
-		hash: "0476886cd15dedc190229f01003b5cd0a23ec32ed2293e135721a813a80b69e6",
+		size: 201472900,
+		hash: "4157b57e17e08d758efd7141de4340bfbeabf0f2f305e4ee3e24ae605fc8a161",
 	}
 	paramMap["kzgsrs-bw6_761-lagrange-128"] = paramInfo{
 		size: 170308,
-		hash: "04ca05ea12f3a8cf362f9a2120a4f2a6470b8cd06f6c3e37bc0dd849457799e4",
+		hash: "1d3ba9e4882d3a3ff3e95c4afdc42ab8ef31ae866bc1fbdb3ef8ac94605a3ca8",
 	}
 	paramMap["kzgsrs-bw6_761-lagrange-256"] = paramInfo{
 		size: 194884,
-		hash: "9d2442c2dd73bcf93278e963a17e2250690cf2117423ec79a29c7db9c4c21f06",
+		hash: "0a0e4523857f441350f681cc52ce3ef689ddb93d1e391fe37fe6406108c715c7",
 	}
 	paramMap["kzgsrs-bw6_761-lagrange-512"] = paramInfo{
 		size: 244036,
-		hash: "6745164cac368d9b0cc1a0b740eee56efd490b0840165acde6555626191718a8",
+		hash: "f88197e258b512a2f1dab6bd7dc47b24b6f64cc457da16473f5aafefa8efbfbb",
 	}
 	paramMap["kzgsrs-bw6_761-lagrange-1024"] = paramInfo{
 		size: 342340,
-		hash: "7a48faa2df260322dc9b06da3d89f2810a5169f1d10bdeba193378f84f9765a1",
+		hash: "32ae9ce229810bcd60f61f47d245f97688eaddeb63f317c5d0e04958788fa9ef",
 	}
 	paramMap["kzgsrs-bw6_761-lagrange-2048"] = paramInfo{
 		size: 538948,
-		hash: "d332086d0e5d941d057df4576eaeeeb772205f2e69cba3a0caf16718ffa8f9de",
+		hash: "246ec7b7592c10f87501c7f222f238f9290efd1d2eb6b93dfa4526f8c0afa2c7",
 	}
 	paramMap["kzgsrs-bw6_761-lagrange-4096"] = paramInfo{
 		size: 932164,
-		hash: "547a9fb1b3df2afbf9647a08fe8b172d6b58415b197bda2b95bda40539ff73a1",
+		hash: "51572f8de38d9ab4a32281eb2adc3dabe98df905d3113046261b492c81a5f5a6",
 	}
 	paramMap["kzgsrs-bw6_761-lagrange-8192"] = paramInfo{
 		size: 1718596,
-		hash: "cc0ffbf2832d367588fd16b306c07e15c7443616dd2445d07c7caf98b5a32c99",
+		hash: "3475a7e697e0f45fe127ebb893243b4f1a16766c7055b90021eb9e4e41212338",
 	}
 	paramMap["kzgsrs-bw6_761-lagrange-16384"] = paramInfo{
 		size: 3291460,
-		hash: "671fd98367b4b1ffad20b7274045e8167234590ca5bb26db40cc97d086806049",
+		hash: "568b48bfe74af7ef61133c4a1f068de6c0284375038728e7da44ab0cf05b17bf",
 	}
 	paramMap["kzgsrs-bw6_761-lagrange-32768"] = paramInfo{
 		size: 6437188,
-		hash: "19f9e4b7cfd7fb73f2b0e1db1a58bbf43bc41b4aa6a33412763c04b9514b193e",
+		hash: "597aba5a437d7e44bdea72e7cb661f02d5ecdb836bdfd1a6aac0e155db98e0fa",
 	}
 	paramMap["kzgsrs-bw6_761-lagrange-65536"] = paramInfo{
 		size: 12728644,
-		hash: "4ef974e7bf0173d9e458f61c0ed709364813461ff32f13becf6e7c7bf4268e98",
+		hash: "845ca2dfff7364ac77412ff24bcd09b81b7678d604e2bfc2359dfc1c0231b641",
 	}
 	paramMap["kzgsrs-bw6_761-lagrange-131072"] = paramInfo{
 		size: 25311556,
-		hash: "8ce79b8bf53946e8308b8c6fda6302af264394cfe725e0048487984798d11f3b",
+		hash: "eec6e9b551f4597c991630bd53159dd22707a86af13efb6f3fd6853186995025",
 	}
 	paramMap["kzgsrs-bw6_761-lagrange-262144"] = paramInfo{
 		size: 50477380,
-		hash: "97024814fea0fc4df09015a908cac0ffc18025d244a2654f0291ff1527ddae05",
+		hash: "1a35a5dead576f845004e68a9ad8f3279d721196733862a30d129612e38ae1a7",
+	}
+	paramMap["kzgsrs-bw6_761-lagrange-524288"] = paramInfo{
+		size: 100809028,
+		hash: "cbc2b37fa568a0dbdab45a1d1aa356ce7891294bc9362dab492e2930db284064",
+	}
+	paramMap["kzgsrs-bw6_761-lagrange-524288"] = paramInfo{
+		size: 201472324,
+		hash: "7f7510fe1822c30b1412efa39297d31374c9a2bdd2634cea025f46f6f04258a8",
 	}
 }
