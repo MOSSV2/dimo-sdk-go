@@ -8,6 +8,7 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/MOSSV2/dimo-sdk-go/build"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/token"
 	dlog "github.com/MOSSV2/dimo-sdk-go/lib/log"
 	"github.com/MOSSV2/dimo-sdk-go/lib/utils"
@@ -70,11 +71,26 @@ var (
 
 // op-sepolia
 var (
-	OPSepoliaChain      = "https://optimism-sepolia-rpc.publicnode.com"
+	OPSepolia           = build.OPSepolia
+	OPSepoliaChainRPC   = "https://optimism-sepolia-rpc.publicnode.com"
 	OPSepoliaChainID    = 11155420
 	OPSepoliaBankAddr   = common.HexToAddress("0xdb85334d1061162080Be9436C037183f61E25ed7")
 	OPSepoliaTokenAddr  = common.HexToAddress("0x15716bcAe684F6c93013e6834Cdd98eF1c35844a")
 	OPSepoliaSyncHeight = 17_764_000
+)
+
+// opbnb-testnet
+var (
+	// for uint test
+	//BankAddr   = common.HexToAddress("0xa8d49FdD309eccD94199F9649DA26401b62f9886")
+	//TokenAddr  = common.HexToAddress("0x6198F095b031d4351BF77e9995cE33066479d5B7")
+	//https://opbnb-testnet-rpc.bnbchain.org
+	OPBNBTestnet           = build.OPBNBTestnet
+	OPBNBTestnetChainRPC   = "https://opbnb-testnet-rpc.publicnode.com"
+	OPBNBTestnetChainID    = 5611
+	OPBNBTestnetBankAddr   = common.HexToAddress("0x517871EaA8E72c576f921777931f9c37425F1ffA")
+	OPBNBTestnetTokenAddr  = common.HexToAddress("0xd67a81D6faDF5Fe1f7708735cB97f472B2999558")
+	OPBNBTestnetSyncHeight = 48_220_500
 )
 
 var logger = dlog.Logger("contract")

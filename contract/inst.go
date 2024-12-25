@@ -24,7 +24,7 @@ import (
 )
 
 func (c *ContractManage) NewBank(ctx context.Context) (*bank.Bank, error) {
-	client, err := ethclient.DialContext(ctx, c.EndPoint)
+	client, err := ethclient.DialContext(ctx, c.RPC)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +34,7 @@ func (c *ContractManage) NewBank(ctx context.Context) (*bank.Bank, error) {
 }
 
 func (c *ContractManage) NewToken(ctx context.Context) (*token.Token, error) {
-	client, err := ethclient.DialContext(ctx, c.EndPoint)
+	client, err := ethclient.DialContext(ctx, c.RPC)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +52,7 @@ func (c *ContractManage) NewToken(ctx context.Context) (*token.Token, error) {
 }
 
 func (c *ContractManage) NewEpoch(ctx context.Context) (*epoch.Epoch, error) {
-	client, err := ethclient.DialContext(ctx, c.EndPoint)
+	client, err := ethclient.DialContext(ctx, c.RPC)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +70,7 @@ func (c *ContractManage) NewEpoch(ctx context.Context) (*epoch.Epoch, error) {
 }
 
 func (c *ContractManage) NewControl(ctx context.Context) (*control.Control, error) {
-	client, err := ethclient.DialContext(ctx, c.EndPoint)
+	client, err := ethclient.DialContext(ctx, c.RPC)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +88,7 @@ func (c *ContractManage) NewControl(ctx context.Context) (*control.Control, erro
 }
 
 func (c *ContractManage) NewNode(ctx context.Context) (*node.Node, error) {
-	client, err := ethclient.DialContext(ctx, c.EndPoint)
+	client, err := ethclient.DialContext(ctx, c.RPC)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +106,7 @@ func (c *ContractManage) NewNode(ctx context.Context) (*node.Node, error) {
 }
 
 func (c *ContractManage) NewPiece(ctx context.Context) (*piece.Piece, error) {
-	client, err := ethclient.DialContext(ctx, c.EndPoint)
+	client, err := ethclient.DialContext(ctx, c.RPC)
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +124,7 @@ func (c *ContractManage) NewPiece(ctx context.Context) (*piece.Piece, error) {
 }
 
 func (c *ContractManage) NewReward(ctx context.Context) (*reward.Reward, error) {
-	client, err := ethclient.DialContext(ctx, c.EndPoint)
+	client, err := ethclient.DialContext(ctx, c.RPC)
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +142,7 @@ func (c *ContractManage) NewReward(ctx context.Context) (*reward.Reward, error) 
 }
 
 func (c *ContractManage) NewRSProof(ctx context.Context) (*rsproof.RSProof, error) {
-	client, err := ethclient.DialContext(ctx, c.EndPoint)
+	client, err := ethclient.DialContext(ctx, c.RPC)
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +160,7 @@ func (c *ContractManage) NewRSProof(ctx context.Context) (*rsproof.RSProof, erro
 }
 
 func (c *ContractManage) NewRSOne(ctx context.Context) (*rsone.PlonkVerifier, error) {
-	client, err := ethclient.DialContext(ctx, c.EndPoint)
+	client, err := ethclient.DialContext(ctx, c.RPC)
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +178,7 @@ func (c *ContractManage) NewRSOne(ctx context.Context) (*rsone.PlonkVerifier, er
 }
 
 func (c *ContractManage) NewKZGPlonk(ctx context.Context) (*kzg.PlonkVerifier, error) {
-	client, err := ethclient.DialContext(ctx, c.EndPoint)
+	client, err := ethclient.DialContext(ctx, c.RPC)
 	if err != nil {
 		return nil, err
 	}
@@ -196,7 +196,7 @@ func (c *ContractManage) NewKZGPlonk(ctx context.Context) (*kzg.PlonkVerifier, e
 }
 
 func (c *ContractManage) NewMulPlonk(ctx context.Context) (*kzg.PlonkVerifier, error) {
-	client, err := ethclient.DialContext(ctx, c.EndPoint)
+	client, err := ethclient.DialContext(ctx, c.RPC)
 	if err != nil {
 		return nil, err
 	}
@@ -214,7 +214,7 @@ func (c *ContractManage) NewMulPlonk(ctx context.Context) (*kzg.PlonkVerifier, e
 }
 
 func (c *ContractManage) NewAddPlonk(ctx context.Context) (*kzg.PlonkVerifier, error) {
-	client, err := ethclient.DialContext(ctx, c.EndPoint)
+	client, err := ethclient.DialContext(ctx, c.RPC)
 	if err != nil {
 		return nil, err
 	}
@@ -232,7 +232,7 @@ func (c *ContractManage) NewAddPlonk(ctx context.Context) (*kzg.PlonkVerifier, e
 }
 
 func (c *ContractManage) NewEProof(ctx context.Context) (*eproof.EProof, error) {
-	client, err := ethclient.DialContext(ctx, c.EndPoint)
+	client, err := ethclient.DialContext(ctx, c.RPC)
 	if err != nil {
 		return nil, err
 	}
@@ -250,7 +250,7 @@ func (c *ContractManage) NewEProof(ctx context.Context) (*eproof.EProof, error) 
 }
 
 func (c *ContractManage) NewEVerify(ctx context.Context) (*everify.EVerify, error) {
-	client, err := ethclient.DialContext(ctx, c.EndPoint)
+	client, err := ethclient.DialContext(ctx, c.RPC)
 	if err != nil {
 		return nil, err
 	}
@@ -268,7 +268,7 @@ func (c *ContractManage) NewEVerify(ctx context.Context) (*everify.EVerify, erro
 }
 
 func (c *ContractManage) NewGPU(ctx context.Context) (*gpu.GPU, error) {
-	client, err := ethclient.DialContext(ctx, c.EndPoint)
+	client, err := ethclient.DialContext(ctx, c.RPC)
 	if err != nil {
 		return nil, err
 	}
@@ -286,7 +286,7 @@ func (c *ContractManage) NewGPU(ctx context.Context) (*gpu.GPU, error) {
 }
 
 func (c *ContractManage) NewModel(ctx context.Context) (*model.Model, error) {
-	client, err := ethclient.DialContext(ctx, c.EndPoint)
+	client, err := ethclient.DialContext(ctx, c.RPC)
 	if err != nil {
 		return nil, err
 	}
@@ -304,7 +304,7 @@ func (c *ContractManage) NewModel(ctx context.Context) (*model.Model, error) {
 }
 
 func (c *ContractManage) NewSpace(ctx context.Context) (*space.Space, error) {
-	client, err := ethclient.DialContext(ctx, c.EndPoint)
+	client, err := ethclient.DialContext(ctx, c.RPC)
 	if err != nil {
 		return nil, err
 	}

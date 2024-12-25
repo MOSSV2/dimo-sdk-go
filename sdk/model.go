@@ -169,7 +169,7 @@ func UploadModelFiles(url string, sk *ecdsa.PrivateKey, au types.Auth, fp string
 		return mrm, err
 	}
 
-	cm, err := contract.NewContractManage(sk, "op-sepolia")
+	cm, err := contract.NewContractManage(sk, contract.OPSepolia)
 	if err != nil {
 		panic(err)
 	}

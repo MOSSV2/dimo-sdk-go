@@ -33,7 +33,7 @@ func (c *ContractManage) Set(_typ string, ca common.Address) error {
 		return err
 	}
 
-	err = checkTx(c.EndPoint, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func (c *ContractManage) UpdateEpoch() (uint64, error) {
 	if err != nil {
 		return 0, err
 	}
-	err = checkTx(c.EndPoint, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return 0, err
 	}
@@ -110,12 +110,17 @@ func (c *ContractManage) RegisterNode(_typ uint8, val *big.Int) error {
 			return nil
 		}
 	}
+
+	if val.Cmp(big.NewInt(0)) < 0 {
+		return fmt.Errorf("negative value")
+	}
+
 	logger.Debug("register node: ", au.From, val)
 	tx, err := ti.IncreaseAllowance(au, c.BankAddr, val)
 	if err != nil {
 		return err
 	}
-	err = checkTx(c.EndPoint, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -123,7 +128,7 @@ func (c *ContractManage) RegisterNode(_typ uint8, val *big.Int) error {
 	if err != nil {
 		return err
 	}
-	err = checkTx(c.EndPoint, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -173,7 +178,7 @@ func (c *ContractManage) AddPiece(pc types.PieceCore) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	err = checkTx(c.EndPoint, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return "", err
 	}
@@ -194,7 +199,7 @@ func (c *ContractManage) AddPiece(pc types.PieceCore) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	err = checkTx(c.EndPoint, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return "", err
 	}
@@ -242,7 +247,7 @@ func (c *ContractManage) AddReplica(rc types.ReplicaCore, pf []byte) error {
 	if err != nil {
 		return err
 	}
-	err = checkTx(c.EndPoint, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -272,7 +277,7 @@ func (c *ContractManage) UpdateStore(store common.Address) error {
 		return err
 	}
 
-	err = checkTx(c.EndPoint, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -298,7 +303,7 @@ func (c *ContractManage) ChallengeRS(_pn, _rn string, _pri uint8) error {
 	if err != nil {
 		return err
 	}
-	err = checkTx(c.EndPoint, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -329,7 +334,7 @@ func (c *ContractManage) ChallengeRS(_pn, _rn string, _pri uint8) error {
 		return err
 	}
 
-	err = checkTx(c.EndPoint, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -365,7 +370,7 @@ func (c *ContractManage) ProveRS(_pn, _rn string, _pri uint8, _pf []byte) error 
 		return err
 	}
 
-	err = checkTx(c.EndPoint, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -422,7 +427,7 @@ func (c *ContractManage) CheckRSChallenge(_pn, _rn string, _pri uint8) error {
 		return err
 	}
 
-	err = checkTx(c.EndPoint, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -456,7 +461,7 @@ func (c *ContractManage) SubmitProof(_ep uint64, _pf bls.EpochProof) error {
 		return err
 	}
 
-	err = checkTx(c.EndPoint, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -483,7 +488,7 @@ func (c *ContractManage) ChallengeKZG(addr common.Address, _ep uint64) error {
 	if err != nil {
 		return err
 	}
-	err = checkTx(c.EndPoint, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -499,7 +504,7 @@ func (c *ContractManage) ChallengeKZG(addr common.Address, _ep uint64) error {
 		return err
 	}
 
-	err = checkTx(c.EndPoint, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -532,7 +537,7 @@ func (c *ContractManage) ProveKZG(_ep uint64, _wroot []byte, _pf []byte) error {
 		return err
 	}
 
-	err = checkTx(c.EndPoint, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -558,7 +563,7 @@ func (c *ContractManage) ChallengeSum(addr common.Address, _ep uint64, _qIndex u
 		if err != nil {
 			return err
 		}
-		err = checkTx(c.EndPoint, tx.Hash())
+		err = checkTx(c.RPC, tx.Hash())
 		if err != nil {
 			return err
 		}
@@ -582,7 +587,7 @@ func (c *ContractManage) ChallengeSum(addr common.Address, _ep uint64, _qIndex u
 		if err != nil {
 			return err
 		}
-		err = checkTx(c.EndPoint, tx.Hash())
+		err = checkTx(c.RPC, tx.Hash())
 		if err != nil {
 			return err
 		}
@@ -593,7 +598,7 @@ func (c *ContractManage) ChallengeSum(addr common.Address, _ep uint64, _qIndex u
 			return err
 		}
 
-		err = checkTx(c.EndPoint, tx.Hash())
+		err = checkTx(c.RPC, tx.Hash())
 		if err != nil {
 			return err
 		}
@@ -620,7 +625,7 @@ func (c *ContractManage) ProveSum(_ep uint64, coms []bls.G1, _pf []byte) error {
 	if err != nil {
 		return err
 	}
-	err = checkTx(c.EndPoint, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -641,7 +646,7 @@ func (c *ContractManage) ProveSum(_ep uint64, coms []bls.G1, _pf []byte) error {
 		return err
 	}
 
-	err = checkTx(c.EndPoint, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -669,7 +674,7 @@ func (c *ContractManage) ChallengeOne(addr common.Address, _ep uint64, _qIndex u
 		return err
 	}
 
-	err = checkTx(c.EndPoint, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -698,7 +703,7 @@ func (c *ContractManage) ProveOne(_ep uint64, com bls.G1, _pf []byte) error {
 		return err
 	}
 
-	err = checkTx(c.EndPoint, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -726,7 +731,7 @@ func (c *ContractManage) CheckEpochChallenge(addr common.Address, _ep uint64) er
 		return err
 	}
 
-	err = checkTx(c.EndPoint, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -861,7 +866,7 @@ func (c *ContractManage) Settle(_money *big.Int) error {
 		return err
 	}
 
-	err = checkTx(c.EndPoint, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -886,7 +891,7 @@ func (c *ContractManage) WithdrawRevenue(_money *big.Int) error {
 		return err
 	}
 
-	err = checkTx(c.EndPoint, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -911,7 +916,7 @@ func (c *ContractManage) SettleReward(addr common.Address, _ep uint64) error {
 		return err
 	}
 
-	err = checkTx(c.EndPoint, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -936,7 +941,7 @@ func (c *ContractManage) WithdrawReward(_money *big.Int) error {
 		return err
 	}
 
-	err = checkTx(c.EndPoint, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -968,7 +973,7 @@ func (c *ContractManage) AddModel(mc types.ModelMeta) error {
 		return err
 	}
 
-	err = checkTx(c.EndPoint, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -993,7 +998,7 @@ func (c *ContractManage) AddGPU(_gn string) error {
 		return err
 	}
 
-	err = checkTx(c.EndPoint, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -1051,7 +1056,7 @@ func (c *ContractManage) AddSpace(msm types.SpaceMeta) error {
 	if err != nil {
 		return err
 	}
-	err = checkTx(c.EndPoint, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -1061,7 +1066,7 @@ func (c *ContractManage) AddSpace(msm types.SpaceMeta) error {
 		return err
 	}
 
-	err = checkTx(c.EndPoint, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -1092,7 +1097,7 @@ func (c *ContractManage) ActivateSpace(sn, root string, pfbyte []byte) error {
 		return err
 	}
 
-	err = checkTx(c.EndPoint, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -1118,7 +1123,7 @@ func (c *ContractManage) ShutdownSpace(_ai uint64) error {
 		return err
 	}
 
-	err = checkTx(c.EndPoint, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}

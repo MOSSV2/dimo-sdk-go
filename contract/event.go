@@ -63,7 +63,7 @@ func (c *ContractManage) HandleAddPiece(elog etypes.Log, cabi abi.ABI) (types.Pi
 	pc.Serial = ld[0].(uint64)
 	pc.Start = ld[1].(uint64)
 
-	tx, err := getTransactionRetry(c.EndPoint, elog.TxHash)
+	tx, err := getTransactionRetry(c.RPC, elog.TxHash)
 	if err != nil {
 		return pc, err
 	}
@@ -125,7 +125,7 @@ func (c *ContractManage) HandleAddReplica(elog etypes.Log, cabi abi.ABI) (types.
 	rc.Serial = ld[0].(uint64)
 	rc.Witness.Index = ld[1].(uint64)
 
-	tx, err := getTransactionRetry(c.EndPoint, elog.TxHash)
+	tx, err := getTransactionRetry(c.RPC, elog.TxHash)
 	if err != nil {
 		return rc, err
 	}
@@ -230,7 +230,7 @@ func (c *ContractManage) HandleSubmitEProof(elog etypes.Log, cabi abi.ABI) (type
 	}
 	ei.Epoch = ld[0].(uint64)
 
-	tx, err := getTransactionRetry(c.EndPoint, elog.TxHash)
+	tx, err := getTransactionRetry(c.RPC, elog.TxHash)
 	if err != nil {
 		return ei, err
 	}
@@ -327,7 +327,7 @@ func (c *ContractManage) HandleEPProve(elog etypes.Log, cabi abi.ABI) (types.EPC
 	ei.Epoch = ld[0].(uint64)
 	ei.Round = ld[1].(uint8)
 
-	tx, err := getTransactionRetry(c.EndPoint, elog.TxHash)
+	tx, err := getTransactionRetry(c.RPC, elog.TxHash)
 	if err != nil {
 		return ei, err
 	}

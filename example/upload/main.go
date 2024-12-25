@@ -54,7 +54,7 @@ func UploadFile(sk *ecdsa.PrivateKey, fp string, fname bool) error {
 	// charge from server
 	sdk.Login(sdk.ServerURL, au)
 
-	cm, err := contract.NewContractManage(sk, "op-sepolia")
+	cm, err := contract.NewContractManage(sk, contract.OPSepolia)
 	if err != nil {
 		return err
 	}

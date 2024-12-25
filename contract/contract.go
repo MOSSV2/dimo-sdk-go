@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/MOSSV2/dimo-sdk-go/build"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -14,7 +13,7 @@ import (
 type ContractManage struct {
 	Type       string
 	ChainID    *big.Int
-	EndPoint   string
+	RPC        string
 	BankAddr   common.Address
 	TokenAddr  common.Address
 	SyncHeight int
@@ -28,42 +27,48 @@ func NewContractManage(sk *ecdsa.PrivateKey, chainType string) (*ContractManage,
 	}
 
 	switch chainType {
-	case build.ChainType:
-		cm.EndPoint = OPSepoliaChain
+	case OPSepolia:
+		cm.RPC = OPSepoliaChainRPC
 		cm.ChainID = big.NewInt(int64(OPSepoliaChainID))
 		cm.BankAddr = OPSepoliaBankAddr
 		cm.TokenAddr = OPSepoliaTokenAddr
 		cm.SyncHeight = OPSepoliaSyncHeight
+	case OPBNBTestnet:
+		cm.RPC = OPBNBTestnetChainRPC
+		cm.ChainID = big.NewInt(int64(OPBNBTestnetChainID))
+		cm.BankAddr = OPBNBTestnetBankAddr
+		cm.TokenAddr = OPBNBTestnetTokenAddr
+		cm.SyncHeight = OPBNBTestnetSyncHeight
 	default:
-		return nil, fmt.Errorf("unsupportted chain type: %s, use 'op-sepolia'", chainType)
+		return nil, fmt.Errorf("unsupportted chain type: %s, use 'op-sepolia' or 'opbnb-testnet'", chainType)
 	}
 	return cm, nil
 }
 
 func (c *ContractManage) MakeAuth() (*bind.TransactOpts, error) {
-	return makeAuth(c.EndPoint, c.ChainID, c.sk)
+	return makeAuth(c.RPC, c.ChainID, c.sk)
 }
 
 func (c *ContractManage) GetTransactionReceipt(hash common.Hash) (*types.Receipt, error) {
-	return getTransactionReceipt(c.EndPoint, hash)
+	return getTransactionReceipt(c.RPC, hash)
 }
 
 func (c *ContractManage) CheckTx(txHash common.Hash) error {
-	return checkTx(c.EndPoint, txHash)
+	return checkTx(c.RPC, txHash)
 }
 
 func (c *ContractManage) Transfer(toAddr common.Address, value *big.Int) error {
-	return transfer(c.EndPoint, c.sk, toAddr, value)
+	return transfer(c.RPC, c.sk, toAddr, value)
 }
 
 func (c *ContractManage) TransferToken(toAddr common.Address, value *big.Int) error {
-	return transferToken(c.EndPoint, c.ChainID, c.sk, c.TokenAddr, toAddr, value)
+	return transferToken(c.RPC, c.ChainID, c.sk, c.TokenAddr, toAddr, value)
 }
 
 func (c *ContractManage) BalanceOf(toAddr common.Address) *big.Int {
-	return balanceOf(c.EndPoint, toAddr)
+	return balanceOf(c.RPC, toAddr)
 }
 
 func (c *ContractManage) BalanceOfToken(toAddr common.Address) *big.Int {
-	return balanceOfToken(c.EndPoint, c.TokenAddr, toAddr)
+	return balanceOfToken(c.RPC, c.TokenAddr, toAddr)
 }

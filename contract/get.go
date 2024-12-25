@@ -98,7 +98,7 @@ func Choose(addr common.Address, seed [32]byte, count, pcnt uint64, index uint64
 }
 
 func (c *ContractManage) GetBlockNumber() (uint64, error) {
-	client, err := ethclient.Dial(c.EndPoint)
+	client, err := ethclient.Dial(c.RPC)
 	if err != nil {
 		return 0, err
 	}

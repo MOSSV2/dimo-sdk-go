@@ -47,13 +47,13 @@ const InHashID = hash.MIMC_BW6_761
 func checkENV() {
 	ct := os.Getenv("CHAIN_TYPE")
 	if ct == "" {
-		panic("please set env 'CHAIN_TYPE' to 'op-sepolia'")
+		panic("please set env 'CHAIN_TYPE' to 'op-sepolia' or 'opbnb-testnet'")
 	}
 	switch ct {
-	case "op-sepolia":
+	case build.OPSepolia, build.OPBNBTestnet:
 		chaintype = ct
 	default:
-		panic("please set env 'CHAIN_TYPE' to 'op-sepolia'")
+		panic("please set env 'CHAIN_TYPE' to 'op-sepolia' or 'opbnb-testnet'")
 	}
 }
 

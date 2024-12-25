@@ -8,6 +8,8 @@ import (
 	"reflect"
 	"regexp"
 	"strings"
+
+	"github.com/MOSSV2/dimo-sdk-go/build"
 )
 
 var Validators = map[string]func(string, string) error{
@@ -43,7 +45,7 @@ type ChainConfig struct {
 
 func newDefaultChainConfig() ChainConfig {
 	return ChainConfig{
-		Type: "op-sepolia",
+		Type: build.OPSepolia,
 	}
 }
 
