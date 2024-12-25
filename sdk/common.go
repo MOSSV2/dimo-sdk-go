@@ -33,14 +33,29 @@ import (
 )
 
 var logger = log.Logger("sdk")
+var chaintype = ""
 
 func init() {
+	checkENV()
 	log.SetLogLevel("DEBUG")
 }
 
 var ServerURL = build.ServerURL
 
 const InHashID = hash.MIMC_BW6_761
+
+func checkENV() {
+	ct := os.Getenv("CHAIN_TYPE")
+	if ct == "" {
+		panic("please set env 'CHAIN_TYPE' to 'op-sepolia'")
+	}
+	switch ct {
+	case "op-sepolia":
+		chaintype = ct
+	default:
+		panic("please set env 'CHAIN_TYPE' to 'op-sepolia'")
+	}
+}
 
 func CheckFileFull(ff types.FileFull, stream common.Address, fp string) ([]types.PieceCore, error) {
 	logger.Debug("check stream handle of file: ", fp)

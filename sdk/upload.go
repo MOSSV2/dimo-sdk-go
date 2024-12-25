@@ -71,6 +71,10 @@ func Upload(baseUrl string, auth types.Auth, policy types.Policy, filePath strin
 			fr.Name = name
 		}
 
+		if fr.ChainType == "" {
+			fr.ChainType = chaintype
+		}
+
 		logger.Debug("upload meta: ", filePath, " to: ", baseUrl)
 		err = UploadFileMeta(baseUrl, auth, fr.FileReceipt)
 		return fr, em.Name, err

@@ -43,28 +43,3 @@ func Login(baseUrl string, auth types.Auth) error {
 
 	return nil
 }
-
-func GetChal(baseUrl string) (types.ChalResult, error) {
-	var res types.ChalResult
-	resp, err := http.Get(baseUrl + "/api/chal")
-	if err != nil {
-		return res, err
-	}
-	defer resp.Body.Close()
-
-	resByte, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return res, err
-	}
-
-	if resp.StatusCode != 200 {
-		return res, fmt.Errorf("response: %s, msg: %s", resp.Status, resByte)
-	}
-
-	err = json.Unmarshal(resByte, &res)
-	if err != nil {
-		return res, err
-	}
-
-	return res, nil
-}

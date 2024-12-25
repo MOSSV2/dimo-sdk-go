@@ -22,13 +22,13 @@ const (
 
 type EdgeReceipt struct {
 	EdgeMeta
-	OnChain   bool
-	Revenue   *big.Int
-	Last      time.Time
-	ChainType string
+	OnChain bool
+	Revenue *big.Int
+	Last    time.Time
 }
 
 type EdgeMeta struct {
+	ChainType string
 	Type      string // "store", "compute"
 	Name      common.Address
 	PublicKey []byte
@@ -59,6 +59,6 @@ func (gm *HardwareInfo) Deserialize(b []byte) error {
 
 type IEdge interface {
 	Register(context.Context, EdgeMeta) error
-	GetEdge(context.Context, common.Address) (EdgeReceipt, error)
+	GetEdge(context.Context, common.Address, Options) (EdgeReceipt, error)
 	ListEdge(context.Context, Options) ([]EdgeReceipt, error)
 }

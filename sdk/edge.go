@@ -34,6 +34,7 @@ func GetEdge(baseUrl string, auth types.Auth, eaddr common.Address) (types.EdgeR
 
 	form := url.Values{}
 	form.Set("name", eaddr.String())
+	form.Set("chaintype", chaintype)
 	resByte, err := doRequest(context.TODO(), baseUrl, "/api/getEdge", "", auth, strings.NewReader(form.Encode()))
 	if err != nil {
 		return res, err
@@ -52,6 +53,7 @@ func ListEdge(baseUrl string, auth types.Auth, filter string) (types.ListEdgeRes
 		UserDefined: make(map[string]string),
 	}
 	opt.UserDefined["filter"] = filter
+	opt.UserDefined["chaintype"] = chaintype
 
 	optyByte, err := json.Marshal(opt)
 	if err != nil {

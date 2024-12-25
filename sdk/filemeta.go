@@ -11,7 +11,6 @@ import (
 )
 
 func UploadFileMeta(baseUrl string, auth types.Auth, fcws types.FileReceipt) error {
-
 	form := url.Values{}
 	fcwsb, err := json.Marshal(fcws)
 	if err != nil {
@@ -27,6 +26,7 @@ func GetReplicaReceipt(baseUrl string, auth types.Auth, name string) (types.Repl
 	var res types.ReplicaReceipt
 	form := url.Values{}
 	form.Set("name", name)
+	form.Set("chaintype", chaintype)
 
 	resByte, err := doRequest(context.TODO(), baseUrl, "/api/getReplicaReceipt", "", auth, strings.NewReader(form.Encode()))
 	if err != nil {
@@ -47,6 +47,7 @@ func ListReplica(baseUrl string, auth types.Auth, filter string) (types.ListRepl
 		UserDefined: make(map[string]string),
 	}
 	opt.UserDefined["filter"] = filter
+	opt.UserDefined["chaintype"] = chaintype
 
 	optyByte, err := json.Marshal(opt)
 	if err != nil {
@@ -74,6 +75,7 @@ func GetPieceReceipt(baseUrl string, auth types.Auth, name string) (types.PieceR
 	var res types.PieceReceipt
 	form := url.Values{}
 	form.Set("name", name)
+	form.Set("chaintype", chaintype)
 
 	resByte, err := doRequest(context.TODO(), baseUrl, "/api/getPieceReceipt", "", auth, strings.NewReader(form.Encode()))
 	if err != nil {
@@ -94,6 +96,7 @@ func ListPiece(baseUrl string, auth types.Auth, filter string) (types.ListPieceR
 		UserDefined: make(map[string]string),
 	}
 	opt.UserDefined["filter"] = filter
+	opt.UserDefined["chaintype"] = chaintype
 
 	optyByte, err := json.Marshal(opt)
 	if err != nil {
@@ -121,6 +124,7 @@ func GetFileReceipt(baseUrl string, auth types.Auth, name string) (types.FileRec
 	var res types.FileReceipt
 	form := url.Values{}
 	form.Set("name", name)
+	form.Set("chaintype", chaintype)
 
 	resByte, err := doRequest(context.TODO(), baseUrl, "/api/getFileReceipt", "", auth, strings.NewReader(form.Encode()))
 	if err != nil {
@@ -141,6 +145,7 @@ func ListFile(baseUrl string, auth types.Auth, filter string) (types.ListFileRes
 		UserDefined: make(map[string]string),
 	}
 	opt.UserDefined["filter"] = filter
+	opt.UserDefined["chaintype"] = chaintype
 
 	optyByte, err := json.Marshal(opt)
 	if err != nil {
@@ -167,6 +172,7 @@ func ListFile(baseUrl string, auth types.Auth, filter string) (types.ListFileRes
 func RequestPiece(baseUrl string, auth types.Auth, name string) (types.PieceWitness, error) {
 	form := url.Values{}
 	form.Set("name", name)
+	form.Set("chaintype", chaintype)
 
 	var res types.PieceWitness
 	resByte, err := doRequest(context.TODO(), baseUrl, "/api/requestPiece", "", auth, strings.NewReader(form.Encode()))
@@ -185,6 +191,7 @@ func RequestPiece(baseUrl string, auth types.Auth, name string) (types.PieceWitn
 func ConfirmPiece(baseUrl string, auth types.Auth, name, proof string) ([]byte, error) {
 	form := url.Values{}
 	form.Set("name", name)
+	form.Set("chaintype", chaintype)
 
 	resByte, err := doRequest(context.TODO(), baseUrl, "/api/confirmPiece", "", auth, strings.NewReader(form.Encode()))
 	if err != nil {

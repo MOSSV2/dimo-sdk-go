@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"gorm.io/gorm"
@@ -28,6 +29,13 @@ type GormEdge struct {
 	Name      common.Address
 	Type      string // "store", "compute"
 	ChainType string
+	PublicKey []byte
+	ExposeURL string
+	CPU       string
+	Memory    string
+	OnChain   bool
+	Last      time.Time
+	Revenue   string
 }
 
 type GormFile struct {
