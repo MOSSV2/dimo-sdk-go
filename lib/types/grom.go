@@ -38,6 +38,12 @@ type GormEdge struct {
 	Revenue   string
 }
 
+type GormChain struct {
+	gorm.Model
+	Name   string
+	Height uint64
+}
+
 type GormFile struct {
 	gorm.Model
 	RSN       int

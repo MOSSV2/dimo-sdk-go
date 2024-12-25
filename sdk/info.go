@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"strings"
 
 	"github.com/MOSSV2/dimo-sdk-go/lib/types"
 )
@@ -36,7 +38,10 @@ func Info(baseUrl string) (types.EdgeReceipt, error) {
 }
 
 func Login(baseUrl string, auth types.Auth) error {
-	_, err := doRequest(context.TODO(), baseUrl, "/api/login", "", auth, nil)
+	form := url.Values{}
+	form.Set("chaintype", chaintype)
+
+	_, err := doRequest(context.TODO(), baseUrl, "/api/login", "", auth, strings.NewReader(form.Encode()))
 	if err != nil {
 		return err
 	}

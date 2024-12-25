@@ -40,7 +40,7 @@ func (c *ContractManage) HandleSetEpoch(elog etypes.Log, cabi abi.ABI) (types.Ep
 
 func (c *ContractManage) HandleAddPiece(elog etypes.Log, cabi abi.ABI) (types.PieceCore, error) {
 	pc := types.PieceCore{
-		TX: elog.TxHash.String(),
+		TxHash: elog.TxHash.String(),
 	}
 
 	evInfo, ok := cabi.Events["AddPiece"]
@@ -101,7 +101,7 @@ func (c *ContractManage) HandleAddPiece(elog etypes.Log, cabi abi.ABI) (types.Pi
 
 func (c *ContractManage) HandleAddReplica(elog etypes.Log, cabi abi.ABI) (types.ReplicaInChain, error) {
 	rc := types.ReplicaInChain{
-		TX:      elog.TxHash.String(),
+		TxHash:  elog.TxHash.String(),
 		Witness: types.ReplicaWitness{},
 	}
 
@@ -208,7 +208,7 @@ func (c *ContractManage) HandleRSFake(elog etypes.Log, cabi abi.ABI) (types.RSCh
 
 func (c *ContractManage) HandleSubmitEProof(elog etypes.Log, cabi abi.ABI) (types.EProofInChain, error) {
 	ei := types.EProofInChain{
-		TX: elog.TxHash.String(),
+		TxHash: elog.TxHash.String(),
 	}
 
 	evInfo, ok := cabi.Events["Submit"]

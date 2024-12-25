@@ -35,7 +35,6 @@ type FileCore struct {
 	Size     int64
 	Owner    common.Address
 	Creation time.Time
-	Append   bool
 }
 
 func (frc *FileCore) Serialize() ([]byte, error) {
@@ -84,7 +83,7 @@ type PieceCore struct {
 	Price    *big.Int
 	Owner    common.Address
 	Streamer common.Address
-	TX       string
+	TxHash   string
 }
 
 func (pc *PieceCore) Serialize() ([]byte, error) {
@@ -125,7 +124,7 @@ type ReplicaCore struct {
 	Index    uint8  // index in piece
 	StoredOn common.Address
 	Ordinal  uint64 // index of store
-	TX       string
+	TxHash   string
 }
 
 func (rc *ReplicaCore) Serialize() ([]byte, error) {
