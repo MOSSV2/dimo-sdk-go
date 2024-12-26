@@ -10,14 +10,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/MOSSV2/dimo-sdk-go/build"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
 func TestTransfer(t *testing.T) {
-	admin := common.HexToAddress("0xC653B3b33702F3F80336274734f14c2C31885b02")
-	cm, err := NewContractManage(nil, "op-sepolia")
+	admin := common.HexToAddress("0xE251825869b2262e82AA843feea29B7E308764CC")
+	cm, err := NewContractManage(nil, build.OPBNBTestnet)
 	if err != nil {
 		t.Fatal(err)
 	}

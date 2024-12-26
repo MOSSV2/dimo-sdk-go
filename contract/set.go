@@ -816,7 +816,7 @@ func (c *ContractManage) TestProveEpoch(_key string, pub []*big.Int, _pf []byte)
 			return err
 		}
 		if !ok {
-			return fmt.Errorf("invalid rs proof")
+			return fmt.Errorf("invalid rs proof kzg")
 		}
 	case "add":
 		pv, err := c.NewAddPlonk(ctx)
@@ -828,7 +828,7 @@ func (c *ContractManage) TestProveEpoch(_key string, pub []*big.Int, _pf []byte)
 			return err
 		}
 		if !ok {
-			return fmt.Errorf("invalid rs proof")
+			return fmt.Errorf("invalid rs proof add")
 		}
 	case "mul":
 		pv, err := c.NewMulPlonk(ctx)
@@ -840,7 +840,7 @@ func (c *ContractManage) TestProveEpoch(_key string, pub []*big.Int, _pf []byte)
 			return err
 		}
 		if !ok {
-			return fmt.Errorf("invalid rs proof")
+			return fmt.Errorf("invalid rs proof mul")
 		}
 	default:
 		return fmt.Errorf("unsupported key")
