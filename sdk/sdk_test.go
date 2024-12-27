@@ -30,6 +30,11 @@ func TestModel(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	cm, err := contract.NewContractManage(sk, contract.OPSepolia)
+	if err != nil {
+		panic(err)
+	}
+
 	base := ServerURL
 	au, err := key.BuildAuth(sk, []byte("test"))
 	if err != nil {
@@ -40,92 +45,14 @@ func TestModel(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, mc := range ml.Models {
-		_, err := contract.GetModelIndex(mc.Name)
+		_, err := cm.GetModelIndex(mc.Name)
 		if err != nil {
 			fmt.Println("add model: ", mc.Name)
-			err = contract.AddModel(sk, mc.ModelMeta)
+			err = cm.AddModel(mc.ModelMeta)
 			if err != nil {
 				t.Log(err)
 			}
 		}
-	}
-}
-
-func TestGPU(t *testing.T) {
-	skbyte, err := os.ReadFile("/tmp/sk")
-	if err != nil {
-		t.Fatal(err)
-	}
-	sks := string(skbyte[:64])
-	sk, err := crypto.HexToECDSA(sks)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	for i := 0; ; i++ {
-		ginfo, err := contract.GetGPUInfo(uint64(i))
-		if err != nil {
-			t.Fatal(err)
-		}
-		fmt.Println(ginfo)
-	}
-
-	base := ServerURL
-	au, err := key.BuildAuth(sk, []byte("test"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	ml, err := ListGPU(base, au, "latest")
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, mc := range ml.GPUs {
-		_gi, err := contract.GetGPUIndex(mc.Name)
-		if err != nil {
-			continue
-		}
-		ginfo, err := contract.GetGPUInfo(_gi)
-		if err != nil {
-			t.Fatal(err)
-		}
-		fmt.Println(mc)
-		fmt.Println(ginfo)
-	}
-}
-
-func TestSpace(t *testing.T) {
-	skbyte, err := os.ReadFile("/tmp/sk")
-	if err != nil {
-		t.Fatal(err)
-	}
-	sks := string(skbyte[:64])
-	sk, err := crypto.HexToECDSA(sks)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	base := ServerURL
-	au, err := key.BuildAuth(sk, []byte("test"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	ml, err := ListSpace(base, au, "latest")
-	if err != nil {
-		t.Fatal(err)
-	}
-	fmt.Println("=========")
-	for _, mc := range ml.Spaces {
-
-		_gi, err := contract.GetSpaceIndex(mc.Name)
-		if err != nil {
-			continue
-		}
-		ginfo, err := contract.GetSpaceInfo(_gi)
-		if err != nil {
-			t.Fatal(err)
-		}
-		fmt.Println(mc)
-		fmt.Println(ginfo)
 	}
 }
 

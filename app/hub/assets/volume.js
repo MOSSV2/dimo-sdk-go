@@ -22,6 +22,10 @@ function createCard(meta) {
   h2.textContent = meta.Piece;
   card.appendChild(h2);
 
+  const p100 = document.createElement("p");
+  p100.textContent = `ChainType: ${meta.ChainType}`;
+  card.appendChild(p100);
+
   const p1 = document.createElement("p");
   p1.textContent = `Owner: ${meta.Owner}`;
   card.appendChild(p1);
@@ -35,8 +39,12 @@ function createCard(meta) {
   card.appendChild(p3)
 
   if (meta.TxHash) {
+    let rurl = "https://sepolia-optimism.etherscan.io/tx/"
+    if (meta.ChainType == "opbnb-testnet") {
+      rurl = "https://opbnb-testnet.bscscan.com/tx/"
+    }
     const p5 = document.createElement("p");
-    p5.innerHTML = "TxHash: <a href='https://sepolia-optimism.etherscan.io/tx/" + meta.TxHash + "' target='_blank'>" + meta.TxHash + "</a >";
+    p5.innerHTML = "TxHash: <a href='" + rurl + meta.TxHash + "' target='_blank'>" + meta.TxHash + "</a >";
     card.appendChild(p5);
   }
 

@@ -2,7 +2,6 @@ package contract
 
 import (
 	"context"
-	"crypto/ecdsa"
 	"encoding/hex"
 	"fmt"
 	"math/big"
@@ -16,15 +15,15 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-func Set(sk *ecdsa.PrivateKey, _typ string, ca common.Address) error {
+func (c *ContractManage) Set(_typ string, ca common.Address) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()
-	bi, err := NewBank(ctx)
+	bi, err := c.NewBank(ctx)
 	if err != nil {
 		return err
 	}
 
-	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	au, err := c.MakeAuth()
 	if err != nil {
 		return err
 	}
@@ -34,7 +33,7 @@ func Set(sk *ecdsa.PrivateKey, _typ string, ca common.Address) error {
 		return err
 	}
 
-	err = CheckTx(DevChain, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -42,15 +41,15 @@ func Set(sk *ecdsa.PrivateKey, _typ string, ca common.Address) error {
 	return nil
 }
 
-func UpdateEpoch(sk *ecdsa.PrivateKey) (uint64, error) {
+func (c *ContractManage) UpdateEpoch() (uint64, error) {
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()
-	ei, err := NewEpoch(ctx)
+	ei, err := c.NewEpoch(ctx)
 	if err != nil {
 		return 0, err
 	}
 
-	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	au, err := c.MakeAuth()
 	if err != nil {
 		return 0, err
 	}
@@ -59,7 +58,7 @@ func UpdateEpoch(sk *ecdsa.PrivateKey) (uint64, error) {
 	if err != nil {
 		return 0, err
 	}
-	err = CheckTx(DevChain, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return 0, err
 	}
@@ -67,20 +66,20 @@ func UpdateEpoch(sk *ecdsa.PrivateKey) (uint64, error) {
 	return ei.Current(&bind.CallOpts{From: au.From})
 }
 
-func RegisterNode(sk *ecdsa.PrivateKey, _typ uint8, val *big.Int) error {
+func (c *ContractManage) RegisterNode(_typ uint8, val *big.Int) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Minute)
 	defer cancle()
-	ni, err := NewNode(ctx)
+	ni, err := c.NewNode(ctx)
 	if err != nil {
 		return err
 	}
 
-	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	au, err := c.MakeAuth()
 	if err != nil {
 		return err
 	}
 
-	ti, err := NewToken(ctx)
+	ti, err := c.NewToken(ctx)
 	if err != nil {
 		return err
 	}
@@ -111,12 +110,17 @@ func RegisterNode(sk *ecdsa.PrivateKey, _typ uint8, val *big.Int) error {
 			return nil
 		}
 	}
+
+	if val.Cmp(big.NewInt(0)) < 0 {
+		return fmt.Errorf("negative value")
+	}
+
 	logger.Debug("register node: ", au.From, val)
-	tx, err := ti.IncreaseAllowance(au, BankAddr, val)
+	tx, err := ti.IncreaseAllowance(au, c.BankAddr, val)
 	if err != nil {
 		return err
 	}
-	err = CheckTx(DevChain, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -124,7 +128,7 @@ func RegisterNode(sk *ecdsa.PrivateKey, _typ uint8, val *big.Int) error {
 	if err != nil {
 		return err
 	}
-	err = CheckTx(DevChain, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -132,12 +136,12 @@ func RegisterNode(sk *ecdsa.PrivateKey, _typ uint8, val *big.Int) error {
 	return err
 }
 
-func AddPiece(sk *ecdsa.PrivateKey, pc types.PieceCore) (string, error) {
+func (c *ContractManage) AddPiece(pc types.PieceCore) (string, error) {
 	logger.Debug("add piece: ", pc)
 	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Minute)
 	defer cancle()
 
-	ce, err := GetEpoch()
+	ce, err := c.GetEpoch()
 	if err != nil {
 		return "", err
 	}
@@ -158,28 +162,28 @@ func AddPiece(sk *ecdsa.PrivateKey, pc types.PieceCore) (string, error) {
 	val.Add(val, big.NewInt(int64(DefaultStreamPrice)))
 	val.Mul(val, big.NewInt(int64(pc.Policy.N)))
 
-	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	au, err := c.MakeAuth()
 	if err != nil {
 		return "", err
 	}
 
-	ti, err := NewToken(ctx)
+	ti, err := c.NewToken(ctx)
 	if err != nil {
 		return "", err
 	}
 
-	gtoken := BalanceOf(DevChain, au.From)
+	gtoken := c.BalanceOf(au.From)
 	fmt.Println("submitpiece0: ", gtoken)
-	tx, err := ti.IncreaseAllowance(au, BankAddr, val)
+	tx, err := ti.IncreaseAllowance(au, c.BankAddr, val)
 	if err != nil {
 		return "", err
 	}
-	err = CheckTx(DevChain, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return "", err
 	}
 
-	fi, err := NewPiece(ctx)
+	fi, err := c.NewPiece(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -190,22 +194,22 @@ func AddPiece(sk *ecdsa.PrivateKey, pc types.PieceCore) (string, error) {
 	}
 
 	logger.Debug("add piece: ", pc)
-	fmt.Println("submitpiece1: ", BalanceOf(DevChain, au.From))
+	fmt.Println("submitpiece1: ", c.BalanceOf(au.From))
 	tx, err = fi.AddPiece(au, pb, pc.Price, uint64(pc.Size), pc.Expire, pc.Policy.N, pc.Policy.K, pc.Streamer)
 	if err != nil {
 		return "", err
 	}
-	err = CheckTx(DevChain, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return "", err
 	}
-	fmt.Println("submitpiece2: ", BalanceOf(DevChain, au.From))
-	fmt.Println("submitpiece cost: ", utils.FormatEth(gtoken.Sub(gtoken, BalanceOf(DevChain, au.From))))
+	fmt.Println("submitpiece2: ", c.BalanceOf(au.From))
+	fmt.Println("submitpiece cost: ", utils.FormatEth(gtoken.Sub(gtoken, c.BalanceOf(au.From))))
 
 	return tx.Hash().String(), nil
 }
 
-func AddReplica(sk *ecdsa.PrivateKey, rc types.ReplicaCore, pf []byte) error {
+func (c *ContractManage) AddReplica(rc types.ReplicaCore, pf []byte) error {
 	logger.Debug("add replica: ", rc)
 	rb, err := G1StringInSolidity(rc.Name)
 	if err != nil {
@@ -213,12 +217,12 @@ func AddReplica(sk *ecdsa.PrivateKey, rc types.ReplicaCore, pf []byte) error {
 	}
 	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Minute)
 	defer cancle()
-	fi, err := NewPiece(ctx)
+	fi, err := c.NewPiece(ctx)
 	if err != nil {
 		return err
 	}
 
-	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	au, err := c.MakeAuth()
 	if err != nil {
 		return err
 	}
@@ -236,34 +240,34 @@ func AddReplica(sk *ecdsa.PrivateKey, rc types.ReplicaCore, pf []byte) error {
 		return fmt.Errorf("%s is not on chain", rc.Piece)
 	}
 
-	gtoken := BalanceOf(DevChain, au.From)
+	gtoken := c.BalanceOf(au.From)
 	logger.Debug("add replica: ", _pi, rc)
-	fmt.Println("submitreplica0: ", BalanceOf(DevChain, au.From))
+	fmt.Println("submitreplica0: ", c.BalanceOf(au.From))
 	tx, err := fi.AddReplica(au, rb, _pi, rc.Index, pf)
 	if err != nil {
 		return err
 	}
-	err = CheckTx(DevChain, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
-	fmt.Println("submitreplica1: ", BalanceOf(DevChain, au.From))
-	fmt.Println("submitreplica cost: ", utils.FormatEth(gtoken.Sub(gtoken, BalanceOf(DevChain, au.From))))
+	fmt.Println("submitreplica1: ", c.BalanceOf(au.From))
+	fmt.Println("submitreplica cost: ", utils.FormatEth(gtoken.Sub(gtoken, c.BalanceOf(au.From))))
 
 	return nil
 }
 
-func UpdateStore(sk *ecdsa.PrivateKey, store common.Address) error {
+func (c *ContractManage) UpdateStore(store common.Address) error {
 	logger.Debug("update store: ", store)
 
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()
-	fi, err := NewPiece(ctx)
+	fi, err := c.NewPiece(ctx)
 	if err != nil {
 		return err
 	}
 
-	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	au, err := c.MakeAuth()
 	if err != nil {
 		return err
 	}
@@ -273,7 +277,7 @@ func UpdateStore(sk *ecdsa.PrivateKey, store common.Address) error {
 		return err
 	}
 
-	err = CheckTx(DevChain, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -281,30 +285,30 @@ func UpdateStore(sk *ecdsa.PrivateKey, store common.Address) error {
 	return nil
 }
 
-func ChallengeRS(sk *ecdsa.PrivateKey, _pn, _rn string, _pri uint8) error {
+func (c *ContractManage) ChallengeRS(_pn, _rn string, _pri uint8) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Minute)
 	defer cancle()
 
-	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	au, err := c.MakeAuth()
 	if err != nil {
 		return err
 	}
 
-	ti, err := NewToken(ctx)
+	ti, err := c.NewToken(ctx)
 	if err != nil {
 		return err
 	}
 
-	tx, err := ti.IncreaseAllowance(au, BankAddr, big.NewInt(int64(DefaultPenalty)))
+	tx, err := ti.IncreaseAllowance(au, c.BankAddr, big.NewInt(int64(DefaultPenalty)))
 	if err != nil {
 		return err
 	}
-	err = CheckTx(DevChain, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
 
-	rsp, err := NewRSProof(ctx)
+	rsp, err := c.NewRSProof(ctx)
 	if err != nil {
 		return err
 	}
@@ -330,7 +334,7 @@ func ChallengeRS(sk *ecdsa.PrivateKey, _pn, _rn string, _pri uint8) error {
 		return err
 	}
 
-	err = CheckTx(DevChain, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -338,15 +342,15 @@ func ChallengeRS(sk *ecdsa.PrivateKey, _pn, _rn string, _pri uint8) error {
 	return nil
 }
 
-func ProveRS(sk *ecdsa.PrivateKey, _pn, _rn string, _pri uint8, _pf []byte) error {
+func (c *ContractManage) ProveRS(_pn, _rn string, _pri uint8, _pf []byte) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Minute)
 	defer cancle()
-	rsp, err := NewRSProof(ctx)
+	rsp, err := c.NewRSProof(ctx)
 	if err != nil {
 		return err
 	}
 
-	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	au, err := c.MakeAuth()
 	if err != nil {
 		return err
 	}
@@ -366,7 +370,7 @@ func ProveRS(sk *ecdsa.PrivateKey, _pn, _rn string, _pri uint8, _pf []byte) erro
 		return err
 	}
 
-	err = CheckTx(DevChain, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -374,15 +378,15 @@ func ProveRS(sk *ecdsa.PrivateKey, _pn, _rn string, _pri uint8, _pf []byte) erro
 	return nil
 }
 
-func CheckRSChallenge(sk *ecdsa.PrivateKey, _pn, _rn string, _pri uint8) error {
+func (c *ContractManage) CheckRSChallenge(_pn, _rn string, _pri uint8) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()
-	rsp, err := NewRSProof(ctx)
+	rsp, err := c.NewRSProof(ctx)
 	if err != nil {
 		return err
 	}
 
-	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	au, err := c.MakeAuth()
 	if err != nil {
 		return err
 	}
@@ -403,7 +407,7 @@ func CheckRSChallenge(sk *ecdsa.PrivateKey, _pn, _rn string, _pri uint8) error {
 		}
 	}
 
-	piece, err := NewPiece(ctx)
+	piece, err := c.NewPiece(ctx)
 	if err != nil {
 		return err
 	}
@@ -423,7 +427,7 @@ func CheckRSChallenge(sk *ecdsa.PrivateKey, _pn, _rn string, _pri uint8) error {
 		return err
 	}
 
-	err = CheckTx(DevChain, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -431,15 +435,15 @@ func CheckRSChallenge(sk *ecdsa.PrivateKey, _pn, _rn string, _pri uint8) error {
 	return nil
 }
 
-func SubmitProof(sk *ecdsa.PrivateKey, _ep uint64, _pf bls.EpochProof) error {
+func (c *ContractManage) SubmitProof(_ep uint64, _pf bls.EpochProof) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()
-	pi, err := NewEProof(ctx)
+	pi, err := c.NewEProof(ctx)
 	if err != nil {
 		return err
 	}
 
-	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	au, err := c.MakeAuth()
 	if err != nil {
 		return err
 	}
@@ -449,47 +453,47 @@ func SubmitProof(sk *ecdsa.PrivateKey, _ep uint64, _pf bls.EpochProof) error {
 	_frb := FrInSolidity(_pf.ClaimedValue)
 	_pfb = append(_pfb, _frb...)
 
-	gtoken := BalanceOf(DevChain, au.From)
+	gtoken := c.BalanceOf(au.From)
 	logger.Debug("submit epoch proof: ", au.From, _ep)
-	fmt.Println("submitproof0: ", BalanceOf(DevChain, au.From))
+	fmt.Println("submitproof0: ", c.BalanceOf(au.From))
 	tx, err := pi.Submit(au, _ep, _sum, _pfb)
 	if err != nil {
 		return err
 	}
 
-	err = CheckTx(DevChain, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
-	fmt.Println("submitproof1: ", BalanceOf(DevChain, au.From))
-	fmt.Println("submitproof cost: ", utils.FormatEth(gtoken.Sub(gtoken, BalanceOf(DevChain, au.From))))
+	fmt.Println("submitproof1: ", c.BalanceOf(au.From))
+	fmt.Println("submitproof cost: ", utils.FormatEth(gtoken.Sub(gtoken, c.BalanceOf(au.From))))
 	return nil
 }
 
-func ChallengeKZG(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64) error {
+func (c *ContractManage) ChallengeKZG(addr common.Address, _ep uint64) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Minute)
 	defer cancle()
 
-	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	au, err := c.MakeAuth()
 	if err != nil {
 		return err
 	}
 
-	ti, err := NewToken(ctx)
+	ti, err := c.NewToken(ctx)
 	if err != nil {
 		return err
 	}
 
-	tx, err := ti.IncreaseAllowance(au, BankAddr, big.NewInt(int64(DefaultPenalty)))
+	tx, err := ti.IncreaseAllowance(au, c.BankAddr, big.NewInt(int64(DefaultPenalty)))
 	if err != nil {
 		return err
 	}
-	err = CheckTx(DevChain, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
 
-	pi, err := NewEProof(ctx)
+	pi, err := c.NewEProof(ctx)
 	if err != nil {
 		return err
 	}
@@ -500,7 +504,7 @@ func ChallengeKZG(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64) error {
 		return err
 	}
 
-	err = CheckTx(DevChain, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -508,19 +512,19 @@ func ChallengeKZG(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64) error {
 	return nil
 }
 
-func ProveKZG(sk *ecdsa.PrivateKey, _ep uint64, _wroot []byte, _pf []byte) error {
+func (c *ContractManage) ProveKZG(_ep uint64, _wroot []byte, _pf []byte) error {
 	if len(_wroot) != 32 {
 		return fmt.Errorf("invalid witness root length")
 	}
 
 	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Minute)
 	defer cancle()
-	pi, err := NewEProof(ctx)
+	pi, err := c.NewEProof(ctx)
 	if err != nil {
 		return err
 	}
 
-	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	au, err := c.MakeAuth()
 	if err != nil {
 		return err
 	}
@@ -533,7 +537,7 @@ func ProveKZG(sk *ecdsa.PrivateKey, _ep uint64, _wroot []byte, _pf []byte) error
 		return err
 	}
 
-	err = CheckTx(DevChain, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -541,31 +545,31 @@ func ProveKZG(sk *ecdsa.PrivateKey, _ep uint64, _wroot []byte, _pf []byte) error
 	return nil
 }
 
-func ChallengeSum(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64, _qIndex uint8, sum string) error {
+func (c *ContractManage) ChallengeSum(addr common.Address, _ep uint64, _qIndex uint8, sum string) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Minute)
 	defer cancle()
 
-	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	au, err := c.MakeAuth()
 	if err != nil {
 		return err
 	}
-	ti, err := NewToken(ctx)
+	ti, err := c.NewToken(ctx)
 	if err != nil {
 		return err
 	}
 
 	if len(sum) > 0 {
-		tx, err := ti.IncreaseAllowance(au, BankAddr, big.NewInt(int64(DefaultPenalty)))
+		tx, err := ti.IncreaseAllowance(au, c.BankAddr, big.NewInt(int64(DefaultPenalty)))
 		if err != nil {
 			return err
 		}
-		err = CheckTx(DevChain, tx.Hash())
+		err = checkTx(c.RPC, tx.Hash())
 		if err != nil {
 			return err
 		}
 	}
 
-	pi, err := NewEProof(ctx)
+	pi, err := c.NewEProof(ctx)
 	if err != nil {
 		return err
 	}
@@ -583,7 +587,7 @@ func ChallengeSum(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64, _qIndex
 		if err != nil {
 			return err
 		}
-		err = CheckTx(DevChain, tx.Hash())
+		err = checkTx(c.RPC, tx.Hash())
 		if err != nil {
 			return err
 		}
@@ -594,7 +598,7 @@ func ChallengeSum(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64, _qIndex
 			return err
 		}
 
-		err = CheckTx(DevChain, tx.Hash())
+		err = checkTx(c.RPC, tx.Hash())
 		if err != nil {
 			return err
 		}
@@ -603,30 +607,30 @@ func ChallengeSum(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64, _qIndex
 	return nil
 }
 
-func ProveSum(sk *ecdsa.PrivateKey, _ep uint64, coms []bls.G1, _pf []byte) error {
+func (c *ContractManage) ProveSum(_ep uint64, coms []bls.G1, _pf []byte) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Minute)
 	defer cancle()
 
-	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	au, err := c.MakeAuth()
 	if err != nil {
 		return err
 	}
 
-	ti, err := NewToken(ctx)
+	ti, err := c.NewToken(ctx)
 	if err != nil {
 		return err
 	}
 
-	tx, err := ti.IncreaseAllowance(au, BankAddr, big.NewInt(int64(DefaultPenalty)))
+	tx, err := ti.IncreaseAllowance(au, c.BankAddr, big.NewInt(int64(DefaultPenalty)))
 	if err != nil {
 		return err
 	}
-	err = CheckTx(DevChain, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
 
-	pi, err := NewEProof(ctx)
+	pi, err := c.NewEProof(ctx)
 	if err != nil {
 		return err
 	}
@@ -642,7 +646,7 @@ func ProveSum(sk *ecdsa.PrivateKey, _ep uint64, coms []bls.G1, _pf []byte) error
 		return err
 	}
 
-	err = CheckTx(DevChain, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -650,16 +654,16 @@ func ProveSum(sk *ecdsa.PrivateKey, _ep uint64, coms []bls.G1, _pf []byte) error
 	return nil
 }
 
-func ChallengeOne(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64, _qIndex uint8) error {
+func (c *ContractManage) ChallengeOne(addr common.Address, _ep uint64, _qIndex uint8) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()
 
-	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	au, err := c.MakeAuth()
 	if err != nil {
 		return err
 	}
 
-	pi, err := NewEProof(ctx)
+	pi, err := c.NewEProof(ctx)
 	if err != nil {
 		return err
 	}
@@ -670,7 +674,7 @@ func ChallengeOne(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64, _qIndex
 		return err
 	}
 
-	err = CheckTx(DevChain, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -678,16 +682,16 @@ func ChallengeOne(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64, _qIndex
 	return nil
 }
 
-func ProveOne(sk *ecdsa.PrivateKey, _ep uint64, com bls.G1, _pf []byte) error {
+func (c *ContractManage) ProveOne(_ep uint64, com bls.G1, _pf []byte) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Minute)
 	defer cancle()
 
-	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	au, err := c.MakeAuth()
 	if err != nil {
 		return err
 	}
 
-	pi, err := NewEProof(ctx)
+	pi, err := c.NewEProof(ctx)
 	if err != nil {
 		return err
 	}
@@ -699,7 +703,7 @@ func ProveOne(sk *ecdsa.PrivateKey, _ep uint64, com bls.G1, _pf []byte) error {
 		return err
 	}
 
-	err = CheckTx(DevChain, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -707,16 +711,16 @@ func ProveOne(sk *ecdsa.PrivateKey, _ep uint64, com bls.G1, _pf []byte) error {
 	return nil
 }
 
-func CheckEpochChallenge(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64) error {
+func (c *ContractManage) CheckEpochChallenge(addr common.Address, _ep uint64) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()
 
-	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	au, err := c.MakeAuth()
 	if err != nil {
 		return err
 	}
 
-	ep, err := NewEProof(ctx)
+	ep, err := c.NewEProof(ctx)
 	if err != nil {
 		return err
 	}
@@ -727,7 +731,7 @@ func CheckEpochChallenge(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64) 
 		return err
 	}
 
-	err = CheckTx(DevChain, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -735,13 +739,13 @@ func CheckEpochChallenge(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64) 
 	return nil
 }
 
-func TestProveRS(rsn, rsk uint8, pub []*big.Int, _pf []byte) error {
+func (c *ContractManage) TestProveRS(rsn, rsk uint8, pub []*big.Int, _pf []byte) error {
 	if len(pub) != 3 {
 		return fmt.Errorf("invalid public length")
 	}
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()
-	rsp, err := NewRSProof(ctx)
+	rsp, err := c.NewRSProof(ctx)
 	if err != nil {
 		return err
 	}
@@ -755,7 +759,7 @@ func TestProveRS(rsn, rsk uint8, pub []*big.Int, _pf []byte) error {
 		return fmt.Errorf("unequal vkroot")
 	}
 
-	rsv, err := NewRSOne(ctx)
+	rsv, err := c.NewRSOne(ctx)
 	if err != nil {
 		return err
 	}
@@ -771,13 +775,13 @@ func TestProveRS(rsn, rsk uint8, pub []*big.Int, _pf []byte) error {
 	return nil
 }
 
-func TestProveEpoch(_key string, pub []*big.Int, _pf []byte) error {
+func (c *ContractManage) TestProveEpoch(_key string, pub []*big.Int, _pf []byte) error {
 	if len(pub) != 2 {
 		return fmt.Errorf("invalid public length")
 	}
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()
-	ev, err := NewEVerify(ctx)
+	ev, err := c.NewEVerify(ctx)
 	if err != nil {
 		return err
 	}
@@ -803,7 +807,7 @@ func TestProveEpoch(_key string, pub []*big.Int, _pf []byte) error {
 
 	switch _key {
 	case "kzg":
-		pv, err := NewKZGPlonk(ctx)
+		pv, err := c.NewKZGPlonk(ctx)
 		if err != nil {
 			return err
 		}
@@ -812,10 +816,10 @@ func TestProveEpoch(_key string, pub []*big.Int, _pf []byte) error {
 			return err
 		}
 		if !ok {
-			return fmt.Errorf("invalid rs proof")
+			return fmt.Errorf("invalid rs proof kzg")
 		}
 	case "add":
-		pv, err := NewAddPlonk(ctx)
+		pv, err := c.NewAddPlonk(ctx)
 		if err != nil {
 			return err
 		}
@@ -824,10 +828,10 @@ func TestProveEpoch(_key string, pub []*big.Int, _pf []byte) error {
 			return err
 		}
 		if !ok {
-			return fmt.Errorf("invalid rs proof")
+			return fmt.Errorf("invalid rs proof add")
 		}
 	case "mul":
-		pv, err := NewMulPlonk(ctx)
+		pv, err := c.NewMulPlonk(ctx)
 		if err != nil {
 			return err
 		}
@@ -836,7 +840,7 @@ func TestProveEpoch(_key string, pub []*big.Int, _pf []byte) error {
 			return err
 		}
 		if !ok {
-			return fmt.Errorf("invalid rs proof")
+			return fmt.Errorf("invalid rs proof mul")
 		}
 	default:
 		return fmt.Errorf("unsupported key")
@@ -845,14 +849,14 @@ func TestProveEpoch(_key string, pub []*big.Int, _pf []byte) error {
 	return nil
 }
 
-func Settle(sk *ecdsa.PrivateKey, _money *big.Int) error {
+func (c *ContractManage) Settle(_money *big.Int) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()
-	fi, err := NewPiece(ctx)
+	fi, err := c.NewPiece(ctx)
 	if err != nil {
 		return err
 	}
-	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	au, err := c.MakeAuth()
 	if err != nil {
 		return err
 	}
@@ -862,7 +866,7 @@ func Settle(sk *ecdsa.PrivateKey, _money *big.Int) error {
 		return err
 	}
 
-	err = CheckTx(DevChain, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -870,14 +874,14 @@ func Settle(sk *ecdsa.PrivateKey, _money *big.Int) error {
 	return nil
 }
 
-func WithdrawRevenue(sk *ecdsa.PrivateKey, _money *big.Int) error {
+func (c *ContractManage) WithdrawRevenue(_money *big.Int) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()
-	fi, err := NewPiece(ctx)
+	fi, err := c.NewPiece(ctx)
 	if err != nil {
 		return err
 	}
-	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	au, err := c.MakeAuth()
 	if err != nil {
 		return err
 	}
@@ -887,7 +891,7 @@ func WithdrawRevenue(sk *ecdsa.PrivateKey, _money *big.Int) error {
 		return err
 	}
 
-	err = CheckTx(DevChain, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -895,14 +899,14 @@ func WithdrawRevenue(sk *ecdsa.PrivateKey, _money *big.Int) error {
 	return nil
 }
 
-func SettleReward(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64) error {
+func (c *ContractManage) SettleReward(addr common.Address, _ep uint64) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()
-	fi, err := NewReward(ctx)
+	fi, err := c.NewReward(ctx)
 	if err != nil {
 		return err
 	}
-	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	au, err := c.MakeAuth()
 	if err != nil {
 		return err
 	}
@@ -912,7 +916,7 @@ func SettleReward(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64) error {
 		return err
 	}
 
-	err = CheckTx(DevChain, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -920,14 +924,14 @@ func SettleReward(sk *ecdsa.PrivateKey, addr common.Address, _ep uint64) error {
 	return nil
 }
 
-func WithdrawReward(sk *ecdsa.PrivateKey, _money *big.Int) error {
+func (c *ContractManage) WithdrawReward(_money *big.Int) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()
-	fi, err := NewReward(ctx)
+	fi, err := c.NewReward(ctx)
 	if err != nil {
 		return err
 	}
-	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	au, err := c.MakeAuth()
 	if err != nil {
 		return err
 	}
@@ -937,7 +941,7 @@ func WithdrawReward(sk *ecdsa.PrivateKey, _money *big.Int) error {
 		return err
 	}
 
-	err = CheckTx(DevChain, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -945,15 +949,15 @@ func WithdrawReward(sk *ecdsa.PrivateKey, _money *big.Int) error {
 	return nil
 }
 
-func AddModel(sk *ecdsa.PrivateKey, mc types.ModelMeta) error {
+func (c *ContractManage) AddModel(mc types.ModelMeta) error {
 	logger.Debug("add model: ", mc)
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()
-	mi, err := NewModel(ctx)
+	mi, err := c.NewModel(ctx)
 	if err != nil {
 		return err
 	}
-	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	au, err := c.MakeAuth()
 	if err != nil {
 		return err
 	}
@@ -969,7 +973,7 @@ func AddModel(sk *ecdsa.PrivateKey, mc types.ModelMeta) error {
 		return err
 	}
 
-	err = CheckTx(DevChain, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -977,14 +981,14 @@ func AddModel(sk *ecdsa.PrivateKey, mc types.ModelMeta) error {
 	return nil
 }
 
-func AddGPU(sk *ecdsa.PrivateKey, _gn string) error {
+func (c *ContractManage) AddGPU(_gn string) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()
-	gi, err := NewGPU(ctx)
+	gi, err := c.NewGPU(ctx)
 	if err != nil {
 		return err
 	}
-	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	au, err := c.MakeAuth()
 	if err != nil {
 		return err
 	}
@@ -994,7 +998,7 @@ func AddGPU(sk *ecdsa.PrivateKey, _gn string) error {
 		return err
 	}
 
-	err = CheckTx(DevChain, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -1002,25 +1006,25 @@ func AddGPU(sk *ecdsa.PrivateKey, _gn string) error {
 	return nil
 }
 
-func AddSpace(sk *ecdsa.PrivateKey, msm types.SpaceMeta) error {
+func (c *ContractManage) AddSpace(msm types.SpaceMeta) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Minute)
 	defer cancle()
-	si, err := NewSpace(ctx)
+	si, err := c.NewSpace(ctx)
 	if err != nil {
 		return err
 	}
 
-	gi, err := NewGPU(ctx)
+	gi, err := c.NewGPU(ctx)
 	if err != nil {
 		return err
 	}
 
-	mi, err := NewModel(ctx)
+	mi, err := c.NewModel(ctx)
 	if err != nil {
 		return err
 	}
 
-	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	au, err := c.MakeAuth()
 	if err != nil {
 		return err
 	}
@@ -1035,7 +1039,7 @@ func AddSpace(sk *ecdsa.PrivateKey, msm types.SpaceMeta) error {
 		return err
 	}
 
-	ce, err := UpdateEpoch(sk)
+	ce, err := c.UpdateEpoch()
 	if err != nil {
 		return err
 	}
@@ -1043,16 +1047,16 @@ func AddSpace(sk *ecdsa.PrivateKey, msm types.SpaceMeta) error {
 	val := big.NewInt(int64(DefaultSpacePrice))
 	val.Mul(val, big.NewInt(int64(DefaultSpaceEpoch)))
 
-	ti, err := NewToken(ctx)
+	ti, err := c.NewToken(ctx)
 	if err != nil {
 		return err
 	}
 
-	tx, err := ti.IncreaseAllowance(au, BankAddr, val)
+	tx, err := ti.IncreaseAllowance(au, c.BankAddr, val)
 	if err != nil {
 		return err
 	}
-	err = CheckTx(DevChain, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -1062,7 +1066,7 @@ func AddSpace(sk *ecdsa.PrivateKey, msm types.SpaceMeta) error {
 		return err
 	}
 
-	err = CheckTx(DevChain, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -1070,15 +1074,15 @@ func AddSpace(sk *ecdsa.PrivateKey, msm types.SpaceMeta) error {
 	return nil
 }
 
-func ActivateSpace(sk *ecdsa.PrivateKey, sn, root string, pfbyte []byte) error {
+func (c *ContractManage) ActivateSpace(sn, root string, pfbyte []byte) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Minute)
 	defer cancle()
-	si, err := NewSpace(ctx)
+	si, err := c.NewSpace(ctx)
 	if err != nil {
 		return err
 	}
 
-	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	au, err := c.MakeAuth()
 	if err != nil {
 		return err
 	}
@@ -1093,7 +1097,7 @@ func ActivateSpace(sk *ecdsa.PrivateKey, sn, root string, pfbyte []byte) error {
 		return err
 	}
 
-	err = CheckTx(DevChain, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -1101,15 +1105,15 @@ func ActivateSpace(sk *ecdsa.PrivateKey, sn, root string, pfbyte []byte) error {
 	return nil
 }
 
-func ShutdownSpace(sk *ecdsa.PrivateKey, _ai uint64) error {
+func (c *ContractManage) ShutdownSpace(_ai uint64) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 3*time.Minute)
 	defer cancle()
-	si, err := NewSpace(ctx)
+	si, err := c.NewSpace(ctx)
 	if err != nil {
 		return err
 	}
 
-	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	au, err := c.MakeAuth()
 	if err != nil {
 		return err
 	}
@@ -1119,7 +1123,7 @@ func ShutdownSpace(sk *ecdsa.PrivateKey, _ai uint64) error {
 		return err
 	}
 
-	err = CheckTx(DevChain, tx.Hash())
+	err = checkTx(c.RPC, tx.Hash())
 	if err != nil {
 		return err
 	}

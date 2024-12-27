@@ -23,10 +23,11 @@ type Needle struct {
 
 type Volume struct {
 	gorm.Model
-	Owner  string
-	File   uint64
-	Piece  string
-	TxHash string
+	ChainType string
+	Owner     string
+	File      uint64
+	Piece     string
+	TxHash    string
 }
 
 type NeedleDisplay struct {

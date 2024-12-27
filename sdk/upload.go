@@ -58,6 +58,9 @@ func Upload(baseUrl string, auth types.Auth, policy types.Policy, filePath strin
 		if em.Type != types.StreamType {
 			continue
 		}
+		if !em.OnChain {
+			continue
+		}
 		fr, err := UploadData(em.ExposeURL, auth, policy, filePath)
 		if err != nil {
 			logger.Debug("upload: ", filePath, " to: ", em.ExposeURL, " fail: ", err)
@@ -69,6 +72,10 @@ func Upload(baseUrl string, auth types.Auth, policy types.Policy, filePath strin
 
 		if name != "" {
 			fr.Name = name
+		}
+
+		if fr.ChainType == "" {
+			fr.ChainType = chaintype
 		}
 
 		logger.Debug("upload meta: ", filePath, " to: ", baseUrl)

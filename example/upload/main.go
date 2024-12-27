@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path"
 	"path/filepath"
 
 	"github.com/MOSSV2/dimo-sdk-go/contract"
@@ -21,7 +20,7 @@ import (
 func main() {
 	skstr := flag.String("sk", "", "private key for sending transaction")
 	pathstr := flag.String("path", "", "dir or file path to upload")
-	mf := flag.Bool("model", false, "upload type: model or regular file/dir")
+	//mf := flag.Bool("model", false, "upload type: model or regular file/dir")
 	fname := flag.Bool("name", false, "file name in public, default is sha256")
 	flag.Parse()
 
@@ -40,16 +39,9 @@ func main() {
 		return
 	}
 
-	if *mf {
-		err = UploadModel(sk, fp)
-		if err != nil {
-			log.Println(err)
-		}
-	} else {
-		err = UploadFile(sk, fp, *fname)
-		if err != nil {
-			log.Println(err)
-		}
+	err = UploadFile(sk, fp, *fname)
+	if err != nil {
+		log.Println(err)
 	}
 }
 
@@ -62,7 +54,12 @@ func UploadFile(sk *ecdsa.PrivateKey, fp string, fname bool) error {
 	// charge from server
 	sdk.Login(sdk.ServerURL, au)
 
-	err = contract.CheckBalance(au.Addr)
+	cm, err := contract.NewContractManage(sk, contract.OPSepolia)
+	if err != nil {
+		return err
+	}
+
+	err = cm.CheckBalance(au.Addr)
 	if err != nil {
 		return err
 	}
@@ -97,7 +94,7 @@ func UploadFile(sk *ecdsa.PrivateKey, fp string, fname bool) error {
 
 		// submit meta to chain
 		for _, pc := range pcs {
-			_, err = contract.AddPiece(sk, pc)
+			_, err = cm.AddPiece(pc)
 			if err != nil {
 				return err
 			}
@@ -132,52 +129,11 @@ func UploadFile(sk *ecdsa.PrivateKey, fp string, fname bool) error {
 
 		// submit meta to chain
 		for _, pc := range pcs {
-			_, err = contract.AddPiece(sk, pc)
+			_, err = cm.AddPiece(pc)
 			if err != nil {
 				return err
 			}
 		}
 		return nil
 	})
-}
-
-func UploadModel(sk *ecdsa.PrivateKey, fp string) error {
-	au, err := key.BuildAuth(sk, []byte("upload"))
-	if err != nil {
-		return err
-	}
-
-	sdk.Login(sdk.ServerURL, au)
-
-	err = contract.CheckBalance(au.Addr)
-	if err != nil {
-		return err
-	}
-	fi, err := os.Stat(fp)
-	if err != nil {
-		return err
-	}
-
-	if !fi.IsDir() {
-		return fmt.Errorf("model path should be dir")
-	}
-
-	_, err = sdk.GetModel(sdk.ServerURL, au, path.Base(fp))
-	if err == nil {
-		return fmt.Errorf("already has model %s", path.Base(fp))
-	}
-
-	mrm, err := sdk.UploadModelFiles(sdk.ServerURL, sk, au, fp)
-	if err != nil {
-		return err
-	}
-
-	err = sdk.SubmitModel(sdk.ServerURL, au, mrm)
-	if err != nil {
-		return err
-	}
-
-	log.Printf("upload and submit model %s\n", mrm.Name)
-
-	return nil
 }

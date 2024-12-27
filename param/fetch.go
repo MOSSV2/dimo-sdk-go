@@ -73,6 +73,7 @@ func Fetch(pn string) error {
 	if err == nil {
 		return nil
 	}
+	logger.Warn(err)
 	return downloadFile(pn, pi)
 }
 

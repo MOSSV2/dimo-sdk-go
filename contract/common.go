@@ -8,6 +8,7 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/MOSSV2/dimo-sdk-go/build"
 	"github.com/MOSSV2/dimo-sdk-go/contract/go/token"
 	dlog "github.com/MOSSV2/dimo-sdk-go/lib/log"
 	"github.com/MOSSV2/dimo-sdk-go/lib/utils"
@@ -24,14 +25,14 @@ import (
 const (
 	KZGVKRoot = "3b8201b322c65a735690cf82c850b8624c29ec05400e06ba92a9aad12c37c1605812abbc9a1a11f500b3ab28b7751b52"
 
-	RSn6k4VKRoot   = "7981958936593658877103895532913171860108207386670861333479370219769040067121"
-	RSn14k7VKRoot  = "1762761484949909798749440986925958206708798303971727192667009223694959298748"
-	RSn32k16VKRoot = "6928987191607523218710861737780853972810691318550944238215549398322713382384"
-	RSn64k32VKRoot = "3762212773216817136438485908095955464977877848136547975388566555058333480216"
+	RSn6k4VKRoot   = "6182580396057136035349698244013672118159269515303422592734042707265223434376"
+	RSn14k7VKRoot  = "10373754662900994857464626600297287716762049534190727150581258556168809741757"
+	RSn32k16VKRoot = "17745558306831082913906433185923529664704368402036214777413791674807342977788"
+	RSn64k32VKRoot = "16234120671149928180196435146616388668330002147244144092564388600958703384116"
 
-	INKZGVKRoot = "13578975972813045124644274037649423183976186349085914163035805076522753635190"
-	INMulVKRoot = "2861925165761505728354689500849584476756532312668674953086797720607020018383"
-	INAddVKRoot = "20489533579041455173069175848985790272136441897595303638506439358532630167529"
+	INKZGVKRoot = "9235750480968672023981154929687398144904220020071947383737661744780443258323"
+	INMulVKRoot = "20271222645096249312949571772787165775593093202630226028249238982739427154007"
+	INAddVKRoot = "19807320097661814426496674775485679654967276569243947871856251314675094662138"
 )
 
 var (
@@ -51,15 +52,6 @@ var (
 
 	//https://sepolia-optimism.etherscan.io/
 	//DevChain   = "https://11155420.rpc.thirdweb.com"
-	DevChain   = "https://optimism-sepolia-rpc.publicnode.com"
-	DevChainID = 11155420
-	BankAddr   = common.HexToAddress("0xdb85334d1061162080Be9436C037183f61E25ed7")
-	TokenAddr  = common.HexToAddress("0x15716bcAe684F6c93013e6834Cdd98eF1c35844a")
-	// piece 0x45a593415B4A9ED20d2372668D13923cD60e12F5
-
-	DevBlockTime = 2 // seconds/block
-	EpochBlocks  = 1200
-	SyncHeight   = 17_764_000
 
 	DefaultGasLimit = 8_000_000
 	DefaultGasPrice = 1000
@@ -77,18 +69,45 @@ var (
 	Base = common.HexToAddress("0x61Ea24745A3F7Bcbb67eD95B674fEcfbb331ABd0")
 )
 
+// op-sepolia
+var (
+	OPSepolia           = build.OPSepolia
+	OPSepoliaExplorer   = "https://sepolia-optimism.etherscan.io/"
+	OPSepoliaChainRPC   = "https://optimism-sepolia-rpc.publicnode.com"
+	OPSepoliaChainID    = 11155420
+	OPSepoliaBankAddr   = common.HexToAddress("0xd1B90aFa21e749f99b2d20d57B31aD96108E4CB1")
+	OPSepoliaTokenAddr  = common.HexToAddress("0x96A711D4C093e4BCa8E12653014a9A15530399A1")
+	OPSepoliaSyncHeight = 21_696_900
+)
+
+// opbnb-testnet
+var (
+	//https://opbnb-testnet-rpc.bnbchain.org
+	OPBNBTestnet           = build.OPBNBTestnet
+	OPBNBTestnetExplorer   = "https://opbnb-testnet.bscscan.com/"
+	OPBNBTestnetChainRPC   = "https://opbnb-testnet-rpc.publicnode.com"
+	OPBNBTestnetChainID    = 5611
+	OPBNBTestnetBankAddr   = common.HexToAddress("0x7560B3a48952A05B989C7e2956e12a7f4b534cF5")
+	OPBNBTestnetTokenAddr  = common.HexToAddress("0x1600D17EBBB5135837FCA958c1804A249716F393")
+	OPBNBTestnetSyncHeight = 48_317_500
+)
+
 var logger = dlog.Logger("contract")
 
-func MakeAuth(chainID *big.Int, hexSk string) (*bind.TransactOpts, error) {
+func MakeAuth(ep string, chainID int64, hexSk string) (*bind.TransactOpts, error) {
 	sk, err := crypto.HexToECDSA(hexSk)
 	if err != nil {
 		return nil, err
 	}
 
-	return makeAuth(chainID, sk)
+	return makeAuth(ep, big.NewInt(chainID), sk)
 }
 
-func makeAuth(chainID *big.Int, sk *ecdsa.PrivateKey) (*bind.TransactOpts, error) {
+func CheckTx(ep string, txHash common.Hash) error {
+	return checkTx(ep, txHash)
+}
+
+func makeAuth(ep string, chainID *big.Int, sk *ecdsa.PrivateKey) (*bind.TransactOpts, error) {
 	auth := &bind.TransactOpts{}
 	auth, err := bind.NewKeyedTransactorWithChainID(sk, chainID)
 	if err != nil {
@@ -97,7 +116,7 @@ func makeAuth(chainID *big.Int, sk *ecdsa.PrivateKey) (*bind.TransactOpts, error
 
 	auth.Value = big.NewInt(0)
 	auth.GasLimit = uint64(DefaultGasLimit)
-	client, err := ethclient.Dial(DevChain)
+	client, err := ethclient.Dial(ep)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +131,7 @@ func makeAuth(chainID *big.Int, sk *ecdsa.PrivateKey) (*bind.TransactOpts, error
 	return auth, nil
 }
 
-func GetTransactionReceipt(endPoint string, hash common.Hash) (*types.Receipt, error) {
+func getTransactionReceipt(endPoint string, hash common.Hash) (*types.Receipt, error) {
 	client, err := ethclient.Dial(endPoint)
 	if err != nil {
 		return nil, err
@@ -123,10 +142,10 @@ func GetTransactionReceipt(endPoint string, hash common.Hash) (*types.Receipt, e
 	return client.TransactionReceipt(ctx, hash)
 }
 
-func GetTransactionRetry(h common.Hash) (*types.Transaction, error) {
+func getTransactionRetry(endpoint string, h common.Hash) (*types.Transaction, error) {
 	retry := 0
 	for retry < 10 {
-		tx, err := GetTransaction(h)
+		tx, err := getTransaction(endpoint, h)
 		if err == nil {
 			return tx, nil
 		}
@@ -136,8 +155,8 @@ func GetTransactionRetry(h common.Hash) (*types.Transaction, error) {
 	return nil, fmt.Errorf("fail to get tx")
 }
 
-func GetTransaction(h common.Hash) (*types.Transaction, error) {
-	client, err := ethclient.Dial(DevChain)
+func getTransaction(endpoint string, h common.Hash) (*types.Transaction, error) {
+	client, err := ethclient.Dial(endpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +167,7 @@ func GetTransaction(h common.Hash) (*types.Transaction, error) {
 	return res, err
 }
 
-func CheckTx(endPoint string, txHash common.Hash) error {
+func checkTx(endPoint string, txHash common.Hash) error {
 	logger.Debug("check tx: ", txHash.String())
 	var receipt *types.Receipt
 	var err error
@@ -157,7 +176,7 @@ func CheckTx(endPoint string, txHash common.Hash) error {
 	for i := 0; i < 10; i++ {
 		t = 2*t + 1
 		time.Sleep(time.Duration(t) * time.Second)
-		receipt, err = GetTransactionReceipt(endPoint, txHash)
+		receipt, err = getTransactionReceipt(endPoint, txHash)
 		if err == nil {
 			break
 		}
@@ -171,7 +190,7 @@ func CheckTx(endPoint string, txHash common.Hash) error {
 		for _, elog := range receipt.Logs {
 			log.Printf("Log: %v\n", elog) // 打印日志信息
 		}
-		err = AnalyzeTransactionFailure(txHash)
+		err = analyzeTransactionFailure(endPoint, txHash)
 		if err != nil {
 			logger.Warn("tx revert: ", err)
 			return err
@@ -186,8 +205,8 @@ func CheckTx(endPoint string, txHash common.Hash) error {
 	return nil
 }
 
-func AnalyzeTransactionFailure(txHash common.Hash) error {
-	client, err := ethclient.Dial(DevChain)
+func analyzeTransactionFailure(endPoint string, txHash common.Hash) error {
+	client, err := ethclient.Dial(endPoint)
 	if err != nil {
 		return err
 	}
@@ -261,7 +280,7 @@ func getFrom(tx *types.Transaction) common.Address {
 	return from
 }
 
-func Transfer(ep string, sk *ecdsa.PrivateKey, toAddr common.Address, value *big.Int) error {
+func transfer(ep string, sk *ecdsa.PrivateKey, toAddr common.Address, value *big.Int) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()
 	client, err := ethclient.DialContext(ctx, ep)
@@ -271,8 +290,8 @@ func Transfer(ep string, sk *ecdsa.PrivateKey, toAddr common.Address, value *big
 	defer client.Close()
 
 	fromAddr := utils.ECDSAToAddr(sk)
-	logger.Debugf("%s from has: %d", fromAddr, BalanceOf(ep, fromAddr))
-	logger.Debugf("%s to has: %d", toAddr, BalanceOf(ep, toAddr))
+	logger.Debugf("%s from has: %d", fromAddr, balanceOf(ep, fromAddr))
+	logger.Debugf("%s to has: %d", toAddr, balanceOf(ep, toAddr))
 
 	nonce, err := client.PendingNonceAt(ctx, fromAddr)
 	if err != nil {
@@ -291,7 +310,7 @@ func Transfer(ep string, sk *ecdsa.PrivateKey, toAddr common.Address, value *big
 
 	chainID, err := client.NetworkID(ctx)
 	if err != nil {
-		chainID = big.NewInt(int64(DevChainID))
+		return err
 	}
 	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(chainID), sk)
 	if err != nil {
@@ -303,15 +322,15 @@ func Transfer(ep string, sk *ecdsa.PrivateKey, toAddr common.Address, value *big
 		return err
 	}
 
-	err = CheckTx(ep, signedTx.Hash())
+	err = checkTx(ep, signedTx.Hash())
 	if err != nil {
 		return err
 	}
-	logger.Debugf("%s to has: %d", toAddr, BalanceOf(ep, toAddr))
+	logger.Debugf("%s to has: %d", toAddr, balanceOf(ep, toAddr))
 	return nil
 }
 
-func BalanceOf(ep string, addr common.Address) *big.Int {
+func balanceOf(ep string, addr common.Address) *big.Int {
 	client, err := rpc.Dial(ep)
 	if err != nil {
 		return big.NewInt(0)
@@ -331,7 +350,7 @@ func BalanceOf(ep string, addr common.Address) *big.Int {
 	return val
 }
 
-func TransferToken(ep string, sk *ecdsa.PrivateKey, tokenAddr, toaddr common.Address, val *big.Int) error {
+func transferToken(ep string, chainID *big.Int, sk *ecdsa.PrivateKey, tokenAddr, toaddr common.Address, val *big.Int) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()
 	client, err := ethclient.DialContext(ctx, ep)
@@ -343,7 +362,7 @@ func TransferToken(ep string, sk *ecdsa.PrivateKey, tokenAddr, toaddr common.Add
 	if err != nil {
 		return err
 	}
-	au, err := makeAuth(big.NewInt(int64(DevChainID)), sk)
+	au, err := makeAuth(ep, chainID, sk)
 	if err != nil {
 		return err
 	}
@@ -363,7 +382,7 @@ func TransferToken(ep string, sk *ecdsa.PrivateKey, tokenAddr, toaddr common.Add
 	if err != nil {
 		return err
 	}
-	err = CheckTx(ep, tx.Hash())
+	err = checkTx(ep, tx.Hash())
 	if err != nil {
 		return err
 	}
@@ -376,17 +395,17 @@ func TransferToken(ep string, sk *ecdsa.PrivateKey, tokenAddr, toaddr common.Add
 	return nil
 }
 
-func BalanceOfToken(addr common.Address) *big.Int {
+func balanceOfToken(ep string, tokenaddr, addr common.Address) *big.Int {
 	ctx, cancle := context.WithTimeout(context.TODO(), 10*time.Second)
 	defer cancle()
 
-	client, err := ethclient.DialContext(ctx, DevChain)
+	client, err := ethclient.DialContext(ctx, ep)
 	if err != nil {
 		return big.NewInt(0)
 	}
 	defer client.Close()
 
-	ti, err := token.NewToken(TokenAddr, client)
+	ti, err := token.NewToken(tokenaddr, client)
 	if err != nil {
 		return big.NewInt(0)
 	}

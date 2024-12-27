@@ -70,6 +70,12 @@ var runCmd = &cli.Command{
 			return err
 		}
 		cfg := rp.Config()
+
+		ct := build.CheckChain()
+		if ct != rp.Config().Chain.Type {
+			return fmt.Errorf("env 'CHAIN_TYPE' should be same with config %s", rp.Config().Chain.Type)
+		}
+
 		cfg.API.Endpoint = cctx.String(cmd.EndpointStr)
 		cfg.Remote.URL = cctx.String(cmd.RemoteURLStr)
 		cfg.API.Expose = cctx.String(cmd.ExposeStr)

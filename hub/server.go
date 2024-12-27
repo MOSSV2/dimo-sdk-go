@@ -156,6 +156,7 @@ func (s *Server) register() error {
 		PublicKey: s.rp.Key().Public(),
 		ExposeURL: s.rp.Config().API.Expose,
 		Hardware:  utils.GetHardwareInfo(),
+		ChainType: s.rp.Config().Chain.Type,
 	}
 
 	err = sdk.RegisterEdge(s.rp.Config().Remote.URL, auth, mm)

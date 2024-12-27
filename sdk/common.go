@@ -33,14 +33,23 @@ import (
 )
 
 var logger = log.Logger("sdk")
+var chaintype = ""
 
 func init() {
+	// local test
+	//os.Setenv("CHAIN_TYPE", build.OPBNBTestnet)
+	checkENV()
 	log.SetLogLevel("DEBUG")
 }
 
 var ServerURL = build.ServerURL
 
 const InHashID = hash.MIMC_BW6_761
+
+func checkENV() {
+	chaintype = build.CheckChain()
+	logger.Warn("connect to chain: ", chaintype)
+}
 
 func CheckFileFull(ff types.FileFull, stream common.Address, fp string) ([]types.PieceCore, error) {
 	logger.Debug("check stream handle of file: ", fp)

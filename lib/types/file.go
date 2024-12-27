@@ -35,7 +35,6 @@ type FileCore struct {
 	Size     int64
 	Owner    common.Address
 	Creation time.Time
-	Append   bool
 }
 
 func (frc *FileCore) Serialize() ([]byte, error) {
@@ -48,7 +47,8 @@ func (frc *FileCore) Deserialize(b []byte) error {
 
 type FileReceipt struct {
 	FileCore
-	Pieces []string
+	ChainType string
+	Pieces    []string
 }
 
 func (fr *FileReceipt) Serialize() ([]byte, error) {
@@ -83,7 +83,7 @@ type PieceCore struct {
 	Price    *big.Int
 	Owner    common.Address
 	Streamer common.Address
-	TX       string
+	TxHash   string
 }
 
 func (pc *PieceCore) Serialize() ([]byte, error) {
@@ -96,8 +96,10 @@ func (pc *PieceCore) Deserialize(b []byte) error {
 
 type PieceReceipt struct {
 	PieceCore
-	Replicas []string
-	StoredOn []common.Address
+	Creation  time.Time
+	ChainType string
+	Replicas  []string
+	StoredOn  []common.Address
 }
 
 func (cr *PieceReceipt) Serialize() ([]byte, error) {
@@ -119,9 +121,10 @@ type ReplicaCore struct {
 	Serial   uint64
 	Size     int64  // stored size
 	Piece    string // belongs to which piece
-	Index    uint8
+	Index    uint8  // index in piece
 	StoredOn common.Address
-	TX       string
+	Ordinal  uint64 // index of store
+	TxHash   string
 }
 
 func (rc *ReplicaCore) Serialize() ([]byte, error) {
@@ -130,6 +133,20 @@ func (rc *ReplicaCore) Serialize() ([]byte, error) {
 
 func (rc *ReplicaCore) Deserialize(b []byte) error {
 	return cbor.Unmarshal(b, rc)
+}
+
+type ReplicaReceipt struct {
+	ReplicaCore
+	Creation  time.Time
+	ChainType string
+}
+
+func (rr *ReplicaReceipt) Serialize() ([]byte, error) {
+	return cbor.Marshal(rr)
+}
+
+func (rr *ReplicaReceipt) Deserialize(b []byte) error {
+	return cbor.Unmarshal(b, rr)
 }
 
 type ReplicaWitness struct {
@@ -149,11 +166,11 @@ type IFile interface {
 	AddFile(context.Context, FileReceipt) error
 	GetFile(context.Context, string, Options) (FileReceipt, error)
 	GetPiece(context.Context, string, Options) (PieceReceipt, error)
-	GetReplica(context.Context, string, io.Writer, Options) (ReplicaCore, error)
+	GetReplica(context.Context, string, io.Writer, Options) (ReplicaReceipt, error)
 
 	ListFile(context.Context, common.Address, Options) ([]FileReceipt, error)
 	ListPiece(context.Context, common.Address, Options) ([]PieceReceipt, error)
-	ListReplica(context.Context, common.Address, Options) ([]ReplicaCore, error)
+	ListReplica(context.Context, common.Address, Options) ([]ReplicaReceipt, error)
 }
 
 type IPieceStore interface {

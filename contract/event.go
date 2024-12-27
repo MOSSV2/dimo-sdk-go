@@ -13,7 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
-func HandleSetEpoch(elog etypes.Log, cabi abi.ABI) (types.EpochInfo, error) {
+func (c *ContractManage) HandleSetEpoch(elog etypes.Log, cabi abi.ABI) (types.EpochInfo, error) {
 	ei := types.EpochInfo{}
 
 	evInfo, ok := cabi.Events["SetEpoch"]
@@ -29,7 +29,7 @@ func HandleSetEpoch(elog etypes.Log, cabi abi.ABI) (types.EpochInfo, error) {
 		return ei, fmt.Errorf("invalid log data length")
 	}
 	ei.Epoch = ld[0].(uint64)
-	bh, seed, err := GetEpochInfo(ei.Epoch)
+	bh, seed, err := c.GetEpochInfo(ei.Epoch)
 	if err != nil {
 		return ei, err
 	}
@@ -38,9 +38,9 @@ func HandleSetEpoch(elog etypes.Log, cabi abi.ABI) (types.EpochInfo, error) {
 	return ei, nil
 }
 
-func HandleAddPiece(elog etypes.Log, cabi abi.ABI) (types.PieceCore, error) {
+func (c *ContractManage) HandleAddPiece(elog etypes.Log, cabi abi.ABI) (types.PieceCore, error) {
 	pc := types.PieceCore{
-		TX: elog.TxHash.String(),
+		TxHash: elog.TxHash.String(),
 	}
 
 	evInfo, ok := cabi.Events["AddPiece"]
@@ -63,7 +63,7 @@ func HandleAddPiece(elog etypes.Log, cabi abi.ABI) (types.PieceCore, error) {
 	pc.Serial = ld[0].(uint64)
 	pc.Start = ld[1].(uint64)
 
-	tx, err := GetTransactionRetry(elog.TxHash)
+	tx, err := getTransactionRetry(c.RPC, elog.TxHash)
 	if err != nil {
 		return pc, err
 	}
@@ -99,9 +99,9 @@ func HandleAddPiece(elog etypes.Log, cabi abi.ABI) (types.PieceCore, error) {
 	return pc, nil
 }
 
-func HandleAddReplica(elog etypes.Log, cabi abi.ABI) (types.ReplicaInChain, error) {
+func (c *ContractManage) HandleAddReplica(elog etypes.Log, cabi abi.ABI) (types.ReplicaInChain, error) {
 	rc := types.ReplicaInChain{
-		TX:      elog.TxHash.String(),
+		TxHash:  elog.TxHash.String(),
 		Witness: types.ReplicaWitness{},
 	}
 
@@ -125,7 +125,7 @@ func HandleAddReplica(elog etypes.Log, cabi abi.ABI) (types.ReplicaInChain, erro
 	rc.Serial = ld[0].(uint64)
 	rc.Witness.Index = ld[1].(uint64)
 
-	tx, err := GetTransactionRetry(elog.TxHash)
+	tx, err := getTransactionRetry(c.RPC, elog.TxHash)
 	if err != nil {
 		return rc, err
 	}
@@ -158,7 +158,7 @@ func HandleAddReplica(elog etypes.Log, cabi abi.ABI) (types.ReplicaInChain, erro
 	return rc, nil
 }
 
-func HandleRSChallenge(elog etypes.Log, cabi abi.ABI) (types.RSChalInChain, error) {
+func (c *ContractManage) HandleRSChallenge(elog etypes.Log, cabi abi.ABI) (types.RSChalInChain, error) {
 	ei := types.RSChalInChain{}
 
 	evInfo, ok := cabi.Events["Challenge"]
@@ -182,7 +182,7 @@ func HandleRSChallenge(elog etypes.Log, cabi abi.ABI) (types.RSChalInChain, erro
 	return ei, nil
 }
 
-func HandleRSFake(elog etypes.Log, cabi abi.ABI) (types.RSChalInChain, error) {
+func (c *ContractManage) HandleRSFake(elog etypes.Log, cabi abi.ABI) (types.RSChalInChain, error) {
 	ei := types.RSChalInChain{}
 
 	evInfo, ok := cabi.Events["Forge"]
@@ -206,9 +206,9 @@ func HandleRSFake(elog etypes.Log, cabi abi.ABI) (types.RSChalInChain, error) {
 	return ei, nil
 }
 
-func HandleSubmitEProof(elog etypes.Log, cabi abi.ABI) (types.EProofInChain, error) {
+func (c *ContractManage) HandleSubmitEProof(elog etypes.Log, cabi abi.ABI) (types.EProofInChain, error) {
 	ei := types.EProofInChain{
-		TX: elog.TxHash.String(),
+		TxHash: elog.TxHash.String(),
 	}
 
 	evInfo, ok := cabi.Events["Submit"]
@@ -230,7 +230,7 @@ func HandleSubmitEProof(elog etypes.Log, cabi abi.ABI) (types.EProofInChain, err
 	}
 	ei.Epoch = ld[0].(uint64)
 
-	tx, err := GetTransactionRetry(elog.TxHash)
+	tx, err := getTransactionRetry(c.RPC, elog.TxHash)
 	if err != nil {
 		return ei, err
 	}
@@ -277,7 +277,7 @@ func HandleSubmitEProof(elog etypes.Log, cabi abi.ABI) (types.EProofInChain, err
 	return ei, nil
 }
 
-func HandleEPChallenge(elog etypes.Log, cabi abi.ABI) (types.EPChalInChain, error) {
+func (c *ContractManage) HandleEPChallenge(elog etypes.Log, cabi abi.ABI) (types.EPChalInChain, error) {
 	ei := types.EPChalInChain{}
 
 	evInfo, ok := cabi.Events["Challenge"]
@@ -304,7 +304,7 @@ func HandleEPChallenge(elog etypes.Log, cabi abi.ABI) (types.EPChalInChain, erro
 	return ei, nil
 }
 
-func HandleEPProve(elog etypes.Log, cabi abi.ABI) (types.EPChalInChain, error) {
+func (c *ContractManage) HandleEPProve(elog etypes.Log, cabi abi.ABI) (types.EPChalInChain, error) {
 	ei := types.EPChalInChain{}
 
 	evInfo, ok := cabi.Events["Prove"]
@@ -327,7 +327,7 @@ func HandleEPProve(elog etypes.Log, cabi abi.ABI) (types.EPChalInChain, error) {
 	ei.Epoch = ld[0].(uint64)
 	ei.Round = ld[1].(uint8)
 
-	tx, err := GetTransactionRetry(elog.TxHash)
+	tx, err := getTransactionRetry(c.RPC, elog.TxHash)
 	if err != nil {
 		return ei, err
 	}
@@ -360,7 +360,7 @@ func HandleEPProve(elog etypes.Log, cabi abi.ABI) (types.EPChalInChain, error) {
 	return ei, nil
 }
 
-func HandleEPFake(elog etypes.Log, cabi abi.ABI) (types.EPChalInChain, error) {
+func (c *ContractManage) HandleEPFake(elog etypes.Log, cabi abi.ABI) (types.EPChalInChain, error) {
 	ei := types.EPChalInChain{}
 
 	evInfo, ok := cabi.Events["Fake"]

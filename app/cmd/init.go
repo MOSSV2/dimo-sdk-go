@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/MOSSV2/dimo-sdk-go/build"
 	"github.com/MOSSV2/dimo-sdk-go/lib/config"
 	"github.com/MOSSV2/dimo-sdk-go/lib/repo"
 	"github.com/mitchellh/go-homedir"
@@ -43,8 +44,13 @@ var InitCmd = &cli.Command{
 		}
 		cfg := rep.Config()
 		cfg.Wallet.Address = ac.String()
+		cfg.Chain.Type = build.CheckChain()
+
 		rep.ReplaceConfig(cfg)
+
+		fmt.Printf("=====  connect chain: %s  =====\n", cfg.Chain.Type)
 		fmt.Printf("=====  create account: %s  =====\n", ac)
+
 		return nil
 	},
 }

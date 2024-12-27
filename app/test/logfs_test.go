@@ -11,21 +11,10 @@ import (
 	"golang.org/x/exp/rand"
 )
 
-const url = "http://54.151.130.2"
+const url = "http://54.151.130.2:8080"
 
-var jsonaddr = "/testjson"
-var dataaddr = "/testdata"
-
-func init() {
-	er, err := sdk.Info(url)
-	if err != nil {
-		jsonaddr = url + jsonaddr
-		dataaddr = url + dataaddr
-	}
-
-	jsonaddr = uuid.New().String()
-	dataaddr = er.Name.String() + dataaddr
-}
+var jsonaddr = uuid.New().String()
+var dataaddr = uuid.New().String()
 
 type JsonStruct struct {
 	Name string
@@ -77,13 +66,12 @@ func TestUploadJson(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for i := 0; i < 50; i++ {
-		length := rand.Int31n(16) + 16
-		nkey := utils.RandomBytes(int(length))
+	for i := 0; i < 10; i++ {
+		nkey := uuid.New().String()
 		length = rand.Int31n(1024 * 1024)
 		nval := utils.RandomBytes(int(length))
 
-		err := sdk.UploadHub(url, jsonaddr, hex.EncodeToString(nkey), hex.EncodeToString(nval))
+		err := sdk.UploadHub(url, jsonaddr, nkey, hex.EncodeToString(nval))
 		if err != nil {
 			t.Fatal(err)
 		}

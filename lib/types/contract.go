@@ -10,7 +10,7 @@ import (
 
 type IContract interface {
 	BalanceOf(ctx context.Context, addr common.Address) *big.Int
-	Recharge(ctx context.Context, addr common.Address, val *big.Int) error
+	Recharge(ctx context.Context, addr common.Address, chaintype string) error
 }
 
 type EpochInfo struct {
@@ -49,7 +49,7 @@ type EPChalInChain struct {
 }
 
 type ReplicaInChain struct {
-	TX       string
+	TxHash   string
 	Name     string
 	Serial   uint64
 	Piece    uint64
@@ -59,13 +59,13 @@ type ReplicaInChain struct {
 }
 
 type EProofInChain struct {
-	TX    string
-	Epoch uint64
-	Store common.Address
-	Hash  []byte
-	Sum   []byte
-	H     []byte
-	Value []byte
+	TxHash string
+	Epoch  uint64
+	Store  common.Address
+	Hash   []byte
+	Sum    []byte
+	H      []byte
+	Value  []byte
 }
 
 func (ei *EProofInChain) Serialize() ([]byte, error) {
@@ -77,7 +77,9 @@ func (ei *EProofInChain) Deserialize(b []byte) error {
 }
 
 type ProofStat struct {
-	Owner common.Address
-	Epoch []uint64
-	Stat  []string
+	Owner     common.Address
+	ChainType string
+	Epoch     []uint64
+	TxHash    []string
+	Fake      []bool
 }

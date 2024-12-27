@@ -169,6 +169,11 @@ func UploadModelFiles(url string, sk *ecdsa.PrivateKey, au types.Auth, fp string
 		return mrm, err
 	}
 
+	cm, err := contract.NewContractManage(sk, contract.OPSepolia)
+	if err != nil {
+		panic(err)
+	}
+
 	Login(url, au)
 
 	for k, v := range mrm.Files {
@@ -190,7 +195,7 @@ func UploadModelFiles(url string, sk *ecdsa.PrivateKey, au types.Auth, fp string
 		}
 
 		for _, pc := range pcs {
-			_, err = contract.AddPiece(sk, pc)
+			_, err = cm.AddPiece(pc)
 			if err != nil {
 				return mrm, err
 			}
