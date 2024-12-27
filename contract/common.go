@@ -72,6 +72,7 @@ var (
 // op-sepolia
 var (
 	OPSepolia           = build.OPSepolia
+	OPSepoliaExplorer   = "https://sepolia-optimism.etherscan.io/"
 	OPSepoliaChainRPC   = "https://optimism-sepolia-rpc.publicnode.com"
 	OPSepoliaChainID    = 11155420
 	OPSepoliaBankAddr   = common.HexToAddress("0xd1B90aFa21e749f99b2d20d57B31aD96108E4CB1")
@@ -83,6 +84,7 @@ var (
 var (
 	//https://opbnb-testnet-rpc.bnbchain.org
 	OPBNBTestnet           = build.OPBNBTestnet
+	OPBNBTestnetExplorer   = "https://opbnb-testnet.bscscan.com/"
 	OPBNBTestnetChainRPC   = "https://opbnb-testnet-rpc.publicnode.com"
 	OPBNBTestnetChainID    = 5611
 	OPBNBTestnetBankAddr   = common.HexToAddress("0x7560B3a48952A05B989C7e2956e12a7f4b534cF5")

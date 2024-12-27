@@ -239,7 +239,7 @@ func (s *Server) uploadTo() {
 		K: 4,
 	}
 
-	cm, err := contract.NewContractManage(sk, contract.OPSepolia)
+	cm, err := contract.NewContractManage(sk, s.rp.Repo().Config().Chain.Type)
 	if err != nil {
 		panic(err)
 	}

@@ -145,10 +145,11 @@ func (s *Server) listNeedleDisplay(owner string, offset, limit int) ([]types.Nee
 
 func (s *Server) addVolume(owner string, findex uint64, piece, txn string) {
 	s.gdb.Create(&types.Volume{
-		Owner:  owner,
-		File:   findex,
-		Piece:  piece,
-		TxHash: txn,
+		ChainType: s.rp.Repo().Config().Chain.Type,
+		Owner:     owner,
+		File:      findex,
+		Piece:     piece,
+		TxHash:    txn,
 	})
 	logger.Info("create volume: ", piece)
 }
