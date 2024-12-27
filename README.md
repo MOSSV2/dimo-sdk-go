@@ -1,21 +1,34 @@
 # intro
-go sdk，include file, model and contract operations, hub usage
+go sdk，include file and contract operations, hub usage
 
-## usage 
+ 
 
-### network
-
-OP Sepolia: https://docs.optimism.io/chain/networks
-
-+ explorer: https://sepolia-optimistic.etherscan.io
-+ RPC URL: https://optimism-sepolia-rpc.publicnode.com
-+ Faucet: https://docs.optimism.io/builders/tools/build/faucets 
+## network
 
 note: 启动时会从服务器自动获取0.002 gas token和100 UB token
 
-### upload file/directory/model
+### OP Sepolia
+
++ CHAIN_TYPE: op-sepolia
++ Explorer: https://sepolia-optimistic.etherscan.io
++ RPC: https://optimism-sepolia-rpc.publicnode.com
++ Faucet: https://docs.optimism.io/builders/tools/build/faucets 
+
+
+### OPBNB testnet
+
++ CHAIN_TYPE: opbnb-testnet
++ Explorer: https://opbnb-testnet.bscscan.com
++ RPC: https://opbnb-testnet-rpc.publicnode.com
++ Faucet: https://docs.bnbchain.org/bnb-opbnb/developers/network-faucet/
+
+
+## usage
+
+### upload file/directory
 
 ```shell
+> export CHAIN_TYPE=<your CHAIN_TYPE>
 > git clone https://github.com/MOSSV2/dimo-sdk-go.git
 > cd example/upload
 > go build
@@ -25,9 +38,10 @@ note: 启动时会从服务器自动获取0.002 gas token和100 UB token
 > ./upload --sk=4215875d8ac13ac4fb0876a0ecd0384aca0ce16b627bf975c8084915aad79470 --path=./upload
 ```
 
-### download file/directory/model
+### download file/directory
 
 ```shell
+> export CHAIN_TYPE=<your CHAIN_TYPE>
 > cd example/download
 > go build
 # if sk not set, will generate a new key, model means upload model or regualr file/dir
@@ -36,32 +50,22 @@ note: 启动时会从服务器自动获取0.002 gas token和100 UB token
 > ./download --sk=4215875d8ac13ac4fb0876a0ecd0384aca0ce16b627bf975c8084915aad79470 --name=4b59a3a5fa50d178dc4594c400097d497a206cff98865e815333ed7504558336 --path=./upload
 ```
 
-### upload huggingface repo(todo)
-
-```shell
-> cd example/hub
-> go build
-# huggingface public repo name, such as: CompVis/stable-diffusion-v1-1, empty revision means latest
-# hub node will sync data from hugginface and upload to dimo
-> ./hub --name=<repo name> --revision=<repo revision>
-# example, sync repo
-> ./hub --name=CompVis/stable-diffusion-v1-1
-```
-
 ## hub 
+
+upload/download small files, small files are aggregated into large file, and submit to chain
 
 ### public hub
 
 #### download
 
-+ web browser: http://52.76.75.134:8080/api/download?id=<your file name>&owner=<your file owner>
++ web browser: http://54.151.130.2:8080/api/download?name=\<your file name\>&owner=\<your file owne\>
 
 + shell 
 
 ```shell
-> wget http://52.76.75.134:8080/api/download?id=<your file name>\&owner=<your file owner> -O <saved name>
+> wget http://54.151.130.2:8080/api/download?name=<your file name>\&owner=<your file owner> -O <saved name>
 # or display 
-> curl http://52.76.75.134:8080/api/download?id=<your file name>\&owner=<your file owner>
+> curl http://54.151.130.2:8080/api/download?name=<your file name>\&owner=<your file owner>
 
 ```
 
@@ -71,7 +75,7 @@ note: 启动时会从服务器自动获取0.002 gas token和100 UB token
 
 ```shell
 # output: {"File":"0xabcd-0.vol","Start":0,"Size":41}
-> curl -X POST http://52.76.75.134:8080/api/upload -d '{
+> curl -X POST http://54.151.130.2:8080/api/upload -d '{
     "id": "test1", 
     "owner":"0xabcd",
     "message":"Here is a story about llamas eating grass"
@@ -82,10 +86,10 @@ note: 启动时会从服务器自动获取0.002 gas token和100 UB token
 ### private hub
 
 ```shell
+> export CHAIN_TYPE=<your CHAIN_TYPE>
 > cd app/hub
 > go build
 > ./hub init
 # run
 > ./hub daemon run -b 0.0.0.0:8086
-# download your file by get http://<ip>:8086/api/download?id=<your file name> 
 ```
