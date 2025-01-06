@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/MOSSV2/dimo-sdk-go/lib/types"
@@ -41,6 +42,55 @@ func GetReplicaReceipt(baseUrl string, auth types.Auth, name string) (types.Repl
 	return res, nil
 }
 
+func ListReplicaByEdge(baseUrl string, addr string, start, count int) (types.ListReplicaResult, error) {
+	res := types.ListReplicaResult{}
+	opt := types.Options{
+		UserDefined: make(map[string]string),
+	}
+	opt.UserDefined["filter"] = "edge"
+	opt.UserDefined["chaintype"] = chaintype
+	opt.UserDefined["edge"] = addr
+	opt.UserDefined["start"] = strconv.Itoa(start)
+	opt.UserDefined["count"] = strconv.Itoa(count)
+
+	optyByte, err := json.Marshal(opt)
+	if err != nil {
+		return res, err
+	}
+
+	baseUrl = baseUrl + "/api/listReplica?option=" + hex.EncodeToString(optyByte)
+	resByte, err := Get(context.TODO(), baseUrl)
+	if err != nil {
+		return res, err
+	}
+
+	err = json.Unmarshal(resByte, &res)
+	if err != nil {
+		return res, err
+	}
+
+	logger.Debug("replica list: ", res)
+	return res, nil
+}
+
+func GetPieceOfEdge(baseUrl string, name string) (types.PieceReceipt, error) {
+	var res types.PieceReceipt
+
+	baseUrl = baseUrl + "/api/getPieceReceipt?name=" + name + "&chaintype=" + chaintype
+
+	resByte, err := Get(context.TODO(), baseUrl)
+	if err != nil {
+		return res, err
+	}
+
+	err = json.Unmarshal(resByte, &res)
+	if err != nil {
+		return res, err
+	}
+
+	return res, nil
+}
+
 func ListReplica(baseUrl string, auth types.Auth, filter string) (types.ListReplicaResult, error) {
 	res := types.ListReplicaResult{}
 	opt := types.Options{
@@ -57,7 +107,7 @@ func ListReplica(baseUrl string, auth types.Auth, filter string) (types.ListRepl
 	form := url.Values{}
 	form.Set("option", hex.EncodeToString(optyByte))
 
-	resByte, err := doRequest(context.TODO(), baseUrl, "/api/listPiece", "", auth, strings.NewReader(form.Encode()))
+	resByte, err := doRequest(context.TODO(), baseUrl, "/api/listReplica", "", auth, strings.NewReader(form.Encode()))
 	if err != nil {
 		return res, err
 	}

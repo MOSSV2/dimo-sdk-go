@@ -240,6 +240,15 @@ func (c *ContractManage) AddReplica(rc types.ReplicaCore, pf []byte) error {
 		return fmt.Errorf("%s is not on chain", rc.Piece)
 	}
 
+	_ri, err := fi.GetRIndex(&bind.CallOpts{From: au.From}, rb)
+	if err != nil {
+		return err
+	}
+
+	if _ri > 0 {
+		return fmt.Errorf("%s is already on chain", rc.Name)
+	}
+
 	gtoken := c.BalanceOf(au.From)
 	logger.Debug("add replica: ", _pi, rc)
 	fmt.Println("submitreplica0: ", c.BalanceOf(au.From))

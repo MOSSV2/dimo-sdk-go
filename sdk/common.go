@@ -37,7 +37,7 @@ var chaintype = ""
 
 func init() {
 	// local test
-	//os.Setenv("CHAIN_TYPE", build.OPBNBTestnet)
+	// os.Setenv("CHAIN_TYPE", build.OPBNBTestnet)
 	checkENV()
 	log.SetLogLevel("DEBUG")
 }
@@ -342,9 +342,9 @@ func doRequest(ctx context.Context, baseUrl, method, ctype string, au types.Auth
 	return res, nil
 }
 
-func Get(ctx context.Context, baseUrl string, r io.Reader) ([]byte, error) {
+func Get(ctx context.Context, baseUrl string) ([]byte, error) {
 	haddr := baseUrl
-	hreq, err := http.NewRequestWithContext(ctx, "GET", haddr, r)
+	hreq, err := http.NewRequestWithContext(ctx, "GET", haddr, nil)
 	if err != nil {
 		return nil, err
 	}
