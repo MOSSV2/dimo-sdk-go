@@ -23,6 +23,7 @@
 example/download/download
 example/upload/upload
 example/hub/hub
+example/test/test
 
 app/hub/hub
 

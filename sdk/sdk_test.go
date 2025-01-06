@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/MOSSV2/dimo-sdk-go/contract"
+	"github.com/MOSSV2/dimo-sdk-go/build"
 	"github.com/MOSSV2/dimo-sdk-go/lib/key"
 	"github.com/MOSSV2/dimo-sdk-go/lib/types"
 	"github.com/MOSSV2/dimo-sdk-go/lib/utils"
@@ -18,6 +18,22 @@ import (
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/mem"
 )
+
+func TestListReplica(t *testing.T) {
+	res, err := ListReplicaByEdge(build.ServerURL, "0xb8d08529f80b7aa61f069530be93112373a48792", 1, 16)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for i := 0; i < len(res.Replicas); i++ {
+		t.Log(res.Replicas[i].Ordinal, res.Replicas[i].StoredOn)
+	}
+
+	pr, err := GetPieceOfEdge(build.ServerURL, res.Replicas[0].Piece)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Fatal(pr)
+}
 
 func TestModel(t *testing.T) {
 	skbyte, err := os.ReadFile("/tmp/sk")
@@ -30,30 +46,16 @@ func TestModel(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	cm, err := contract.NewContractManage(sk, contract.OPSepolia)
-	if err != nil {
-		panic(err)
-	}
-
 	base := ServerURL
 	au, err := key.BuildAuth(sk, []byte("test"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	ml, err := ListModel(base, au, "latest")
+	ml, err := ListReplica(base, au, "latest")
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, mc := range ml.Models {
-		_, err := cm.GetModelIndex(mc.Name)
-		if err != nil {
-			fmt.Println("add model: ", mc.Name)
-			err = cm.AddModel(mc.ModelMeta)
-			if err != nil {
-				t.Log(err)
-			}
-		}
-	}
+	t.Fatal(ml)
 }
 
 func TestList(t *testing.T) {
