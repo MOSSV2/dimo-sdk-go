@@ -54,7 +54,7 @@ var (
 	//DevChain   = "https://11155420.rpc.thirdweb.com"
 
 	DefaultGasLimit = 8_000_000
-	DefaultGasPrice = 1000
+	DefaultGasPrice = 2_000_000_000
 
 	DefaultStreamPrice  = 1e12
 	DefaultReplicaPrice = 1e11 // 1TB*100 epoch cost 10
@@ -92,6 +92,16 @@ var (
 	OPBNBTestnetSyncHeight = 48_317_500
 )
 
+var (
+	BNBTestnet           = build.BNBTestnet
+	BNBTestnetExplorer   = "https://testnet.bscscan.com/"
+	BNBTestnetChainRPC   = "https://bsc-testnet-rpc.publicnode.com"
+	BNBTestnetChainID    = 97
+	BNBTestnetBankAddr   = common.HexToAddress("0x5903805A3a50Fab318c8650bABC71F58900EE34e")
+	BNBTestnetTokenAddr  = common.HexToAddress("0x3259E10E857139a5C58Fa5Dc6C7fF525AaE661F8")
+	BNBTestnetSyncHeight = 48_382_314
+)
+
 var logger = dlog.Logger("contract")
 
 func MakeAuth(ep string, chainID int64, hexSk string) (*bind.TransactOpts, error) {
@@ -127,7 +137,15 @@ func makeAuth(ep string, chainID *big.Int, sk *ecdsa.PrivateKey) (*bind.Transact
 		return nil, err
 	}
 	logger.Debugf("height: %d, basefee: %d, blob: %d", header.Number, header.BaseFee, header.BlobGasUsed)
-	auth.GasPrice = header.BaseFee.Add(header.BaseFee, big.NewInt(int64(DefaultGasPrice)))
+
+	if header.BaseFee.BitLen() == 0 {
+		//auth.GasTipCap = big.NewInt(int64(DefaultGasPrice))
+		//auth.GasFeeCap = big.NewInt(int64(DefaultGasPrice))
+		auth.GasPrice = big.NewInt(int64(DefaultGasPrice))
+	} else {
+		auth.GasPrice = header.BaseFee.Mul(header.BaseFee, big.NewInt(6)).Div(header.BaseFee, big.NewInt(5))
+	}
+
 	return auth, nil
 }
 

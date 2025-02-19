@@ -6,17 +6,18 @@ const (
 	ServerURL    = "http://54.251.11.180:8080"
 	OPSepolia    = "op-sepolia"
 	OPBNBTestnet = "opbnb-testnet"
+	BNBTestnet   = "bnb-testnet"
 )
 
 func CheckChain() string {
 	ct := os.Getenv("CHAIN_TYPE")
 	if ct == "" {
-		panic("please set env 'CHAIN_TYPE' to 'op-sepolia' or 'opbnb-testnet'")
+		panic("please set env 'CHAIN_TYPE' to 'op-sepolia', 'opbnb-testnet' or 'bnb-testnet'")
 	}
 	switch ct {
-	case OPSepolia, OPBNBTestnet:
+	case OPSepolia, OPBNBTestnet, BNBTestnet:
 		return ct
 	default:
-		panic("please set env 'CHAIN_TYPE' to 'op-sepolia' or 'opbnb-testnet'")
+		panic("please set env 'CHAIN_TYPE' to 'op-sepolia', 'opbnb-testnet' or 'bnb-testnet'")
 	}
 }
