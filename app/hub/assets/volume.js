@@ -40,7 +40,9 @@ function createCard(meta) {
 
   if (meta.TxHash) {
     let rurl = "https://sepolia-optimism.etherscan.io/tx/"
-    if (meta.ChainType == "opbnb-testnet") {
+    if (meta.ChainType == "bnb-testnet") {
+      rurl = "https://testnet.bscscan.com/tx/"
+    } else if (meta.ChainType == "opbnb-testnet") {
       rurl = "https://opbnb-testnet.bscscan.com/tx/"
     }
     const p5 = document.createElement("p");

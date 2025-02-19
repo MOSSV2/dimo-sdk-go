@@ -1,27 +1,31 @@
 # intro
-go sdk，include file and contract operations, hub usage
 
- 
+go sdk，include file and contract operations, hub usage
 
 ## network
 
-note: 启动时会从服务器自动获取0.002 gas token和100 UB token
+note: 启动时会从服务器自动获取 0.002 gas token 和 100 UB token
+
+### BNB testnet
+
+- CHAIN_TYPE: bnb-testnet
+- Explorer: https://testnet.bscscan.com/
+- RPC: https://bsc-testnet-rpc.publicnode.com
+- Faucet: https://docs.bnbchain.org/bnb-opbnb/developers/network-faucet/
 
 ### OP Sepolia
 
-+ CHAIN_TYPE: op-sepolia
-+ Explorer: https://sepolia-optimistic.etherscan.io
-+ RPC: https://optimism-sepolia-rpc.publicnode.com
-+ Faucet: https://docs.optimism.io/builders/tools/build/faucets 
-
+- CHAIN_TYPE: op-sepolia
+- Explorer: https://sepolia-optimistic.etherscan.io
+- RPC: https://optimism-sepolia-rpc.publicnode.com
+- Faucet: https://docs.optimism.io/builders/tools/build/faucets
 
 ### OPBNB testnet
 
-+ CHAIN_TYPE: opbnb-testnet
-+ Explorer: https://opbnb-testnet.bscscan.com
-+ RPC: https://opbnb-testnet-rpc.publicnode.com
-+ Faucet: https://docs.bnbchain.org/bnb-opbnb/developers/network-faucet/
-
+- CHAIN_TYPE: opbnb-testnet
+- Explorer: https://opbnb-testnet.bscscan.com
+- RPC: https://opbnb-testnet-rpc.publicnode.com
+- Faucet: https://docs.bnbchain.org/bnb-opbnb/developers/network-faucet/
 
 ## usage
 
@@ -50,7 +54,7 @@ note: 启动时会从服务器自动获取0.002 gas token和100 UB token
 > ./download --sk=4215875d8ac13ac4fb0876a0ecd0384aca0ce16b627bf975c8084915aad79470 --name=4b59a3a5fa50d178dc4594c400097d497a206cff98865e815333ed7504558336 --path=./upload
 ```
 
-## hub 
+## hub
 
 upload/download small files, small files are aggregated into large file, and submit to chain
 
@@ -58,30 +62,29 @@ upload/download small files, small files are aggregated into large file, and sub
 
 #### download
 
-+ web browser: http://54.151.130.2:8080/api/download?name=\<your file name\>&owner=\<your file owne\>
+- web browser: http://54.151.130.2:8080/api/download?name=\<your file name\>&owner=\<your file owne\>
 
-+ shell 
+- shell
 
 ```shell
 > wget http://54.151.130.2:8080/api/download?name=<your file name>\&owner=<your file owner> -O <saved name>
-# or display 
+# or display
 > curl http://54.151.130.2:8080/api/download?name=<your file name>\&owner=<your file owner>
 
 ```
 
 #### upload
 
-+ upload using json 
+- upload using json
 
 ```shell
 # output: {"File":"0xabcd-0.vol","Start":0,"Size":41}
 > curl -X POST http://54.151.130.2:8080/api/upload -d '{
-    "id": "test1", 
+    "id": "test1",
     "owner":"0xabcd",
     "message":"Here is a story about llamas eating grass"
   }'
 ```
-
 
 ### private hub
 
