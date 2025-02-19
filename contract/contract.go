@@ -39,8 +39,14 @@ func NewContractManage(sk *ecdsa.PrivateKey, chainType string) (*ContractManage,
 		cm.BankAddr = OPBNBTestnetBankAddr
 		cm.TokenAddr = OPBNBTestnetTokenAddr
 		cm.SyncHeight = OPBNBTestnetSyncHeight
+	case BNBTestnet:
+		cm.RPC = BNBTestnetChainRPC
+		cm.ChainID = big.NewInt(int64(BNBTestnetChainID))
+		cm.BankAddr = BNBTestnetBankAddr
+		cm.TokenAddr = BNBTestnetTokenAddr
+		cm.SyncHeight = BNBTestnetSyncHeight
 	default:
-		return nil, fmt.Errorf("unsupportted chain type: %s, use 'op-sepolia' or 'opbnb-testnet'", chainType)
+		return nil, fmt.Errorf("unsupportted chain type: %s, use 'bnb-testnet', 'op-sepolia' or 'opbnb-testnet'", chainType)
 	}
 	return cm, nil
 }
