@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/MOSSV2/dimo-sdk-go/lib/types"
 	"gorm.io/driver/sqlite"
@@ -178,7 +179,8 @@ func (s *Server) listVolume(owner string, offset, limit int) ([]types.Volume, er
 
 func (s *Server) listConversation(ctx context.Context, addr string) ([]string, error) {
 	var needles []types.Needle
-	result := s.gdb.Model(&types.Needle{}).Where(&types.Needle{Owner: addr}).Find(&needles)
+	// create time is time.Time >= 2025-03-07
+	result := s.gdb.Model(&types.Needle{}).Where("owner = ? and created_at >= ?", addr, time.Date(2025, 3, 7, 0, 0, 0, 0, time.UTC)).Find(&needles)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -202,8 +204,9 @@ func (s *Server) listConversation(ctx context.Context, addr string) ([]string, e
 func (s *Server) getConversation(ctx context.Context, conversation, addr string) ([]string, error) {
 	var needles []types.Needle
 	// name contains conversation + "_"
+	// create time >= 2025-03-07
 	// order by id asc
-	result := s.gdb.Model(&types.Needle{}).Where("name like ? and owner = ?", conversation+"_%", addr).Order("id asc").Find(&needles)
+	result := s.gdb.Model(&types.Needle{}).Where("name like ? and owner = ? and created_at >= ?", conversation+"_%", addr, time.Date(2025, 3, 7, 0, 0, 0, 0, time.UTC)).Order("id asc").Find(&needles)
 	if result.Error != nil {
 		return nil, result.Error
 	}
