@@ -1,8 +1,11 @@
 package hub
 
 import (
+	"bytes"
+	"context"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/MOSSV2/dimo-sdk-go/lib/types"
 	"gorm.io/driver/sqlite"
@@ -171,4 +174,49 @@ func (s *Server) listVolume(owner string, offset, limit int) ([]types.Volume, er
 	}
 
 	return vols, nil
+}
+
+func (s *Server) listConversation(ctx context.Context, addr string) ([]string, error) {
+	var needles []types.Needle
+	result := s.gdb.Model(&types.Needle{}).Where(&types.Needle{Owner: addr}).Find(&needles)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	// name is conversation_index, so we need to split it to conversation_id
+	// reomve duplicate
+	conversations := make([]string, 0, len(needles))
+	cmap := make(map[string]struct{})
+	for _, needle := range needles {
+		parts := strings.Split(needle.Name, "_")
+		if len(parts) == 2 {
+			conversationID := parts[0]
+			if _, ok := cmap[conversationID]; !ok {
+				conversations = append(conversations, conversationID)
+				cmap[conversationID] = struct{}{}
+			}
+		}
+	}
+	return conversations, nil
+}
+
+func (s *Server) getConversation(ctx context.Context, conversation, addr string) ([]string, error) {
+	var needles []types.Needle
+	// name contains conversation + "_"
+	// order by id asc
+	result := s.gdb.Model(&types.Needle{}).Where("name like ? and owner = ?", conversation+"_%", addr).Order("id asc").Find(&needles)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	// name is conversation_index, so we need to split it to conversation_id
+	// reomve duplicate
+	conversations := make([]string, 0, len(needles))
+	for _, needle := range needles {
+		var w bytes.Buffer
+		_, err := s.download(ctx, needle.Name, addr, &w)
+		if err != nil {
+			continue
+		}
+		conversations = append(conversations, w.String())
+	}
+	return conversations, nil
 }
