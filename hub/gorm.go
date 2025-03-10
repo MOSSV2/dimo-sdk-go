@@ -1,8 +1,12 @@
 package hub
 
 import (
+	"bytes"
+	"context"
 	"os"
 	"path/filepath"
+	"strings"
+	"time"
 
 	"github.com/MOSSV2/dimo-sdk-go/lib/types"
 	"gorm.io/driver/sqlite"
@@ -171,4 +175,56 @@ func (s *Server) listVolume(owner string, offset, limit int) ([]types.Volume, er
 	}
 
 	return vols, nil
+}
+
+func (s *Server) listConversation(ctx context.Context, addr string) ([]string, error) {
+	var needles []types.Needle
+	// create time is time.Time >= 2025-03-07,
+	// name end with "_0"
+	result := s.gdb.Model(&types.Needle{}).Where("owner = ? and created_at >= ? and name like ?", addr, time.Date(2025, 3, 7, 0, 0, 0, 0, time.UTC), "%_0").Find(&needles)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	// name is conversation_index, so we need to split it to conversation_id
+	// reomve duplicate
+	conversations := make([]string, 0, len(needles))
+	cmap := make(map[string]struct{})
+	for _, needle := range needles {
+		if len(needle.Name) <= 2 {
+			continue
+		}
+		parts := strings.Split(needle.Name, "_")
+		if len(parts) != 2 {
+			continue
+		}
+		conversationID := parts[0]
+		if _, ok := cmap[conversationID]; !ok {
+			conversations = append(conversations, conversationID)
+			cmap[conversationID] = struct{}{}
+		}
+	}
+	return conversations, nil
+}
+
+func (s *Server) getConversation(ctx context.Context, conversation, addr string) ([]string, error) {
+	var needles []types.Needle
+	// name contains conversation + "_"
+	// create time >= 2025-03-07
+	// order by id asc
+	result := s.gdb.Model(&types.Needle{}).Where("name like ? and owner = ? and created_at >= ?", conversation+"_%", addr, time.Date(2025, 3, 7, 0, 0, 0, 0, time.UTC)).Order("id asc").Find(&needles)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	// name is conversation_index, so we need to split it to conversation_id
+	// reomve duplicate
+	conversations := make([]string, 0, len(needles))
+	for _, needle := range needles {
+		var w bytes.Buffer
+		_, err := s.download(ctx, needle.Name, addr, &w)
+		if err != nil {
+			continue
+		}
+		conversations = append(conversations, w.String())
+	}
+	return conversations, nil
 }

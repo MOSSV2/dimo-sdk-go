@@ -133,6 +133,7 @@ func (s *Server) registRoute() {
 	s.addDownload(r)
 	s.addUpload(r)
 	s.addList(r)
+	s.addConversation(r)
 }
 
 func login(url string, auth types.Auth) {
