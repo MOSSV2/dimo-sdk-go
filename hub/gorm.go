@@ -179,8 +179,9 @@ func (s *Server) listVolume(owner string, offset, limit int) ([]types.Volume, er
 
 func (s *Server) listConversation(ctx context.Context, addr string) ([]string, error) {
 	var needles []types.Needle
-	// create time is time.Time >= 2025-03-07
-	result := s.gdb.Model(&types.Needle{}).Where("owner = ? and created_at >= ?", addr, time.Date(2025, 3, 7, 0, 0, 0, 0, time.UTC)).Find(&needles)
+	// create time is time.Time >= 2025-03-07,
+	// name end with "_0"
+	result := s.gdb.Model(&types.Needle{}).Where("owner = ? and created_at >= ? and name like ?", addr, time.Date(2025, 3, 7, 0, 0, 0, 0, time.UTC), "%_0").Find(&needles)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -189,13 +190,17 @@ func (s *Server) listConversation(ctx context.Context, addr string) ([]string, e
 	conversations := make([]string, 0, len(needles))
 	cmap := make(map[string]struct{})
 	for _, needle := range needles {
+		if len(needle.Name) <= 2 {
+			continue
+		}
 		parts := strings.Split(needle.Name, "_")
-		if len(parts) == 2 {
-			conversationID := parts[0]
-			if _, ok := cmap[conversationID]; !ok {
-				conversations = append(conversations, conversationID)
-				cmap[conversationID] = struct{}{}
-			}
+		if len(parts) != 2 {
+			continue
+		}
+		conversationID := parts[0]
+		if _, ok := cmap[conversationID]; !ok {
+			conversations = append(conversations, conversationID)
+			cmap[conversationID] = struct{}{}
 		}
 	}
 	return conversations, nil
