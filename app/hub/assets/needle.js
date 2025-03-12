@@ -43,49 +43,66 @@ renderPage();
 function createCard(meta) {
   const card = document.createElement("div");
   card.className = "card";
-  //card.onclick = () => download(meta.Owner, meta.Name);
 
   const h2 = document.createElement("h2");
   h2.textContent = meta.Name;
   card.appendChild(h2);
 
+  const cardContent = document.createElement("div");
+  cardContent.className = "card-content";
+  card.appendChild(cardContent);
+
   const p5 = document.createElement("p");
-  p5.textContent = `Owner: ${meta.Owner}`;
-  card.appendChild(p5);
+  p5.setAttribute('data-label', 'Owner:');
+  p5.textContent = meta.Owner;
+  cardContent.appendChild(p5);
 
   const p0 = document.createElement("p");
-  p0.textContent = `Volume: ${meta.File}`;
-  card.appendChild(p0);
+  p0.setAttribute('data-label', 'Volume:');
+  p0.textContent = meta.File;
+  cardContent.appendChild(p0);
 
   const p1 = document.createElement("p");
-  p1.textContent = `Start: ${meta.Start}`;
-  card.appendChild(p1);
+  p1.setAttribute('data-label', 'Start:');
+  p1.textContent = meta.Start;
+  cardContent.appendChild(p1);
 
   const p2 = document.createElement("p");
-  p2.textContent = `Size: ${meta.Size} bytes`;
-  card.appendChild(p2);
+  p2.setAttribute('data-label', 'Size:');
+  p2.textContent = meta.Size + ' bytes';
+  cardContent.appendChild(p2);
 
   const p21 = document.createElement("p");
-  p21.textContent = `Creation: ${meta.CreatedAt}`;
-  card.appendChild(p21);
+  p21.setAttribute('data-label', 'Creation:');
+  p21.textContent = meta.CreatedAt;
+  cardContent.appendChild(p21);
 
   if (meta.TxHash) {
     const p3 = document.createElement("p");
-    p3.textContent = `Piece: ${meta.Piece}`;
-    card.appendChild(p3);
+    p3.setAttribute('data-label', 'Piece:');
+    p3.textContent = meta.Piece;
+    cardContent.appendChild(p3);
   }
 
   if (meta.TxHash) {
-    const p5 = document.createElement("p");
-    p5.innerHTML = "TxHash: <a href='https://sepolia-optimism.etherscan.io/tx/" + meta.TxHash + "' target='_blank'>" + meta.TxHash + "</a >";
-    card.appendChild(p5);
+    const p4 = document.createElement("p");
+    p4.setAttribute('data-label', 'TxHash:');
+    const link = document.createElement('a');
+    link.href = 'https://sepolia-optimism.etherscan.io/tx/' + meta.TxHash;
+    link.target = '_blank';
+    link.textContent = meta.TxHash;
+    p4.appendChild(link);
+    cardContent.appendChild(p4);
   }
 
   const p6 = document.createElement("p");
-  //p6.textContent = `Content: [click to show]`;
-  //p6.onclick = () => download(meta.Owner, meta.Name);
-  p6.innerHTML = "Content: <a href='content.html?owner=" + meta.Owner + "&name=" + meta.Name + "' target='_blank'> [click to show] </a >";
-  card.appendChild(p6);
+  p6.setAttribute('data-label', 'Content:');
+  const contentLink = document.createElement('a');
+  contentLink.href = 'content.html?owner=' + meta.Owner + '&name=' + meta.Name;
+  contentLink.target = '_blank';
+  contentLink.textContent = '[click to show]';
+  p6.appendChild(contentLink);
+  cardContent.appendChild(p6);
 
   return card;
 }
