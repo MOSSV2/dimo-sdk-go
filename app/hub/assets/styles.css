@@ -868,3 +868,45 @@ a:hover {
         /* 移动端下减小最小宽度 */
     }
 }
+
+/* content页面特殊样式 */
+body.content-page {
+    padding: 1rem;
+}
+
+.content-page .card-container {
+    display: block;
+    max-width: 100%;
+    padding: 1rem;
+}
+
+.content-page .card {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.content-page .card pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    word-break: break-all;
+    max-width: 100%;
+    overflow-x: auto;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    padding: 1rem;
+    margin: 0.5rem 0;
+    background: #232323;
+    border: 1px solid #3d3d3d;
+    border-radius: 8px;
+}
+
+@media screen and (max-width: 768px) {
+    .content-page .card-container {
+        padding: 0.5rem;
+    }
+
+    .content-page .card pre {
+        font-size: 0.85rem;
+        padding: 0.8rem;
+    }
+}
