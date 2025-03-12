@@ -103,9 +103,25 @@ nav a:hover {
     overflow: auto;
 }
 
+/* 内容自动换行样式 */
 .card p {
-    /* 自动换行 */
+    white-space: pre-wrap;
     word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+}
+
+pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+}
+
+.card {
+    word-break: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
 }
 
 h2 {
@@ -333,33 +349,355 @@ button:hover {
     border-radius: 4px;
 }
 
-pre {
-    white-space: pre-wrap;
-    word-break: keep-all;
-    word-wrap: break-word;
+/* 现代化基础样式 */
+body {
+    margin: 0;
+    padding: 20px;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: #f5f7fa;
+    color: #2d3748;
 }
 
-pagination-container {
+/* 导航栏现代化样式 */
+nav {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+nav ul {
     display: flex;
     justify-content: center;
-    padding: 10px;
+    gap: 2rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+nav a:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* 卡片容器现代化样式 */
+.card-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem;
+}
+
+/* 卡片现代化样式 */
+.card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.card h2 {
+    margin: 0 0 1rem 0;
+    color: #2d3748;
+    font-size: 1.25rem;
+}
+
+.card p {
+    margin: 0.5rem 0;
+    color: #4a5568;
+    line-height: 1.5;
+}
+
+/* 搜索框现代化样式 */
+#searchInput {
+    width: 100%;
+    max-width: 400px;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    margin: 0 auto 1.5rem auto;
+    display: block;
+}
+
+#searchInput:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* 按钮现代化样式 */
+button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: block;
+    margin: 0 auto;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* 分页按钮样式 */
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 2rem;
+    gap: 1rem;
 }
 
 .pagination-btn {
-    padding: 10px 20px;
-    margin: 10px 5px;
-    color: black;
-    border: 5px;
-    cursor: pointer;
-    border-radius: 5px;
+    background: white;
+    border: 2px solid #667eea;
+    color: #667eea;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 500;
 }
 
 .pagination-btn:hover {
-    background-color: lightskyblue;
+    background: #667eea;
+    color: white;
 }
 
 .pagination-info {
-    margin: 0 10px;
-    font-size: 16px;
-    line-height: 30px;
+    color: #4a5568;
+    font-weight: 500;
+}
+
+/* 代码块样式优化 */
+pre {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    font-family: 'Fira Code', monospace;
+    overflow-x: auto;
+}
+
+/* 现代导航栏样式 */
+.modern-nav {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.modern-nav ul {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.modern-nav a {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.8rem 1.5rem;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.modern-nav a:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.modern-nav .icon {
+    font-size: 1.2rem;
+}
+
+/* 页面背景样式 */
+body {
+    background: linear-gradient(135deg, #1a1c2c 0%, #2a3c54 100%);
+    color: #fff;
+    min-height: 100vh;
+}
+
+/* 卡片容器样式 */
+.card-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* 现代卡片样式 */
+.card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+    transform: translateY(-100%);
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+}
+
+.card:hover::before {
+    transform: translateY(0);
+}
+
+.card h2 {
+    color: #fff;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    position: relative;
+}
+
+.card p {
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.6;
+    margin: 0.5rem 0;
+    position: relative;
+}
+
+/* 搜索框样式 */
+#searchInput {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 400px;
+    margin: 2rem auto;
+    display: block;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+#searchInput::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+#searchInput:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+/* 内容页面暗色主题样式 */
+body {
+    background: #1a1a1a;
+    color: #e0e0e0;
+}
+
+.card {
+    background: #2d2d2d;
+    border: 1px solid #3d3d3d;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.card h2 {
+    color: #e0e0e0;
+}
+
+.card p {
+    color: #b0b0b0;
+}
+
+/* 代码块和预格式文本样式优化 */
+pre {
+    background: #232323;
+    color: #b0b0b0;
+    border: 1px solid #3d3d3d;
+    padding: 1rem;
+    border-radius: 8px;
+    font-family: 'Monaco', 'Consolas', monospace;
+    line-height: 1.5;
+}
+
+/* 链接样式 */
+a {
+    color: #7eb6ff;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #5c9eff;
+    text-decoration: underline;
+}
+
+/* 滚动条美化 */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #2d2d2d;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #4d4d4d;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #5d5d5d;
 }

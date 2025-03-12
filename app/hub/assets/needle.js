@@ -1,7 +1,7 @@
 const urlParams = new URLSearchParams(window.location.search);
 const eaddr = urlParams.get("owner");
 
-const itemsPerPage = 10;
+const itemsPerPage = 12;
 let currentPage = 1;
 
 function renderPage() {
