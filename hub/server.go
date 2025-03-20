@@ -1,11 +1,13 @@
 package hub
 
 import (
+	"context"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/MOSSV2/dimo-sdk-go/docs"
 	"github.com/MOSSV2/dimo-sdk-go/lib/log"
 	"github.com/MOSSV2/dimo-sdk-go/lib/logfs"
 	"github.com/MOSSV2/dimo-sdk-go/lib/piece"
@@ -20,7 +22,6 @@ import (
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"github.com/swaggo/swag/example/basic/docs"
 	"gorm.io/gorm"
 )
 
@@ -62,6 +63,8 @@ type Server struct {
 	local common.Address
 
 	auth types.Auth
+
+	statManager *StatManager
 }
 
 func NewServer(rp repo.Repo) (*http.Server, error) {
@@ -99,6 +102,10 @@ func NewServer(rp repo.Repo) (*http.Server, error) {
 
 	s.loadGORM()
 
+	sm := NewStatManager(s.gdb)
+	sm.Start(context.Background())
+	s.statManager = sm
+
 	s.load()
 	go s.uploadTo()
 
@@ -134,6 +141,7 @@ func (s *Server) registRoute() {
 	s.addUpload(r)
 	s.addList(r)
 	s.addConversation(r)
+	s.addStat(r)
 }
 
 func login(url string, auth types.Auth) {

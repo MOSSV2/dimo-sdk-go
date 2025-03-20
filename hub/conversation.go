@@ -12,6 +12,18 @@ func (s *Server) addConversation(g *gin.RouterGroup) {
 	g.Group("/").GET("/conversation", s.conversationByGet)
 }
 
+// conversationByPost godoc
+//
+//	@Summary		get or list conversations
+//	@Description	get specific conversation information or list all conversations
+//	@Tags			conversation
+//	@Accept			json
+//	@Produce		json
+//	@Param			owner	formData	string	true	"owner address"
+//	@Param			name	formData	string	false	"conversation ID (empty means list all conversation ids)"
+//	@Success		200		{object}	map[string]interface{}
+//	@Failure		599		{object}	lerror.APIError
+//	@Router			/api/conversation [post]
 func (s *Server) conversationByPost(c *gin.Context) {
 	ctx := c.Request.Context()
 	mn := c.PostForm("name")
@@ -37,6 +49,18 @@ func (s *Server) conversationByPost(c *gin.Context) {
 	}
 }
 
+// conversationByGet godoc
+//
+//	@Summary		get or list conversations
+//	@Description	get specific conversation information or list all conversations
+//	@Tags			conversation
+//	@Accept			json
+//	@Produce		json
+//	@Param			owner	query		string	true	"owner address"
+//	@Param			name	query		string	false	"conversation ID (empty means list all conversation ids)"
+//	@Success		200		{object}	map[string]interface{}
+//	@Failure		599		{object}	lerror.APIError
+//	@Router			/api/conversation [get]
 func (s *Server) conversationByGet(c *gin.Context) {
 	ctx := c.Request.Context()
 	mn := c.Query("name")

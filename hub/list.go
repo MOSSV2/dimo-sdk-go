@@ -23,6 +23,17 @@ func (s *Server) addList(g *gin.RouterGroup) {
 	g.Group("/").GET("/getVolume", s.getVolumeByGet)
 }
 
+// getAccountByGet godoc
+//
+//	@Summary		get account information
+//	@Description	get account information for a specific owner
+//	@Tags			account
+//	@Accept			json
+//	@Produce		json
+//	@Param			owner	query		string	false	"account owner address"
+//	@Success		200		{object}	map[string]interface{}
+//	@Failure		599		{object}	lerror.APIError
+//	@Router			/api/getAccount [get]
 func (s *Server) getAccountByGet(c *gin.Context) {
 	owner := c.Query("owner")
 	res, err := s.getAccount(owner)
@@ -34,6 +45,18 @@ func (s *Server) getAccountByGet(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
+// listAccountByGet godoc
+//
+//	@Summary		list accounts
+//	@Description	get a list of accounts with pagination support
+//	@Tags			account
+//	@Accept			json
+//	@Produce		json
+//	@Param			offset	query		int		false	"pagination offset" default(0)
+//	@Param			length	query		int		false	"number of items per page" default(32)
+//	@Success		200		{object}	map[string]interface{}
+//	@Failure		599		{object}	lerror.APIError
+//	@Router			/api/listAccount [get]
 func (s *Server) listAccountByGet(c *gin.Context) {
 	offset, _ := strconv.Atoi(c.Query("offset"))
 	length, _ := strconv.Atoi(c.Query("length"))
@@ -49,6 +72,18 @@ func (s *Server) listAccountByGet(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
+// listAccountByPost godoc
+//
+//	@Summary		list accounts
+//	@Description	get a list of accounts with pagination support
+//	@Tags			account
+//	@Accept			json
+//	@Produce		json
+//	@Param			offset	query		int		false	"pagination offset" default(0)
+//	@Param			length	query		int		false	"number of items per page" default(32)
+//	@Success		200		{object}	map[string]interface{}
+//	@Failure		599		{object}	lerror.APIError
+//	@Router			/api/listAccount [post]
 func (s *Server) listAccountByPost(c *gin.Context) {
 	offset, _ := strconv.Atoi(c.Query("offset"))
 	length, _ := strconv.Atoi(c.Query("length"))
@@ -64,6 +99,18 @@ func (s *Server) listAccountByPost(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
+// getNeedleByGet godoc
+//
+//	@Summary		get needle information
+//	@Description	get needle information for a specific owner
+//	@Tags			needle
+//	@Accept			json
+//	@Produce		json
+//	@Param			owner	query		string	false	"owner address"
+//	@Param			name	query		string	false	"needle name"
+//	@Success		200		{object}	map[string]interface{}
+//	@Failure		599		{object}	lerror.APIError
+//	@Router			/api/getNeedle [get]
 func (s *Server) getNeedleByGet(c *gin.Context) {
 	owner := c.Query("owner")
 	name := c.Query("name")
@@ -76,6 +123,19 @@ func (s *Server) getNeedleByGet(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
+// listNeedleByGet godoc
+//
+//	@Summary		list needles
+//	@Description	get a list of needles for a specific owner with pagination support
+//	@Tags			needle
+//	@Accept			json
+//	@Produce		json
+//	@Param			owner	query		string	false	"owner address"
+//	@Param			offset	query		int		false	"pagination offset" default(0)
+//	@Param			length	query		int		false	"number of items per page" default(32)
+//	@Success		200		{object}	map[string]interface{}
+//	@Failure		599		{object}	lerror.APIError
+//	@Router			/api/listNeedle [get]
 func (s *Server) listNeedleByGet(c *gin.Context) {
 	addr := c.Query("owner")
 	offset, _ := strconv.Atoi(c.Query("offset"))
@@ -92,6 +152,19 @@ func (s *Server) listNeedleByGet(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
+// listNeedleByPost godoc
+//
+//	@Summary		list needles
+//	@Description	get a list of needles for a specific owner with pagination support
+//	@Tags			needle
+//	@Accept			json
+//	@Produce		json
+//	@Param			owner	formData	string	false	"owner address"
+//	@Param			offset	formData	int		false	"pagination offset" default(0)
+//	@Param			length	formData	int		false	"number of items per page" default(32)
+//	@Success		200		{object}	map[string]interface{}
+//	@Failure		599		{object}	lerror.APIError
+//	@Router			/api/listNeedle [post]
 func (s *Server) listNeedleByPost(c *gin.Context) {
 	addr := c.PostForm("owner")
 	offset, _ := strconv.Atoi(c.PostForm("offset"))
@@ -108,6 +181,19 @@ func (s *Server) listNeedleByPost(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
+// listVolumeByGet godoc
+//
+//	@Summary		list volumes
+//	@Description	get a list of volumes for a specific owner with pagination support
+//	@Tags			volume
+//	@Accept			json
+//	@Produce		json
+//	@Param			owner	query		string	false	"owner address"
+//	@Param			offset	query		int		false	"pagination offset" default(0)
+//	@Param			length	query		int		false	"number of items per page" default(32)
+//	@Success		200		{object}	map[string]interface{}
+//	@Failure		599		{object}	lerror.APIError
+//	@Router			/api/listVolume [get]
 func (s *Server) listVolumeByGet(c *gin.Context) {
 	addr := c.Query("owner")
 	offset, _ := strconv.Atoi(c.Query("offset"))
@@ -124,6 +210,19 @@ func (s *Server) listVolumeByGet(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
+// listVolumeByPost godoc
+//
+//	@Summary		list volumes
+//	@Description	get a list of volumes for a specific owner with pagination support
+//	@Tags			volume
+//	@Accept			json
+//	@Produce		json
+//	@Param			owner	formData	string	false	"owner address"
+//	@Param			offset	formData	int		false	"pagination offset" default(0)
+//	@Param			length	formData	int		false	"number of items per page" default(32)
+//	@Success		200		{object}	map[string]interface{}
+//	@Failure		599		{object}	lerror.APIError
+//	@Router			/api/listVolume [post]
 func (s *Server) listVolumeByPost(c *gin.Context) {
 	addr := c.PostForm("owner")
 	offset, _ := strconv.Atoi(c.PostForm("offset"))
@@ -140,6 +239,18 @@ func (s *Server) listVolumeByPost(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
+// getVolumeByGet godoc
+//
+//	@Summary		get volume information
+//	@Description	get volume information for a specific owner
+//	@Tags			volume
+//	@Accept			json
+//	@Produce		json
+//	@Param			owner	query		string	false	"owner address"
+//	@Param			file	query		int		false	"file name"
+//	@Success		200		{object}	map[string]interface{}
+//	@Failure		599		{object}	lerror.APIError
+//	@Router			/api/getVolume [get]
 func (s *Server) getVolumeByGet(c *gin.Context) {
 	owner := c.Query("owner")
 	fid, _ := strconv.Atoi(c.Query("file"))

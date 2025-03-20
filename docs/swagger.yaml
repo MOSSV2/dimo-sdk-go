@@ -1,0 +1,438 @@
+basePath: /
+definitions:
+  error.APIError:
+    properties:
+      message:
+        type: string
+      type:
+        type: string
+    type: object
+  types.Stat:
+    properties:
+      dailyAccounts:
+        description: new created accounts at this day
+        type: integer
+      dailyNeedles:
+        description: new created needles at this day
+        type: integer
+      dailyVolumes:
+        description: new created volumes at this day
+        type: integer
+      day:
+        type: string
+      totalAccounts:
+        description: total accounts at this day
+        type: integer
+      totalNeedles:
+        description: total needles at this day
+        type: integer
+      totalVolumes:
+        description: total volumes at this day
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This is a HUB API.
+  title: HUB API
+  version: 0.0.1
+paths:
+  /api/conversation:
+    get:
+      consumes:
+      - application/json
+      description: get specific conversation information or list all conversations
+      parameters:
+      - description: owner address
+        in: query
+        name: owner
+        required: true
+        type: string
+      - description: conversation ID (empty means list all conversation ids)
+        in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "599":
+          description: ""
+          schema:
+            $ref: '#/definitions/error.APIError'
+      summary: get or list conversations
+      tags:
+      - conversation
+    post:
+      consumes:
+      - application/json
+      description: get specific conversation information or list all conversations
+      parameters:
+      - description: owner address
+        in: formData
+        name: owner
+        required: true
+        type: string
+      - description: conversation ID (empty means list all conversation ids)
+        in: formData
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "599":
+          description: ""
+          schema:
+            $ref: '#/definitions/error.APIError'
+      summary: get or list conversations
+      tags:
+      - conversation
+  /api/getAccount:
+    get:
+      consumes:
+      - application/json
+      description: get account information for a specific owner
+      parameters:
+      - description: account owner address
+        in: query
+        name: owner
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "599":
+          description: ""
+          schema:
+            $ref: '#/definitions/error.APIError'
+      summary: get account information
+      tags:
+      - account
+  /api/getNeedle:
+    get:
+      consumes:
+      - application/json
+      description: get needle information for a specific owner
+      parameters:
+      - description: owner address
+        in: query
+        name: owner
+        type: string
+      - description: needle name
+        in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "599":
+          description: ""
+          schema:
+            $ref: '#/definitions/error.APIError'
+      summary: get needle information
+      tags:
+      - needle
+  /api/getVolume:
+    get:
+      consumes:
+      - application/json
+      description: get volume information for a specific owner
+      parameters:
+      - description: owner address
+        in: query
+        name: owner
+        type: string
+      - description: file name
+        in: query
+        name: file
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "599":
+          description: ""
+          schema:
+            $ref: '#/definitions/error.APIError'
+      summary: get volume information
+      tags:
+      - volume
+  /api/listAccount:
+    get:
+      consumes:
+      - application/json
+      description: get a list of accounts with pagination support
+      parameters:
+      - default: 0
+        description: pagination offset
+        in: query
+        name: offset
+        type: integer
+      - default: 32
+        description: number of items per page
+        in: query
+        name: length
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "599":
+          description: ""
+          schema:
+            $ref: '#/definitions/error.APIError'
+      summary: list accounts
+      tags:
+      - account
+    post:
+      consumes:
+      - application/json
+      description: get a list of accounts with pagination support
+      parameters:
+      - default: 0
+        description: pagination offset
+        in: query
+        name: offset
+        type: integer
+      - default: 32
+        description: number of items per page
+        in: query
+        name: length
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "599":
+          description: ""
+          schema:
+            $ref: '#/definitions/error.APIError'
+      summary: list accounts
+      tags:
+      - account
+  /api/listNeedle:
+    get:
+      consumes:
+      - application/json
+      description: get a list of needles for a specific owner with pagination support
+      parameters:
+      - description: owner address
+        in: query
+        name: owner
+        type: string
+      - default: 0
+        description: pagination offset
+        in: query
+        name: offset
+        type: integer
+      - default: 32
+        description: number of items per page
+        in: query
+        name: length
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "599":
+          description: ""
+          schema:
+            $ref: '#/definitions/error.APIError'
+      summary: list needles
+      tags:
+      - needle
+    post:
+      consumes:
+      - application/json
+      description: get a list of needles for a specific owner with pagination support
+      parameters:
+      - description: owner address
+        in: formData
+        name: owner
+        type: string
+      - default: 0
+        description: pagination offset
+        in: formData
+        name: offset
+        type: integer
+      - default: 32
+        description: number of items per page
+        in: formData
+        name: length
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "599":
+          description: ""
+          schema:
+            $ref: '#/definitions/error.APIError'
+      summary: list needles
+      tags:
+      - needle
+  /api/listVolume:
+    get:
+      consumes:
+      - application/json
+      description: get a list of volumes for a specific owner with pagination support
+      parameters:
+      - description: owner address
+        in: query
+        name: owner
+        type: string
+      - default: 0
+        description: pagination offset
+        in: query
+        name: offset
+        type: integer
+      - default: 32
+        description: number of items per page
+        in: query
+        name: length
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "599":
+          description: ""
+          schema:
+            $ref: '#/definitions/error.APIError'
+      summary: list volumes
+      tags:
+      - volume
+    post:
+      consumes:
+      - application/json
+      description: get a list of volumes for a specific owner with pagination support
+      parameters:
+      - description: owner address
+        in: formData
+        name: owner
+        type: string
+      - default: 0
+        description: pagination offset
+        in: formData
+        name: offset
+        type: integer
+      - default: 32
+        description: number of items per page
+        in: formData
+        name: length
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "599":
+          description: ""
+          schema:
+            $ref: '#/definitions/error.APIError'
+      summary: list volumes
+      tags:
+      - volume
+  /api/stat:
+    get:
+      consumes:
+      - application/json
+      description: Get daily statistics for accounts, needles, and volumes using GET
+        method
+      parameters:
+      - description: 'Number of days to return (default: 30)'
+        in: query
+        name: count
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Array of daily statistics
+          schema:
+            items:
+              $ref: '#/definitions/types.Stat'
+            type: array
+        "400":
+          description: Invalid count parameter
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get statistics by GET
+      tags:
+      - statistics
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Get daily statistics for accounts, needles, and volumes using POST
+        method
+      parameters:
+      - description: 'Number of days to return (default: 30)'
+        in: formData
+        name: count
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Array of daily statistics
+          schema:
+            items:
+              $ref: '#/definitions/types.Stat'
+            type: array
+        "400":
+          description: Invalid count parameter
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get statistics by POST
+      tags:
+      - statistics
+swagger: "2.0"
