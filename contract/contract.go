@@ -1,13 +1,16 @@
 package contract
 
 import (
+	"context"
 	"crypto/ecdsa"
 	"fmt"
 	"math/big"
+	"os"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 type ContractManage struct {
@@ -48,6 +51,30 @@ func NewContractManage(sk *ecdsa.PrivateKey, chainType string) (*ContractManage,
 	default:
 		return nil, fmt.Errorf("unsupportted chain type: %s, use 'bnb-testnet', 'op-sepolia' or 'opbnb-testnet'", chainType)
 	}
+
+	chainRPC := os.Getenv("CHAIN_RPC")
+	if chainRPC != "" {
+		cm.RPC = chainRPC
+	}
+
+	// check chain RPC is connected
+	// check chain id
+	client, err := ethclient.Dial(cm.RPC)
+	if err != nil {
+		return nil, err
+	}
+	defer client.Close()
+
+	chainID, err := client.ChainID(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	if chainID.Cmp(cm.ChainID) != 0 {
+		return nil, fmt.Errorf("chain id mismatch, expected %d, got %d", cm.ChainID, chainID)
+	}
+
+	logger.Info("connected to chain: ", cm.RPC)
+
 	return cm, nil
 }
 
