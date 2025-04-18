@@ -12,6 +12,9 @@ func (s *Server) addList(g *gin.RouterGroup) {
 	g.Group("/").POST("/listAccount", s.listAccountByPost)
 	g.Group("/").GET("/listAccount", s.listAccountByGet)
 
+	g.Group("/").POST("/listBucket", s.listBucketByPost)
+	g.Group("/").GET("/listBucket", s.listBucketByGet)
+
 	g.Group("/").POST("/listNeedle", s.listNeedleByPost)
 	g.Group("/").GET("/listNeedle", s.listNeedleByGet)
 
@@ -19,6 +22,7 @@ func (s *Server) addList(g *gin.RouterGroup) {
 	g.Group("/").GET("/listVolume", s.listVolumeByGet)
 
 	g.Group("/").GET("/getAccount", s.getAccountByGet)
+	g.Group("/").GET("/getBucket", s.getBucketByGet)
 	g.Group("/").GET("/getNeedle", s.getNeedleByGet)
 	g.Group("/").GET("/getVolume", s.getVolumeByGet)
 }
@@ -79,18 +83,100 @@ func (s *Server) listAccountByGet(c *gin.Context) {
 //	@Tags			account
 //	@Accept			json
 //	@Produce		json
-//	@Param			offset	query		int		false	"pagination offset" default(0)
-//	@Param			length	query		int		false	"number of items per page" default(32)
+//	@Param			offset	formData	int		false	"pagination offset" default(0)
+//	@Param			length	formData	int		false	"number of items per page" default(32)
 //	@Success		200		{object}	map[string]interface{}
 //	@Failure		599		{object}	lerror.APIError
 //	@Router			/api/listAccount [post]
 func (s *Server) listAccountByPost(c *gin.Context) {
+	offset, _ := strconv.Atoi(c.PostForm("offset"))
+	length, _ := strconv.Atoi(c.PostForm("length"))
+	if length == 0 {
+		length = 32
+	}
+	res, err := s.listAccount(offset, length)
+	if err != nil {
+		c.JSON(599, lerror.ToAPIError("hub", err))
+		return
+	}
+
+	c.JSON(http.StatusOK, res)
+}
+
+// getBucketByGet godoc
+//
+//	@Summary		get bucket information
+//	@Description	get bucket information for a specific bucket
+//	@Tags			bucket
+//	@Accept			json
+//	@Produce		json
+//	@Param			owner	query		string	false	"account owner address"
+//	@Param			bucket	query		string	false	"bucket name"
+//	@Success		200		{object}	map[string]interface{}
+//	@Failure		599		{object}	lerror.APIError
+//	@Router			/api/getBucket [get]
+func (s *Server) getBucketByGet(c *gin.Context) {
+	owner := c.Query("owner")
+	bucket := c.Query("bucket")
+	res, err := s.getBucket(owner, bucket)
+	if err != nil {
+		c.JSON(599, lerror.ToAPIError("hub", err))
+		return
+	}
+
+	c.JSON(http.StatusOK, res)
+}
+
+// listBucketByGet godoc
+//
+//	@Summary		list buckets
+//	@Description	get a list of buckets with pagination support
+//	@Tags			bucket
+//	@Accept			json
+//	@Produce		json
+//	@Param			owner	query		string	false	"owner address" default("")
+//	@Param			offset	query		int		false	"pagination offset" default(0)
+//	@Param			length	query		int		false	"number of items per page" default(32)
+//	@Success		200		{object}	map[string]interface{}
+//	@Failure		599		{object}	lerror.APIError
+//	@Router			/api/listBucket [get]
+func (s *Server) listBucketByGet(c *gin.Context) {
+	owner := c.Query("owner")
 	offset, _ := strconv.Atoi(c.Query("offset"))
 	length, _ := strconv.Atoi(c.Query("length"))
 	if length == 0 {
 		length = 32
 	}
-	res, err := s.listAccount(offset, length)
+	res, err := s.listBucket(owner, offset, length)
+	if err != nil {
+		c.JSON(599, lerror.ToAPIError("hub", err))
+		return
+	}
+
+	c.JSON(http.StatusOK, res)
+}
+
+// listBucketByPost godoc
+//
+//	@Summary		list buckets
+//	@Description	get a list of buckets with pagination support
+//	@Tags			bucket
+//	@Accept			json
+//	@Produce		json
+//	@Param			owner	formData	string	false	"owner address"
+//	@Param			offset	formData	int		false	"pagination offset" default(0)
+//	@Param			length	formData	int		false	"number of items per page" default(32)
+//	@Success		200		{object}	map[string]interface{}
+//	@Failure		599		{object}	lerror.APIError
+//	@Router			/api/listBucket [post]
+func (s *Server) listBucketByPost(c *gin.Context) {
+	owner := c.PostForm("owner")
+	offset, _ := strconv.Atoi(c.PostForm("offset"))
+	length, _ := strconv.Atoi(c.PostForm("length"))
+	if length == 0 {
+		length = 32
+	}
+	res, err := s.listBucket(owner, offset, length)
 	if err != nil {
 		c.JSON(599, lerror.ToAPIError("hub", err))
 		return
@@ -106,15 +192,17 @@ func (s *Server) listAccountByPost(c *gin.Context) {
 //	@Tags			needle
 //	@Accept			json
 //	@Produce		json
-//	@Param			owner	query		string	false	"owner address"
-//	@Param			name	query		string	false	"needle name"
+//	@Param			owner	query		string	false	"owner address" default("")
+//	@Param			bucket	query		string	false	"bucket name" default("")
+//	@Param			name	query		string	false	"needle name" default("")
 //	@Success		200		{object}	map[string]interface{}
 //	@Failure		599		{object}	lerror.APIError
 //	@Router			/api/getNeedle [get]
 func (s *Server) getNeedleByGet(c *gin.Context) {
 	owner := c.Query("owner")
+	bucket := c.Query("bucket")
 	name := c.Query("name")
-	res, err := s.getNeedleDisplay(owner, name)
+	res, err := s.getNeedleDisplay(owner, bucket, name)
 	if err != nil {
 		c.JSON(599, lerror.ToAPIError("hub", err))
 		return
@@ -130,20 +218,22 @@ func (s *Server) getNeedleByGet(c *gin.Context) {
 //	@Tags			needle
 //	@Accept			json
 //	@Produce		json
-//	@Param			owner	query		string	false	"owner address"
+//	@Param			owner	query		string	false	"owner address" default("")
+//	@Param			bucket	query		string	false	"bucket name" default("")
 //	@Param			offset	query		int		false	"pagination offset" default(0)
-//	@Param			length	query		int		false	"number of items per page" default(32)
+//	@Param			length	query		int		false		"number of items per page" default(32)
 //	@Success		200		{object}	map[string]interface{}
 //	@Failure		599		{object}	lerror.APIError
 //	@Router			/api/listNeedle [get]
 func (s *Server) listNeedleByGet(c *gin.Context) {
 	addr := c.Query("owner")
+	bucket := c.Query("bucket")
 	offset, _ := strconv.Atoi(c.Query("offset"))
 	length, _ := strconv.Atoi(c.Query("length"))
 	if length == 0 {
 		length = 32
 	}
-	res, err := s.listNeedleDisplay(addr, offset, length)
+	res, err := s.listNeedleDisplay(addr, bucket, offset, length)
 	if err != nil {
 		c.JSON(599, lerror.ToAPIError("hub", err))
 		return
@@ -159,20 +249,22 @@ func (s *Server) listNeedleByGet(c *gin.Context) {
 //	@Tags			needle
 //	@Accept			json
 //	@Produce		json
-//	@Param			owner	formData	string	false	"owner address"
+//	@Param			owner	formData	string	false	"owner address" default("")
+//	@Param			bucket	formData	string	false	"bucket name" default("")
 //	@Param			offset	formData	int		false	"pagination offset" default(0)
 //	@Param			length	formData	int		false	"number of items per page" default(32)
 //	@Success		200		{object}	map[string]interface{}
 //	@Failure		599		{object}	lerror.APIError
 //	@Router			/api/listNeedle [post]
 func (s *Server) listNeedleByPost(c *gin.Context) {
-	addr := c.PostForm("owner")
+	owner := c.PostForm("owner")
+	bucket := c.PostForm("bucket")
 	offset, _ := strconv.Atoi(c.PostForm("offset"))
 	length, _ := strconv.Atoi(c.PostForm("length"))
 	if length == 0 {
 		length = 32
 	}
-	res, err := s.listNeedleDisplay(addr, offset, length)
+	res, err := s.listNeedleDisplay(owner, bucket, offset, length)
 	if err != nil {
 		c.JSON(599, lerror.ToAPIError("hub", err))
 		return

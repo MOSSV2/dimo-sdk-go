@@ -11,10 +11,17 @@ type Account struct {
 	Name string
 }
 
+type Bucket struct {
+	gorm.Model
+	Name  string
+	Owner string
+}
+
 type Needle struct {
 	gorm.Model
 	Name   string
 	Owner  string
+	Bucket string
 	File   uint64
 	Start  uint64
 	Size   uint64
@@ -34,21 +41,25 @@ type NeedleDisplay struct {
 	CreatedAt time.Time
 	Name      string
 	Owner     string
+	Bucket    string
 	File      uint64
 	Start     uint64
 	Size      uint64
 	Piece     string
+	ChainType string
 	TxHash    string
 }
 
 type Stat struct {
 	Day           time.Time
 	DailyAccounts int64 // new created accounts at this day
+	DailyBuckets  int64 // new created buckets at this day
 	DailyNeedles  int64 // new created needles at this day
 	DailyVolumes  int64 // new created volumes at this day
-	TotalAccounts int64 // total accounts at this day
-	TotalNeedles  int64 // total needles at this day
-	TotalVolumes  int64 // total volumes at this day
+	TotalAccounts int64 // total accounts until this day
+	TotalBuckets  int64 // total buckets until this day
+	TotalNeedles  int64 // total needles until this day
+	TotalVolumes  int64 // total volumes until this day
 }
 
 type FileStat struct {
@@ -56,7 +67,7 @@ type FileStat struct {
 	DailyEdges int64 // new created edges at this day
 	DailyFiles int64 // new created files at this day
 	DailySize  int64 // new created size at this day
-	TotalEdges int64 // total edges at this day
-	TotalFiles int64 // total files at this day
-	TotalSize  int64 // total size at this day
+	TotalEdges int64 // total edges until this day
+	TotalFiles int64 // total files until this day
+	TotalSize  int64 // total size until this day
 }

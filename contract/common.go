@@ -95,7 +95,7 @@ var (
 var (
 	BNBTestnet           = build.BNBTestnet
 	BNBTestnetExplorer   = "https://testnet.bscscan.com/"
-	BNBTestnetChainRPC   = "https://bsc-testnet-rpc.publicnode.com"
+	BNBTestnetChainRPC   = "https://data-seed-prebsc-2-s1.bnbchain.org:8545"
 	BNBTestnetChainID    = 97
 	BNBTestnetBankAddr   = common.HexToAddress("0x5903805A3a50Fab318c8650bABC71F58900EE34e")
 	BNBTestnetTokenAddr  = common.HexToAddress("0x3259E10E857139a5C58Fa5Dc6C7fF525AaE661F8")

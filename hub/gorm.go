@@ -3,6 +3,8 @@ package hub
 import (
 	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -23,9 +25,40 @@ func (s *Server) loadGORM() {
 		panic("failed to connect database")
 	}
 	db.AutoMigrate(&types.Account{})
+	db.AutoMigrate(&types.Bucket{})
 	db.AutoMigrate(&types.Needle{})
 	db.AutoMigrate(&types.Volume{})
+
 	s.gdb = db
+
+	// iterate all needles to update bucket
+	now := time.Now()
+	if now.Before(time.Date(2025, 4, 20, 0, 0, 0, 0, time.UTC)) {
+		var needles []types.Needle
+		db.Find(&needles)
+		for _, needle := range needles {
+			if needle.Bucket != "" {
+				continue
+			}
+			fmt.Println("update bucket: ", needle.Name)
+			var w bytes.Buffer
+			s.logFSRead(needle.Owner, needle.Name, &w)
+			if w.Len() > 0 {
+				// decode w to json
+				var meta map[string]interface{}
+				err := json.Unmarshal(w.Bytes(), &meta)
+				if err != nil {
+					continue
+				}
+				if bucketName, ok := meta["name"].(string); ok {
+					s.addBucket(needle.Owner, bucketName)
+					// update needle
+					db.Model(&needle).Update("bucket", bucketName)
+				}
+			}
+		}
+	}
+
 }
 
 func (s *Server) addAccount(owner string) {
@@ -40,6 +73,27 @@ func (s *Server) addAccount(owner string) {
 		Name: owner,
 	})
 	logger.Info("create account: ", owner)
+}
+
+// TODO: bucket is global unique
+func (s *Server) addBucket(owner, bucket string) error {
+	var gbucket types.Bucket
+	result := s.gdb.First(&gbucket, "name = ? ", bucket)
+	if result.RowsAffected > 0 {
+		if gbucket.Owner != owner {
+			logger.Infof("bucket: %s is owned by %s", bucket, gbucket.Owner)
+			return fmt.Errorf("bucket: %s is owned by %s", bucket, gbucket.Owner)
+		}
+		logger.Info("already has bucket: ", bucket)
+		return nil
+	}
+
+	s.gdb.Create(&types.Bucket{
+		Name:  bucket,
+		Owner: owner,
+	})
+	logger.Info("create bucket: ", bucket)
+	return nil
 }
 
 func (s *Server) getAccount(owner string) ([]types.Account, error) {
@@ -61,13 +115,33 @@ func (s *Server) listAccount(offset, limit int) ([]types.Account, error) {
 	return accounts, nil
 }
 
-func (s *Server) addNeedle(owner, name string, findex uint64, start, length uint64) {
+func (s *Server) getBucket(owner, bucket string) ([]types.Bucket, error) {
+	var buckets []types.Bucket
+	result := s.gdb.Where(&types.Bucket{Owner: owner, Name: bucket}).Find(&buckets)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return buckets, nil
+}
+
+func (s *Server) listBucket(owner string, offset, limit int) ([]types.Bucket, error) {
+	var buckets []types.Bucket
+	result := s.gdb.Where(&types.Bucket{Owner: owner}).Order("id desc").Limit(limit).Offset(offset).Find(&buckets)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return buckets, nil
+}
+
+func (s *Server) addNeedle(owner, bucket, name string, findex uint64, start, length uint64) {
 	s.gdb.Create(&types.Needle{
-		Owner: owner,
-		Name:  name,
-		File:  findex,
-		Start: start,
-		Size:  length,
+		Owner:  owner,
+		Bucket: bucket,
+		Name:   name,
+		File:   findex,
+		Start:  start,
+		Size:   length,
 	})
 	logger.Info("create needle: ", owner)
 }
@@ -81,9 +155,9 @@ func (s *Server) getNeedleByName(name string) ([]types.Needle, error) {
 	return needle, nil
 }
 
-func (s *Server) getNeedleDisplay(owner, name string) ([]types.NeedleDisplay, error) {
+func (s *Server) getNeedleDisplay(owner, bucket, name string) ([]types.NeedleDisplay, error) {
 	var needle []types.Needle
-	result := s.gdb.Where(&types.Needle{Name: name, Owner: owner}).Find(&needle)
+	result := s.gdb.Where(&types.Needle{Name: name, Owner: owner, Bucket: bucket}).Find(&needle)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -93,6 +167,7 @@ func (s *Server) getNeedleDisplay(owner, name string) ([]types.NeedleDisplay, er
 			CreatedAt: needle[i].CreatedAt,
 			Name:      needle[i].Name,
 			Owner:     needle[i].Owner,
+			Bucket:    needle[i].Bucket,
 			File:      needle[i].File,
 			Start:     needle[i].Start,
 			Size:      needle[i].Size,
@@ -101,6 +176,7 @@ func (s *Server) getNeedleDisplay(owner, name string) ([]types.NeedleDisplay, er
 		if err == nil && len(vol) > 0 {
 			nd.Piece = vol[0].Piece
 			nd.TxHash = vol[0].TxHash
+			nd.ChainType = vol[0].ChainType
 		}
 		res = append(res, nd)
 	}
@@ -108,9 +184,9 @@ func (s *Server) getNeedleDisplay(owner, name string) ([]types.NeedleDisplay, er
 	return res, nil
 }
 
-func (s *Server) listNeedle(owner string, offset, limit int) ([]types.Needle, error) {
+func (s *Server) listNeedle(owner, bucket string, offset, limit int) ([]types.Needle, error) {
 	var needles []types.Needle
-	result := s.gdb.Where(&types.Needle{Owner: owner}).Order("id desc").Limit(limit).Offset(offset).Find(&needles)
+	result := s.gdb.Where(&types.Needle{Owner: owner, Bucket: bucket}).Order("id desc").Limit(limit).Offset(offset).Find(&needles)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -118,10 +194,10 @@ func (s *Server) listNeedle(owner string, offset, limit int) ([]types.Needle, er
 	return needles, nil
 }
 
-func (s *Server) listNeedleDisplay(owner string, offset, limit int) ([]types.NeedleDisplay, error) {
-	logger.Debug("list needle: ", owner, offset, limit)
+func (s *Server) listNeedleDisplay(owner, bucket string, offset, limit int) ([]types.NeedleDisplay, error) {
+	logger.Debug("list needle: ", owner, bucket, offset, limit)
 	var needle []types.Needle
-	result := s.gdb.Where(&types.Needle{Owner: owner}).Order("id desc").Limit(limit).Offset(offset).Find(&needle)
+	result := s.gdb.Where(&types.Needle{Owner: owner, Bucket: bucket}).Order("id desc").Limit(limit).Offset(offset).Find(&needle)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -132,6 +208,7 @@ func (s *Server) listNeedleDisplay(owner string, offset, limit int) ([]types.Nee
 			CreatedAt: needle[i].CreatedAt,
 			Name:      needle[i].Name,
 			Owner:     needle[i].Owner,
+			Bucket:    needle[i].Bucket,
 			File:      needle[i].File,
 			Start:     needle[i].Start,
 			Size:      needle[i].Size,
@@ -140,6 +217,7 @@ func (s *Server) listNeedleDisplay(owner string, offset, limit int) ([]types.Nee
 		if err == nil && len(vol) > 0 {
 			nd.Piece = vol[0].Piece
 			nd.TxHash = vol[0].TxHash
+			nd.ChainType = vol[0].ChainType
 		}
 		res = append(res, nd)
 	}
@@ -177,11 +255,18 @@ func (s *Server) listVolume(owner string, offset, limit int) ([]types.Volume, er
 	return vols, nil
 }
 
-func (s *Server) listConversation(ctx context.Context, addr string) ([]string, error) {
+func (s *Server) listConversation(ctx context.Context, addr, bucket string) ([]string, error) {
 	var needles []types.Needle
 	// create time is time.Time >= 2025-03-07,
 	// name end with "_0"
-	result := s.gdb.Model(&types.Needle{}).Where("owner = ? and created_at >= ? and name like ?", addr, time.Date(2025, 3, 7, 0, 0, 0, 0, time.UTC), "%_0").Find(&needles)
+	// addr may be empty
+	// bucket may be empty
+	var result *gorm.DB
+	if bucket == "" {
+		result = s.gdb.Model(&types.Needle{}).Where("owner = ? and created_at >= ? and name like ?", addr, time.Date(2025, 3, 7, 0, 0, 0, 0, time.UTC), "%_0").Find(&needles)
+	} else {
+		result = s.gdb.Model(&types.Needle{}).Where("owner = ? and bucket = ? and created_at >= ? and name like ?", addr, bucket, time.Date(2025, 3, 7, 0, 0, 0, 0, time.UTC), "%_0").Find(&needles)
+	}
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -206,12 +291,17 @@ func (s *Server) listConversation(ctx context.Context, addr string) ([]string, e
 	return conversations, nil
 }
 
-func (s *Server) getConversation(ctx context.Context, conversation, addr string) ([]string, error) {
+func (s *Server) getConversation(ctx context.Context, conversation, addr, bucket string) ([]string, error) {
 	var needles []types.Needle
 	// name contains conversation + "_"
 	// create time >= 2025-03-07
 	// order by id asc
-	result := s.gdb.Model(&types.Needle{}).Where("name like ? and owner = ? and created_at >= ?", conversation+"_%", addr, time.Date(2025, 3, 7, 0, 0, 0, 0, time.UTC)).Order("id asc").Find(&needles)
+	var result *gorm.DB
+	if bucket == "" {
+		result = s.gdb.Model(&types.Needle{}).Where("name like ? and owner = ? and created_at >= ?", conversation+"_%", addr, time.Date(2025, 3, 7, 0, 0, 0, 0, time.UTC)).Order("id asc").Find(&needles)
+	} else {
+		result = s.gdb.Model(&types.Needle{}).Where("name like ? and owner = ? and bucket = ? and created_at >= ?", conversation+"_%", addr, bucket, time.Date(2025, 3, 7, 0, 0, 0, 0, time.UTC)).Order("id asc").Find(&needles)
+	}
 	if result.Error != nil {
 		return nil, result.Error
 	}

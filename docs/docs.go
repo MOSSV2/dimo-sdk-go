@@ -31,10 +31,16 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "owner address",
+                        "description": "owner/account address",
                         "name": "owner",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "bucket name",
+                        "name": "bucket",
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -74,10 +80,16 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "owner address",
+                        "description": "owner/account address",
                         "name": "owner",
                         "in": "formData",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "bucket name",
+                        "name": "bucket",
+                        "in": "formData"
                     },
                     {
                         "type": "string",
@@ -141,6 +153,50 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/getBucket": {
+            "get": {
+                "description": "get bucket information for a specific bucket",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bucket"
+                ],
+                "summary": "get bucket information",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "account owner address",
+                        "name": "owner",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "bucket name",
+                        "name": "bucket",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "599": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
         "/api/getNeedle": {
             "get": {
                 "description": "get needle information for a specific owner",
@@ -157,12 +213,21 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "default": "\"\"",
                         "description": "owner address",
                         "name": "owner",
                         "in": "query"
                     },
                     {
                         "type": "string",
+                        "default": "\"\"",
+                        "description": "bucket name",
+                        "name": "bucket",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "\"\"",
                         "description": "needle name",
                         "name": "name",
                         "in": "query"
@@ -292,6 +357,59 @@ const docTemplate = `{
                         "default": 0,
                         "description": "pagination offset",
                         "name": "offset",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 32,
+                        "description": "number of items per page",
+                        "name": "length",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "599": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/listBucket": {
+            "get": {
+                "description": "get a list of buckets with pagination support",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bucket"
+                ],
+                "summary": "list buckets",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "\"\"",
+                        "description": "owner address",
+                        "name": "owner",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "pagination offset",
+                        "name": "offset",
                         "in": "query"
                     },
                     {
@@ -300,6 +418,56 @@ const docTemplate = `{
                         "description": "number of items per page",
                         "name": "length",
                         "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "599": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "get a list of buckets with pagination support",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bucket"
+                ],
+                "summary": "list buckets",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "owner address",
+                        "name": "owner",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "pagination offset",
+                        "name": "offset",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 32,
+                        "description": "number of items per page",
+                        "name": "length",
+                        "in": "formData"
                     }
                 ],
                 "responses": {
@@ -335,8 +503,16 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "default": "\"\"",
                         "description": "owner address",
                         "name": "owner",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "\"\"",
+                        "description": "bucket name",
+                        "name": "bucket",
                         "in": "query"
                     },
                     {
@@ -385,8 +561,16 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "default": "\"\"",
                         "description": "owner address",
                         "name": "owner",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "default": "\"\"",
+                        "description": "bucket name",
+                        "name": "bucket",
                         "in": "formData"
                     },
                     {
@@ -627,6 +811,10 @@ const docTemplate = `{
                     "description": "new created accounts at this day",
                     "type": "integer"
                 },
+                "dailyBuckets": {
+                    "description": "new created buckets at this day",
+                    "type": "integer"
+                },
                 "dailyNeedles": {
                     "description": "new created needles at this day",
                     "type": "integer"
@@ -639,15 +827,19 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "totalAccounts": {
-                    "description": "total accounts at this day",
+                    "description": "total accounts until this day",
+                    "type": "integer"
+                },
+                "totalBuckets": {
+                    "description": "total buckets until this day",
                     "type": "integer"
                 },
                 "totalNeedles": {
-                    "description": "total needles at this day",
+                    "description": "total needles until this day",
                     "type": "integer"
                 },
                 "totalVolumes": {
-                    "description": "total volumes at this day",
+                    "description": "total volumes until this day",
                     "type": "integer"
                 }
             }

@@ -69,6 +69,14 @@ function createCard(meta) {
   p1.appendChild(needleLink);
   cardContent.appendChild(p1);
 
+  const p3 = document.createElement("p");
+  p3.setAttribute('data-label', 'Bucket List:');
+  const bucketLink = document.createElement('a');
+  bucketLink.href = 'bucket.html?owner=' + meta.Name;
+  bucketLink.textContent = '[click to show]';
+  p3.appendChild(bucketLink);
+  cardContent.appendChild(p3);
+
   const p2 = document.createElement("p");
   p2.setAttribute('data-label', 'Volume List:');
   const volumeLink = document.createElement('a');

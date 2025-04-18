@@ -138,6 +138,10 @@ func (sm *StatManager) updateStat(t time.Time) {
 	sm.db.Model(&types.Account{}).Where("created_at < ?", nextDay).Find(&totalAccounts)
 	totalAccountsCount := int64(len(totalAccounts))
 
+	var totalBuckets []types.Bucket
+	sm.db.Model(&types.Bucket{}).Where("created_at < ?", nextDay).Find(&totalBuckets)
+	totalBucketsCount := int64(len(totalBuckets))
+
 	var totalNeedles []types.Needle
 	sm.db.Model(&types.Needle{}).Where("created_at < ?", nextDay).Find(&totalNeedles)
 	totalNeedlesCount := int64(len(totalNeedles))
@@ -149,6 +153,7 @@ func (sm *StatManager) updateStat(t time.Time) {
 	stat := &types.Stat{
 		Day:           t,
 		TotalAccounts: totalAccountsCount,
+		TotalBuckets:  totalBucketsCount,
 		TotalNeedles:  totalNeedlesCount,
 		TotalVolumes:  totalVolumesCount,
 	}
@@ -171,6 +176,10 @@ func (sm *StatManager) updateDailyStat(t time.Time) {
 	sm.db.Model(&types.Account{}).Where("created_at < ? and created_at >= ?", nextDay, t).Find(&dailyAccounts)
 	dailyAccountsCount := int64(len(dailyAccounts))
 
+	var dailyBuckets []types.Bucket
+	sm.db.Model(&types.Bucket{}).Where("created_at < ? and created_at >= ?", nextDay, t).Find(&dailyBuckets)
+	dailyBucketsCount := int64(len(dailyBuckets))
+
 	var dailyNeedles []types.Needle
 	sm.db.Model(&types.Needle{}).Where("created_at < ? and created_at >= ?", nextDay, t).Find(&dailyNeedles)
 	dailyNeedlesCount := int64(len(dailyNeedles))
@@ -188,6 +197,7 @@ func (sm *StatManager) updateDailyStat(t time.Time) {
 		sm.stats[day] = stat
 	}
 	stat.DailyAccounts = dailyAccountsCount
+	stat.DailyBuckets = dailyBucketsCount
 	stat.DailyNeedles = dailyNeedlesCount
 	stat.DailyVolumes = dailyVolumesCount
 
@@ -201,6 +211,7 @@ func (sm *StatManager) updateDailyStat(t time.Time) {
 		sm.stats[prevDay] = prevDayStat
 	}
 	stat.TotalAccounts = prevDayStat.TotalAccounts + dailyAccountsCount
+	stat.TotalBuckets = prevDayStat.TotalBuckets + dailyBucketsCount
 	stat.TotalNeedles = prevDayStat.TotalNeedles + dailyNeedlesCount
 	stat.TotalVolumes = prevDayStat.TotalVolumes + dailyVolumesCount
 

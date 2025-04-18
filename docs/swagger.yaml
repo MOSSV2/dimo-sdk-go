@@ -12,6 +12,9 @@ definitions:
       dailyAccounts:
         description: new created accounts at this day
         type: integer
+      dailyBuckets:
+        description: new created buckets at this day
+        type: integer
       dailyNeedles:
         description: new created needles at this day
         type: integer
@@ -21,13 +24,16 @@ definitions:
       day:
         type: string
       totalAccounts:
-        description: total accounts at this day
+        description: total accounts until this day
+        type: integer
+      totalBuckets:
+        description: total buckets until this day
         type: integer
       totalNeedles:
-        description: total needles at this day
+        description: total needles until this day
         type: integer
       totalVolumes:
-        description: total volumes at this day
+        description: total volumes until this day
         type: integer
     type: object
 host: localhost:8080
@@ -43,10 +49,14 @@ paths:
       - application/json
       description: get specific conversation information or list all conversations
       parameters:
-      - description: owner address
+      - description: owner/account address
         in: query
         name: owner
         required: true
+        type: string
+      - description: bucket name
+        in: query
+        name: bucket
         type: string
       - description: conversation ID (empty means list all conversation ids)
         in: query
@@ -72,10 +82,14 @@ paths:
       - application/json
       description: get specific conversation information or list all conversations
       parameters:
-      - description: owner address
+      - description: owner/account address
         in: formData
         name: owner
         required: true
+        type: string
+      - description: bucket name
+        in: formData
+        name: bucket
         type: string
       - description: conversation ID (empty means list all conversation ids)
         in: formData
@@ -121,17 +135,53 @@ paths:
       summary: get account information
       tags:
       - account
+  /api/getBucket:
+    get:
+      consumes:
+      - application/json
+      description: get bucket information for a specific bucket
+      parameters:
+      - description: account owner address
+        in: query
+        name: owner
+        type: string
+      - description: bucket name
+        in: query
+        name: bucket
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "599":
+          description: ""
+          schema:
+            $ref: '#/definitions/error.APIError'
+      summary: get bucket information
+      tags:
+      - bucket
   /api/getNeedle:
     get:
       consumes:
       - application/json
       description: get needle information for a specific owner
       parameters:
-      - description: owner address
+      - default: '""'
+        description: owner address
         in: query
         name: owner
         type: string
-      - description: needle name
+      - default: '""'
+        description: bucket name
+        in: query
+        name: bucket
+        type: string
+      - default: '""'
+        description: needle name
         in: query
         name: name
         type: string
@@ -217,6 +267,42 @@ paths:
       parameters:
       - default: 0
         description: pagination offset
+        in: formData
+        name: offset
+        type: integer
+      - default: 32
+        description: number of items per page
+        in: formData
+        name: length
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "599":
+          description: ""
+          schema:
+            $ref: '#/definitions/error.APIError'
+      summary: list accounts
+      tags:
+      - account
+  /api/listBucket:
+    get:
+      consumes:
+      - application/json
+      description: get a list of buckets with pagination support
+      parameters:
+      - default: '""'
+        description: owner address
+        in: query
+        name: owner
+        type: string
+      - default: 0
+        description: pagination offset
         in: query
         name: offset
         type: integer
@@ -237,18 +323,58 @@ paths:
           description: ""
           schema:
             $ref: '#/definitions/error.APIError'
-      summary: list accounts
+      summary: list buckets
       tags:
-      - account
+      - bucket
+    post:
+      consumes:
+      - application/json
+      description: get a list of buckets with pagination support
+      parameters:
+      - description: owner address
+        in: formData
+        name: owner
+        type: string
+      - default: 0
+        description: pagination offset
+        in: formData
+        name: offset
+        type: integer
+      - default: 32
+        description: number of items per page
+        in: formData
+        name: length
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "599":
+          description: ""
+          schema:
+            $ref: '#/definitions/error.APIError'
+      summary: list buckets
+      tags:
+      - bucket
   /api/listNeedle:
     get:
       consumes:
       - application/json
       description: get a list of needles for a specific owner with pagination support
       parameters:
-      - description: owner address
+      - default: '""'
+        description: owner address
         in: query
         name: owner
+        type: string
+      - default: '""'
+        description: bucket name
+        in: query
+        name: bucket
         type: string
       - default: 0
         description: pagination offset
@@ -280,9 +406,15 @@ paths:
       - application/json
       description: get a list of needles for a specific owner with pagination support
       parameters:
-      - description: owner address
+      - default: '""'
+        description: owner address
         in: formData
         name: owner
+        type: string
+      - default: '""'
+        description: bucket name
+        in: formData
+        name: bucket
         type: string
       - default: 0
         description: pagination offset

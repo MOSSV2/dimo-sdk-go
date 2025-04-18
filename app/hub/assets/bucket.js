@@ -4,11 +4,6 @@ const eaddrparam = urlParams.get("owner");
 if (eaddrparam) {
   eaddr = eaddrparam;
 }
-let bucket = ""
-const bucketparam = urlParams.get("bucket");
-if (bucketparam) {
-  bucket = bucketparam;
-}
 
 const itemsPerPage = 12;
 let currentPage = 1;
@@ -19,14 +14,14 @@ function renderPage() {
   cardContainer.innerHTML = '';
 
   const startIndex = (currentPage - 1) * itemsPerPage;
-  listNeedle(eaddr, startIndex, itemsPerPage)
+  listBucket(eaddr, startIndex, itemsPerPage)
     .then((data) => {
       data.forEach((fileMeta) => {
         const card = createCard(fileMeta);
         cardContainer.appendChild(card);
       });
     })
-    .catch((error) => console.error("Error fetching needle:", error));
+    .catch((error) => console.error("Error fetching bucket:", error));
 
   // Update the page number
   document.getElementById('pageNumber').innerText = `Page: ${currentPage}`;
@@ -66,73 +61,43 @@ function createCard(meta) {
   p5.textContent = meta.Owner;
   cardContent.appendChild(p5);
 
-  const p7 = document.createElement("p");
-  p7.setAttribute('data-label', 'Bucket:');
-  p7.textContent = meta.Bucket;
-  cardContent.appendChild(p7);
-
-  const p0 = document.createElement("p");
-  p0.setAttribute('data-label', 'Volume:');
-  p0.textContent = meta.File;
-  cardContent.appendChild(p0);
-
-  const p1 = document.createElement("p");
-  p1.setAttribute('data-label', 'Start:');
-  p1.textContent = meta.Start;
-  cardContent.appendChild(p1);
-
-  const p2 = document.createElement("p");
-  p2.setAttribute('data-label', 'Size:');
-  p2.textContent = meta.Size + ' bytes';
-  cardContent.appendChild(p2);
-
   const p21 = document.createElement("p");
   p21.setAttribute('data-label', 'Creation:');
   p21.textContent = meta.CreatedAt;
   cardContent.appendChild(p21);
 
-  if (meta.TxHash) {
-    const p3 = document.createElement("p");
-    p3.setAttribute('data-label', 'Piece:');
-    p3.textContent = meta.Piece;
-    cardContent.appendChild(p3);
-  }
-
-  if (meta.TxHash) {
-    const p4 = document.createElement("p");
-    p4.setAttribute('data-label', 'TxHash:');
-    const link = document.createElement('a');
-    link.href = 'https://sepolia-optimism.etherscan.io/tx/' + meta.TxHash;
-    link.target = '_blank';
-    link.textContent = meta.TxHash;
-    p4.appendChild(link);
-    cardContent.appendChild(p4);
-  }
-
-  const p6 = document.createElement("p");
-  p6.setAttribute('data-label', 'Content:');
-  const contentLink = document.createElement('a');
-  contentLink.href = 'content.html?owner=' + meta.Owner + '&name=' + meta.Name;
-  contentLink.target = '_blank';
-  contentLink.textContent = '[click to show]';
-  p6.appendChild(contentLink);
-  cardContent.appendChild(p6);
+  const p3 = document.createElement("p");
+  p3.setAttribute('data-label', 'Needle List:');
+  const needleLink = document.createElement('a');
+  needleLink.href = 'needle.html?owner=' + meta.Owner + '&bucket=' + meta.Name;
+  needleLink.textContent = '[click to show]';
+  p3.appendChild(needleLink);
+  cardContent.appendChild(p3);
 
   return card;
 }
 
-function listNeedle(eaddr, offset, length) {
-  return fetch(`/api/listNeedle?owner=${eaddr}&bucket=${bucket}&offset=${offset}&length=${length}`)
-    .then((response) => response.json())
-    .then((data) => {
-      return data;
-    })
-    .catch((error) => console.error("Error fetching needles:", error))
+function listBucket(eaddr, offset, length) {
+  if (eaddr) {
+    return fetch(`/api/listBucket?owner=${eaddr}&offset=${offset}&length=${length}`)
+      .then((response) => response.json())
+      .then((data) => {
+        return data;
+      })
+      .catch((error) => console.error("Error fetching needles:", error))
+  } else {
+    return fetch(`/api/listBucket?offset=${offset}&length=${length}`)
+      .then((response) => response.json())
+      .then((data) => {
+        return data;
+      })
+      .catch((error) => console.error("Error fetching needles:", error))
+  }
 }
 
 function search() {
   const searchInput = document.getElementById("searchInput").value;
-  fetch(`/api/getNeedle?owner=${eaddr}&bucket=${bucket}&name=${searchInput}`)
+  fetch(`/api/getBucket?bucket=${searchInput}`)
     .then((response) => response.json())
     .then((data) => {
       displayResults(data);
