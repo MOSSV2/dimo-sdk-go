@@ -63,10 +63,17 @@ type StatManager struct {
 	stats    map[string]*types.Stat // key: YYYY-MM-DD
 	lastDay  time.Time
 	stopChan chan struct{}
+
+	// Track last processed IDs for incremental updates
+	lastAccountID uint
+	lastBucketID  uint
+	lastNeedleID  uint
+	lastVolumeID  uint
 }
 
 // NewStatManager creates a new StatManager instance
 func NewStatManager(db *gorm.DB) *StatManager {
+
 	return &StatManager{
 		db:       db,
 		stats:    make(map[string]*types.Stat),
@@ -74,24 +81,90 @@ func NewStatManager(db *gorm.DB) *StatManager {
 	}
 }
 
-// Start initializes the StatManager with historical data and starts the background update routine
-func (sm *StatManager) Start(ctx context.Context) {
-	// Initialize data for the last 30 days
-	now := time.Now().UTC()
-	// Align to day boundary
-	now = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
-
-	startDay := now.AddDate(0, 0, -31)
-	sm.updateStat(startDay)
-
-	for i := 30; i >= 0; i-- {
-		day := now.AddDate(0, 0, -i)
-		sm.updateDailyStat(day)
+// loadStats loads statistics from database
+func (sm *StatManager) loadStats() error {
+	var records []types.StatRecord
+	// find the latest 30 records
+	if err := sm.db.Order("day DESC").Limit(30).Find(&records).Error; err != nil {
+		return err
 	}
-	sm.lastDay = now
+
+	sm.mu.Lock()
+	defer sm.mu.Unlock()
+
+	for _, record := range records {
+		day := record.Day.Format("2006-01-02")
+		sm.stats[day] = &types.Stat{
+			Day:           record.Day,
+			DailyAccounts: record.DailyAccounts,
+			DailyBuckets:  record.DailyBuckets,
+			DailyNeedles:  record.DailyNeedles,
+			DailyVolumes:  record.DailyVolumes,
+			TotalAccounts: record.TotalAccounts,
+			TotalBuckets:  record.TotalBuckets,
+			TotalNeedles:  record.TotalNeedles,
+			TotalVolumes:  record.TotalVolumes,
+		}
+	}
+
+	// Set last IDs from the most recent record
+	if len(records) > 0 {
+		sm.lastAccountID = records[0].LastAccountID
+		sm.lastBucketID = records[0].LastBucketID
+		sm.lastNeedleID = records[0].LastNeedleID
+		sm.lastVolumeID = records[0].LastVolumeID
+		sm.lastDay = records[0].Day
+	}
+
+	return nil
+}
+
+// saveStat saves a stat record to database
+func (sm *StatManager) saveStat(stat *types.Stat) error {
+	record := types.StatRecord{
+		Day:           stat.Day,
+		DailyAccounts: stat.DailyAccounts,
+		DailyBuckets:  stat.DailyBuckets,
+		DailyNeedles:  stat.DailyNeedles,
+		DailyVolumes:  stat.DailyVolumes,
+		TotalAccounts: stat.TotalAccounts,
+		TotalBuckets:  stat.TotalBuckets,
+		TotalNeedles:  stat.TotalNeedles,
+		TotalVolumes:  stat.TotalVolumes,
+		LastAccountID: sm.lastAccountID,
+		LastBucketID:  sm.lastBucketID,
+		LastNeedleID:  sm.lastNeedleID,
+		LastVolumeID:  sm.lastVolumeID,
+	}
+
+	return sm.db.Save(&record).Error
+}
+
+// Start initializes the StatManager with historical data and starts the background update routine
+func (sm *StatManager) Start(ctx context.Context) error {
+	// Load existing stats from database
+	if err := sm.loadStats(); err != nil {
+		return err
+	}
+
+	// If no stats exist, initialize with historical data
+	if len(sm.stats) == 0 {
+		now := time.Now().UTC()
+		now = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+
+		startDay := now.AddDate(0, 0, -31)
+		sm.updateStat(startDay)
+
+		for i := 30; i >= 0; i-- {
+			day := now.AddDate(0, 0, -i)
+			sm.updateDailyStat(day)
+		}
+		sm.lastDay = now
+	}
 
 	// Start background update routine
 	go sm.run(ctx)
+	return nil
 }
 
 // Stop stops the background update routine
@@ -133,22 +206,34 @@ func (sm *StatManager) updateStat(t time.Time) {
 	day := t.Format("2006-01-02")
 	nextDay := t.Add(24 * time.Hour)
 
-	// Get total counts up to the specified day
+	// Get total counts up to the specified day and update last IDs
 	var totalAccounts []types.Account
 	sm.db.Model(&types.Account{}).Where("created_at < ?", nextDay).Find(&totalAccounts)
 	totalAccountsCount := int64(len(totalAccounts))
+	if len(totalAccounts) > 0 {
+		sm.lastAccountID = totalAccounts[len(totalAccounts)-1].ID
+	}
 
 	var totalBuckets []types.Bucket
 	sm.db.Model(&types.Bucket{}).Where("created_at < ?", nextDay).Find(&totalBuckets)
 	totalBucketsCount := int64(len(totalBuckets))
+	if len(totalBuckets) > 0 {
+		sm.lastBucketID = totalBuckets[len(totalBuckets)-1].ID
+	}
 
 	var totalNeedles []types.Needle
 	sm.db.Model(&types.Needle{}).Where("created_at < ?", nextDay).Find(&totalNeedles)
 	totalNeedlesCount := int64(len(totalNeedles))
+	if len(totalNeedles) > 0 {
+		sm.lastNeedleID = totalNeedles[len(totalNeedles)-1].ID
+	}
 
 	var totalVolumes []types.Volume
 	sm.db.Model(&types.Volume{}).Where("created_at < ?", nextDay).Find(&totalVolumes)
 	totalVolumesCount := int64(len(totalVolumes))
+	if len(totalVolumes) > 0 {
+		sm.lastVolumeID = totalVolumes[len(totalVolumes)-1].ID
+	}
 
 	stat := &types.Stat{
 		Day:           t,
@@ -171,21 +256,45 @@ func (sm *StatManager) updateDailyStat(t time.Time) {
 	day := t.Format("2006-01-02")
 	nextDay := t.Add(24 * time.Hour)
 
-	// Get total counts up to the specified day
+	// Get daily counts using incremental updates with optimized queries
 	var dailyAccounts []types.Account
-	sm.db.Model(&types.Account{}).Where("created_at < ? and created_at >= ?", nextDay, t).Find(&dailyAccounts)
+	sm.db.Model(&types.Account{}).
+		Where("id > ? AND created_at < ? AND created_at >= ?", sm.lastAccountID, nextDay, t).
+		Order("id ASC").
+		Find(&dailyAccounts)
+	if len(dailyAccounts) > 0 {
+		sm.lastAccountID = dailyAccounts[len(dailyAccounts)-1].ID
+	}
 	dailyAccountsCount := int64(len(dailyAccounts))
 
 	var dailyBuckets []types.Bucket
-	sm.db.Model(&types.Bucket{}).Where("created_at < ? and created_at >= ?", nextDay, t).Find(&dailyBuckets)
+	sm.db.Model(&types.Bucket{}).
+		Where("id > ? AND created_at < ? AND created_at >= ?", sm.lastBucketID, nextDay, t).
+		Order("id ASC").
+		Find(&dailyBuckets)
+	if len(dailyBuckets) > 0 {
+		sm.lastBucketID = dailyBuckets[len(dailyBuckets)-1].ID
+	}
 	dailyBucketsCount := int64(len(dailyBuckets))
 
 	var dailyNeedles []types.Needle
-	sm.db.Model(&types.Needle{}).Where("created_at < ? and created_at >= ?", nextDay, t).Find(&dailyNeedles)
+	sm.db.Model(&types.Needle{}).
+		Where("id > ? AND created_at < ? AND created_at >= ?", sm.lastNeedleID, nextDay, t).
+		Order("id ASC").
+		Find(&dailyNeedles)
+	if len(dailyNeedles) > 0 {
+		sm.lastNeedleID = dailyNeedles[len(dailyNeedles)-1].ID
+	}
 	dailyNeedlesCount := int64(len(dailyNeedles))
 
 	var dailyVolumes []types.Volume
-	sm.db.Model(&types.Volume{}).Where("created_at < ? and created_at >= ?", nextDay, t).Find(&dailyVolumes)
+	sm.db.Model(&types.Volume{}).
+		Where("id > ? AND created_at < ? AND created_at >= ?", sm.lastVolumeID, nextDay, t).
+		Order("id ASC").
+		Find(&dailyVolumes)
+	if len(dailyVolumes) > 0 {
+		sm.lastVolumeID = dailyVolumes[len(dailyVolumes)-1].ID
+	}
 	dailyVolumesCount := int64(len(dailyVolumes))
 
 	sm.mu.Lock()
@@ -196,10 +305,11 @@ func (sm *StatManager) updateDailyStat(t time.Time) {
 		}
 		sm.stats[day] = stat
 	}
-	stat.DailyAccounts = dailyAccountsCount
-	stat.DailyBuckets = dailyBucketsCount
-	stat.DailyNeedles = dailyNeedlesCount
-	stat.DailyVolumes = dailyVolumesCount
+	// Accumulate daily incremental data
+	stat.DailyAccounts = stat.DailyAccounts + dailyAccountsCount
+	stat.DailyBuckets = stat.DailyBuckets + dailyBucketsCount
+	stat.DailyNeedles = stat.DailyNeedles + dailyNeedlesCount
+	stat.DailyVolumes = stat.DailyVolumes + dailyVolumesCount
 
 	prevDayTime := t.AddDate(0, 0, -1)
 	prevDay := prevDayTime.Format("2006-01-02")
@@ -210,10 +320,16 @@ func (sm *StatManager) updateDailyStat(t time.Time) {
 		}
 		sm.stats[prevDay] = prevDayStat
 	}
-	stat.TotalAccounts = prevDayStat.TotalAccounts + dailyAccountsCount
-	stat.TotalBuckets = prevDayStat.TotalBuckets + dailyBucketsCount
-	stat.TotalNeedles = prevDayStat.TotalNeedles + dailyNeedlesCount
-	stat.TotalVolumes = prevDayStat.TotalVolumes + dailyVolumesCount
+	// Calculate totals using accumulated daily data
+	stat.TotalAccounts = prevDayStat.TotalAccounts + stat.DailyAccounts
+	stat.TotalBuckets = prevDayStat.TotalBuckets + stat.DailyBuckets
+	stat.TotalNeedles = prevDayStat.TotalNeedles + stat.DailyNeedles
+	stat.TotalVolumes = prevDayStat.TotalVolumes + stat.DailyVolumes
+
+	// Save the updated stat to database
+	if err := sm.saveStat(stat); err != nil {
+		logger.Error("Failed to save stat: ", err)
+	}
 
 	sm.mu.Unlock()
 	logger.Info("stat: ", stat)

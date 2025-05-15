@@ -24,16 +24,17 @@ func (s *Server) loadGORM() {
 	if err != nil {
 		panic("failed to connect database")
 	}
+	// Auto migrate tables
 	db.AutoMigrate(&types.Account{})
 	db.AutoMigrate(&types.Bucket{})
 	db.AutoMigrate(&types.Needle{})
 	db.AutoMigrate(&types.Volume{})
-
+	db.AutoMigrate(&types.StatRecord{})
 	s.gdb = db
 
 	// iterate all needles to update bucket
-	now := time.Now()
-	if now.Before(time.Date(2025, 4, 20, 0, 0, 0, 0, time.UTC)) {
+	ni := os.Getenv("NEED_INIT")
+	if ni != "" {
 		var needles []types.Needle
 		db.Find(&needles)
 		for _, needle := range needles {
@@ -50,7 +51,13 @@ func (s *Server) loadGORM() {
 				if err != nil {
 					continue
 				}
-				if bucketName, ok := meta["name"].(string); ok {
+				bucketName, ok := meta["name"].(string)
+				if ok {
+					s.addBucket(needle.Owner, bucketName)
+					// update needle
+					db.Model(&needle).Update("bucket", bucketName)
+				} else {
+					bucketName := needle.Owner
 					s.addBucket(needle.Owner, bucketName)
 					// update needle
 					db.Model(&needle).Update("bucket", bucketName)

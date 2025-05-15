@@ -105,7 +105,10 @@ func NewServer(rp repo.Repo) (*http.Server, error) {
 	s.loadGORM()
 
 	sm := NewStatManager(s.gdb)
-	sm.Start(context.Background())
+	err = sm.Start(context.Background())
+	if err != nil {
+		return nil, err
+	}
 	s.statManager = sm
 
 	go s.uploadTo()

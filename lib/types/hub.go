@@ -37,6 +37,23 @@ type Volume struct {
 	TxHash    string
 }
 
+type StatRecord struct {
+	gorm.Model
+	Day           time.Time `gorm:"primaryKey"`
+	DailyAccounts int64
+	DailyBuckets  int64
+	DailyNeedles  int64
+	DailyVolumes  int64
+	TotalAccounts int64
+	TotalBuckets  int64
+	TotalNeedles  int64
+	TotalVolumes  int64
+	LastAccountID uint
+	LastBucketID  uint
+	LastNeedleID  uint
+	LastVolumeID  uint
+}
+
 type NeedleDisplay struct {
 	CreatedAt time.Time
 	Name      string
