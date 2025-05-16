@@ -7,6 +7,33 @@ definitions:
       type:
         type: string
     type: object
+  gorm.DeletedAt:
+    properties:
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
+    type: object
+  types.Conversation:
+    properties:
+      bucket:
+        type: string
+      count:
+        type: integer
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: integer
+      name:
+        type: string
+      owner:
+        type: string
+      updatedAt:
+        type: string
+    type: object
   types.Stat:
     properties:
       dailyAccounts:
@@ -47,7 +74,8 @@ paths:
     get:
       consumes:
       - application/json
-      description: get specific conversation information or list all conversations
+      description: list all conversations or get conversation messages by conversation
+        id
       parameters:
       - description: owner/account address
         in: query
@@ -62,6 +90,16 @@ paths:
         in: query
         name: name
         type: string
+      - default: 0
+        description: pagination offset
+        in: query
+        name: offset
+        type: integer
+      - default: 32
+        description: number of items per page
+        in: query
+        name: length
+        type: integer
       produces:
       - application/json
       responses:
@@ -74,13 +112,14 @@ paths:
           description: ""
           schema:
             $ref: '#/definitions/error.APIError'
-      summary: get or list conversations
+      summary: list conversations or get conversation messages by conversation id
       tags:
       - conversation
     post:
       consumes:
       - application/json
-      description: get specific conversation information or list all conversations
+      description: list all conversations or get conversation messages by conversation
+        id
       parameters:
       - description: owner/account address
         in: formData
@@ -95,6 +134,16 @@ paths:
         in: formData
         name: name
         type: string
+      - default: 0
+        description: pagination offset
+        in: formData
+        name: offset
+        type: integer
+      - default: 32
+        description: number of items per page
+        in: formData
+        name: length
+        type: integer
       produces:
       - application/json
       responses:
@@ -107,7 +156,7 @@ paths:
           description: ""
           schema:
             $ref: '#/definitions/error.APIError'
-      summary: get or list conversations
+      summary: list conversations or get conversation messages by conversation id
       tags:
       - conversation
   /api/getAccount:
@@ -164,6 +213,42 @@ paths:
       summary: get bucket information
       tags:
       - bucket
+  /api/getConversation:
+    get:
+      consumes:
+      - application/json
+      description: get detailed information for a specific conversation
+      parameters:
+      - description: owner/account address
+        in: query
+        name: owner
+        required: true
+        type: string
+      - description: bucket name (empty means search in all buckets)
+        in: query
+        name: bucket
+        type: string
+      - description: conversation ID
+        in: query
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/types.Conversation'
+            type: array
+        "599":
+          description: ""
+          schema:
+            $ref: '#/definitions/error.APIError'
+      summary: get conversation details
+      tags:
+      - conversation
   /api/getNeedle:
     get:
       consumes:
@@ -360,6 +445,48 @@ paths:
       summary: list buckets
       tags:
       - bucket
+  /api/listConversation:
+    get:
+      consumes:
+      - application/json
+      description: list all conversations with detailed information for a specific
+        owner and bucket
+      parameters:
+      - description: owner/account address
+        in: query
+        name: owner
+        required: true
+        type: string
+      - description: bucket name (empty means list all conversations of owner)
+        in: query
+        name: bucket
+        type: string
+      - default: 0
+        description: pagination offset
+        in: query
+        name: offset
+        type: integer
+      - default: 32
+        description: number of items per page
+        in: query
+        name: length
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/types.Conversation'
+            type: array
+        "599":
+          description: ""
+          schema:
+            $ref: '#/definitions/error.APIError'
+      summary: list conversations with details
+      tags:
+      - conversation
   /api/listNeedle:
     get:
       consumes:

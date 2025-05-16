@@ -44,14 +44,38 @@ func (s *Server) loadGORM() {
 	db.AutoMigrate(&types.Needle{})
 	db.AutoMigrate(&types.Volume{})
 	db.AutoMigrate(&types.StatRecord{})
+	db.AutoMigrate(&types.Conversation{})
 	s.gdb = db
 
 	// iterate all needles to update bucket
 	ni := os.Getenv("NEED_INIT")
 	if ni != "" {
+		logger.Info("handle need init")
 		var needles []types.Needle
-		db.Find(&needles)
+		result := db.Model(&types.Needle{}).Where("name like ? and created_at >= ?",
+			"%_0",
+			time.Date(2025, 3, 7, 0, 0, 0, 0, time.UTC)).Find(&needles)
+		if result.Error != nil {
+			logger.Error("failed to get needles: ", result.Error)
+			return
+		}
 		for _, needle := range needles {
+			if len(needle.Name) <= 2 {
+				continue
+			}
+
+			if strings.HasSuffix(needle.Name, "_0") {
+				name := strings.TrimSuffix(needle.Name, "_0")
+				db.Save(&types.Conversation{
+					Name:   name,
+					Owner:  needle.Owner,
+					Bucket: needle.Bucket,
+				})
+				continue
+			}
+			if needle.Name != "" {
+				continue
+			}
 			if needle.Bucket != "" {
 				continue
 			}
@@ -164,12 +188,21 @@ func (s *Server) addNeedle(owner, bucket, name string, findex uint64, start, len
 		Start:  start,
 		Size:   length,
 	})
+
+	if strings.HasSuffix(name, "_0") {
+		connName := strings.TrimSuffix(name, "_0")
+		s.gdb.Save(&types.Conversation{
+			Name:   connName,
+			Owner:  owner,
+			Bucket: bucket,
+		})
+	}
 	logger.Info("create needle: ", owner)
 }
 
 func (s *Server) getNeedleByName(name string) ([]types.Needle, error) {
 	var needle []types.Needle
-	result := s.gdb.Where(&types.Needle{Name: name}).Find(&needle)
+	result := s.gdb.Where(&types.Needle{Name: name}).Order("id desc").Limit(1).Find(&needle)
 	if result.Error != nil {
 		return needle, result.Error
 	}
@@ -178,7 +211,7 @@ func (s *Server) getNeedleByName(name string) ([]types.Needle, error) {
 
 func (s *Server) getNeedleDisplay(owner, bucket, name string) ([]types.NeedleDisplay, error) {
 	var needle []types.Needle
-	result := s.gdb.Where(&types.Needle{Name: name, Owner: owner, Bucket: bucket}).Find(&needle)
+	result := s.gdb.Where(&types.Needle{Name: name, Owner: owner, Bucket: bucket}).Order("id desc").Limit(1).Find(&needle)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -203,16 +236,6 @@ func (s *Server) getNeedleDisplay(owner, bucket, name string) ([]types.NeedleDis
 	}
 
 	return res, nil
-}
-
-func (s *Server) listNeedle(owner, bucket string, offset, limit int) ([]types.Needle, error) {
-	var needles []types.Needle
-	result := s.gdb.Where(&types.Needle{Owner: owner, Bucket: bucket}).Order("id desc").Limit(limit).Offset(offset).Find(&needles)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-
-	return needles, nil
 }
 
 func (s *Server) listNeedleDisplay(owner, bucket string, offset, limit int) ([]types.NeedleDisplay, error) {
@@ -276,53 +299,142 @@ func (s *Server) listVolume(owner string, offset, limit int) ([]types.Volume, er
 	return vols, nil
 }
 
-func (s *Server) listConversation(ctx context.Context, addr, bucket string) ([]string, error) {
-	var needles []types.Needle
-	// create time is time.Time >= 2025-03-07,
-	// name end with "_0"
-	// addr may be empty
-	// bucket may be empty
-	var result *gorm.DB
-	if bucket == "" {
-		result = s.gdb.Model(&types.Needle{}).Where("owner = ? and created_at >= ? and name like ?", addr, time.Date(2025, 3, 7, 0, 0, 0, 0, time.UTC), "%_0").Find(&needles)
-	} else {
-		result = s.gdb.Model(&types.Needle{}).Where("owner = ? and bucket = ? and created_at >= ? and name like ?", addr, bucket, time.Date(2025, 3, 7, 0, 0, 0, 0, time.UTC), "%_0").Find(&needles)
-	}
+func (s *Server) listConversationDisplay(addr, bucket string, offset, limit int) ([]types.Conversation, error) {
+	var conversations []types.Conversation
+	result := s.gdb.Where(&types.Conversation{Owner: addr, Bucket: bucket}).Order("id desc").Limit(limit).Offset(offset).Find(&conversations)
 	if result.Error != nil {
 		return nil, result.Error
-	}
-	// name is conversation_index, so we need to split it to conversation_id
-	// reomve duplicate
-	conversations := make([]string, 0, len(needles))
-	cmap := make(map[string]struct{})
-	for _, needle := range needles {
-		if len(needle.Name) <= 2 {
-			continue
-		}
-		parts := strings.Split(needle.Name, "_")
-		if len(parts) != 2 {
-			continue
-		}
-		conversationID := parts[0]
-		if _, ok := cmap[conversationID]; !ok {
-			conversations = append(conversations, conversationID)
-			cmap[conversationID] = struct{}{}
-		}
 	}
 	return conversations, nil
 }
 
-func (s *Server) getConversation(ctx context.Context, conversation, addr, bucket string) ([]string, error) {
-	var needles []types.Needle
-	// name contains conversation + "_"
-	// create time >= 2025-03-07
-	// order by id asc
-	var result *gorm.DB
-	if bucket == "" {
-		result = s.gdb.Model(&types.Needle{}).Where("name like ? and owner = ? and created_at >= ?", conversation+"_%", addr, time.Date(2025, 3, 7, 0, 0, 0, 0, time.UTC)).Order("id asc").Find(&needles)
-	} else {
-		result = s.gdb.Model(&types.Needle{}).Where("name like ? and owner = ? and bucket = ? and created_at >= ?", conversation+"_%", addr, bucket, time.Date(2025, 3, 7, 0, 0, 0, 0, time.UTC)).Order("id asc").Find(&needles)
+func (s *Server) getConversationDisplay(addr, bucket, name string) ([]types.Conversation, error) {
+	var conversations []types.Conversation
+	result := s.gdb.Where(&types.Conversation{
+		Owner:  addr,
+		Bucket: bucket,
+		Name:   name,
+	}).Find(&conversations)
+	if result.Error != nil {
+		return nil, result.Error
 	}
+	return conversations, nil
+}
+
+func (s *Server) listNeedleDisplayByConversation(addr, bucket, conversation string, offset, limit int) ([]types.NeedleDisplay, error) {
+	var needles []types.Needle
+	var result *gorm.DB
+	query := s.gdb.Model(&types.Needle{
+		Owner:  addr,
+		Bucket: bucket,
+	}).Where("name like ? and created_at >= ?",
+		conversation+"_%",
+		time.Date(2025, 3, 7, 0, 0, 0, 0, time.UTC))
+
+	if bucket != "" {
+		query = query.Where("bucket = ?", bucket)
+	}
+
+	result = query.Order("id desc").Limit(limit).Offset(offset).Find(&needles)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	res := make([]types.NeedleDisplay, 0, len(needles))
+	for i := 0; i < len(needles); i++ {
+		nd := types.NeedleDisplay{
+			CreatedAt: needles[i].CreatedAt,
+			Name:      needles[i].Name,
+			Owner:     needles[i].Owner,
+			Bucket:    needles[i].Bucket,
+			File:      needles[i].File,
+			Start:     needles[i].Start,
+			Size:      needles[i].Size,
+		}
+		vol, err := s.getVolume(needles[i].Owner, needles[i].File)
+		if err == nil && len(vol) > 0 {
+			nd.Piece = vol[0].Piece
+			nd.TxHash = vol[0].TxHash
+			nd.ChainType = vol[0].ChainType
+		}
+		res = append(res, nd)
+	}
+	return res, nil
+}
+
+func (s *Server) listConversation(addr, bucket string, offset, limit int) ([]string, error) {
+	/*
+		var needles []types.Needle
+		// create time is time.Time >= 2025-03-07,
+		// name end with "_0"
+		// addr may be empty
+		// bucket may be empty
+		var result *gorm.DB
+		if bucket == "" {
+			result = s.gdb.Model(&types.Needle{}).Where("owner = ? and created_at >= ? and name like ?", addr, time.Date(2025, 3, 7, 0, 0, 0, 0, time.UTC), "%_0").Find(&needles)
+		} else {
+			result = s.gdb.Model(&types.Needle{}).Where("owner = ? and bucket = ? and created_at >= ? and name like ?", addr, bucket, time.Date(2025, 3, 7, 0, 0, 0, 0, time.UTC), "%_0").Find(&needles)
+		}
+		if result.Error != nil {
+			return nil, result.Error
+		}
+		// name is conversation_index, so we need to split it to conversation_id
+		// reomve duplicate
+		conversations := make([]string, 0, len(needles))
+		cmap := make(map[string]struct{})
+		for _, needle := range needles {
+			if len(needle.Name) <= 2 {
+				continue
+			}
+			parts := strings.Split(needle.Name, "_")
+			if len(parts) != 2 {
+				continue
+			}
+			conversationID := parts[0]
+			if _, ok := cmap[conversationID]; !ok {
+				conversations = append(conversations, conversationID)
+				cmap[conversationID] = struct{}{}
+			}
+		}
+	*/
+	conversations, err := s.listConversationDisplay(addr, bucket, offset, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	var res []string
+	cmap := make(map[string]struct{})
+	for _, conversation := range conversations {
+		if _, ok := cmap[conversation.Name]; !ok {
+			res = append(res, conversation.Name)
+			cmap[conversation.Name] = struct{}{}
+		}
+	}
+	return res, nil
+}
+
+func (s *Server) getConversation(ctx context.Context, conversation, addr, bucket string, offset, limit int) ([]string, error) {
+	var gconversation types.Conversation
+	res := s.gdb.Where(&types.Conversation{
+		Name:   conversation,
+		Owner:  addr,
+		Bucket: bucket,
+	}).Find(&gconversation)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	if res.RowsAffected == 0 {
+		return nil, fmt.Errorf("conversation not found: %s", conversation)
+	}
+
+	var needles []types.Needle
+	query := s.gdb.Model(&types.Needle{
+		Owner:  addr,
+		Bucket: bucket,
+	}).Where("name like ? and created_at >= ?",
+		conversation+"_%",
+		time.Date(2025, 3, 7, 0, 0, 0, 0, time.UTC))
+
+	result := query.Order("id asc").Limit(limit).Offset(offset).Find(&needles)
 	if result.Error != nil {
 		return nil, result.Error
 	}

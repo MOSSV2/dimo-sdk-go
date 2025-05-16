@@ -9,6 +9,11 @@ const bucketparam = urlParams.get("bucket");
 if (bucketparam) {
   bucket = bucketparam;
 }
+let conversation = ""
+const conversationparam = urlParams.get("conversation");
+if (conversationparam) {
+  conversation = conversationparam;
+}
 
 const itemsPerPage = 12;
 let currentPage = 1;
@@ -67,7 +72,7 @@ function createCard(meta) {
   cardContent.appendChild(p5);
 
   const p7 = document.createElement("p");
-  p7.setAttribute('data-label', 'Bucket:');
+  p7.setAttribute('data-label', 'Agent:');
   p7.textContent = meta.Bucket;
   cardContent.appendChild(p7);
 
@@ -122,7 +127,7 @@ function createCard(meta) {
 }
 
 function listNeedle(eaddr, offset, length) {
-  return fetch(`/api/listNeedle?owner=${eaddr}&bucket=${bucket}&offset=${offset}&length=${length}`)
+  return fetch(`/api/listNeedle?owner=${eaddr}&bucket=${bucket}&conversation=${conversation}&offset=${offset}&length=${length}`)
     .then((response) => response.json())
     .then((data) => {
       return data;
@@ -132,7 +137,7 @@ function listNeedle(eaddr, offset, length) {
 
 function search() {
   const searchInput = document.getElementById("searchInput").value;
-  fetch(`/api/getNeedle?owner=${eaddr}&bucket=${bucket}&name=${searchInput}`)
+  fetch(`/api/getNeedle?owner=${eaddr}&bucket=${bucket}&conversation=${conversation}&name=${searchInput}`)
     .then((response) => response.json())
     .then((data) => {
       displayResults(data);

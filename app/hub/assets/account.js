@@ -61,29 +61,38 @@ function createCard(meta) {
   p0.textContent = meta.CreatedAt;
   cardContent.appendChild(p0);
 
-  const p1 = document.createElement("p");
-  p1.setAttribute('data-label', 'Needle List:');
-  const needleLink = document.createElement('a');
-  needleLink.href = 'needle.html?owner=' + meta.Name;
-  needleLink.textContent = '[click to show]';
-  p1.appendChild(needleLink);
-  cardContent.appendChild(p1);
-
   const p3 = document.createElement("p");
-  p3.setAttribute('data-label', 'Bucket List:');
+  p3.setAttribute('data-label', 'Agents:');
   const bucketLink = document.createElement('a');
   bucketLink.href = 'bucket.html?owner=' + meta.Name;
   bucketLink.textContent = '[click to show]';
   p3.appendChild(bucketLink);
   cardContent.appendChild(p3);
 
+  const p4 = document.createElement("p");
+  p4.setAttribute('data-label', 'Conversations:');
+  const conversationLink = document.createElement('a');
+  conversationLink.href = 'conversation.html?owner=' + meta.Name;
+  conversationLink.textContent = '[click to show]';
+  p4.appendChild(conversationLink);
+  cardContent.appendChild(p4);
+
+  const p1 = document.createElement("p");
+  p1.setAttribute('data-label', 'Memories:');
+  const needleLink = document.createElement('a');
+  needleLink.href = 'needle.html?owner=' + meta.Name;
+  needleLink.textContent = '[click to show]';
+  p1.appendChild(needleLink);
+  cardContent.appendChild(p1);
+
   const p2 = document.createElement("p");
-  p2.setAttribute('data-label', 'Volume List:');
+  p2.setAttribute('data-label', 'Volumes :');
   const volumeLink = document.createElement('a');
   volumeLink.href = 'volume.html?owner=' + meta.Name;
   volumeLink.textContent = '[click to show]';
   p2.appendChild(volumeLink);
   cardContent.appendChild(p2);
+
 
   return card;
 }

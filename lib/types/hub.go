@@ -28,6 +28,14 @@ type Needle struct {
 	Commit string
 }
 
+type Conversation struct {
+	gorm.Model
+	Name   string
+	Owner  string
+	Bucket string
+	Count  uint64
+}
+
 type Volume struct {
 	gorm.Model
 	ChainType string

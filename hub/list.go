@@ -233,13 +233,24 @@ func (s *Server) listNeedleByGet(c *gin.Context) {
 	if length == 0 {
 		length = 32
 	}
-	res, err := s.listNeedleDisplay(addr, bucket, offset, length)
-	if err != nil {
-		c.JSON(599, lerror.ToAPIError("hub", err))
-		return
+
+	conversation := c.Query("conversation")
+	if conversation != "" {
+		res, err := s.listNeedleDisplayByConversation(addr, bucket, conversation, offset, length)
+		if err != nil {
+			c.JSON(599, lerror.ToAPIError("hub", err))
+			return
+		}
+		c.JSON(http.StatusOK, res)
+	} else {
+		res, err := s.listNeedleDisplay(addr, bucket, offset, length)
+		if err != nil {
+			c.JSON(599, lerror.ToAPIError("hub", err))
+			return
+		}
+		c.JSON(http.StatusOK, res)
 	}
 
-	c.JSON(http.StatusOK, res)
 }
 
 // listNeedleByPost godoc
@@ -264,13 +275,22 @@ func (s *Server) listNeedleByPost(c *gin.Context) {
 	if length == 0 {
 		length = 32
 	}
-	res, err := s.listNeedleDisplay(owner, bucket, offset, length)
-	if err != nil {
-		c.JSON(599, lerror.ToAPIError("hub", err))
-		return
+	conversation := c.PostForm("conversation")
+	if conversation != "" {
+		res, err := s.listNeedleDisplayByConversation(owner, bucket, conversation, offset, length)
+		if err != nil {
+			c.JSON(599, lerror.ToAPIError("hub", err))
+			return
+		}
+		c.JSON(http.StatusOK, res)
+	} else {
+		res, err := s.listNeedleDisplay(owner, bucket, offset, length)
+		if err != nil {
+			c.JSON(599, lerror.ToAPIError("hub", err))
+			return
+		}
+		c.JSON(http.StatusOK, res)
 	}
-
-	c.JSON(http.StatusOK, res)
 }
 
 // listVolumeByGet godoc

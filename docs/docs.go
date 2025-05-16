@@ -17,7 +17,7 @@ const docTemplate = `{
     "paths": {
         "/api/conversation": {
             "get": {
-                "description": "get specific conversation information or list all conversations",
+                "description": "list all conversations or get conversation messages by conversation id",
                 "consumes": [
                     "application/json"
                 ],
@@ -27,7 +27,7 @@ const docTemplate = `{
                 "tags": [
                     "conversation"
                 ],
-                "summary": "get or list conversations",
+                "summary": "list conversations or get conversation messages by conversation id",
                 "parameters": [
                     {
                         "type": "string",
@@ -46,6 +46,20 @@ const docTemplate = `{
                         "type": "string",
                         "description": "conversation ID (empty means list all conversation ids)",
                         "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "pagination offset",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 32,
+                        "description": "number of items per page",
+                        "name": "length",
                         "in": "query"
                     }
                 ],
@@ -66,7 +80,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "get specific conversation information or list all conversations",
+                "description": "list all conversations or get conversation messages by conversation id",
                 "consumes": [
                     "application/json"
                 ],
@@ -76,7 +90,7 @@ const docTemplate = `{
                 "tags": [
                     "conversation"
                 ],
-                "summary": "get or list conversations",
+                "summary": "list conversations or get conversation messages by conversation id",
                 "parameters": [
                     {
                         "type": "string",
@@ -95,6 +109,20 @@ const docTemplate = `{
                         "type": "string",
                         "description": "conversation ID (empty means list all conversation ids)",
                         "name": "name",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "pagination offset",
+                        "name": "offset",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 32,
+                        "description": "number of items per page",
+                        "name": "length",
                         "in": "formData"
                     }
                 ],
@@ -186,6 +214,60 @@ const docTemplate = `{
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
+                        }
+                    },
+                    "599": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/getConversation": {
+            "get": {
+                "description": "get detailed information for a specific conversation",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "conversation"
+                ],
+                "summary": "get conversation details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "owner/account address",
+                        "name": "owner",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "bucket name (empty means search in all buckets)",
+                        "name": "bucket",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "conversation ID",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/types.Conversation"
+                            }
                         }
                     },
                     "599": {
@@ -476,6 +558,67 @@ const docTemplate = `{
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
+                        }
+                    },
+                    "599": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/listConversation": {
+            "get": {
+                "description": "list all conversations with detailed information for a specific owner and bucket",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "conversation"
+                ],
+                "summary": "list conversations with details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "owner/account address",
+                        "name": "owner",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "bucket name (empty means list all conversations of owner)",
+                        "name": "bucket",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "pagination offset",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 32,
+                        "description": "number of items per page",
+                        "name": "length",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/types.Conversation"
+                            }
                         }
                     },
                     "599": {
@@ -800,6 +943,47 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "gorm.DeletedAt": {
+            "type": "object",
+            "properties": {
+                "time": {
+                    "type": "string"
+                },
+                "valid": {
+                    "description": "Valid is true if Time is not NULL",
+                    "type": "boolean"
+                }
+            }
+        },
+        "types.Conversation": {
+            "type": "object",
+            "properties": {
+                "bucket": {
+                    "type": "string"
+                },
+                "count": {
+                    "type": "integer"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "owner": {
+                    "type": "string"
+                },
+                "updatedAt": {
                     "type": "string"
                 }
             }

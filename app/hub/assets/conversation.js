@@ -5,6 +5,12 @@ if (eaddrparam) {
   eaddr = eaddrparam;
 }
 
+let bucket = ""
+const bucketparam = urlParams.get("bucket");
+if (bucketparam) {
+  bucket = bucketparam;
+}
+
 const itemsPerPage = 12;
 let currentPage = 1;
 
@@ -14,14 +20,14 @@ function renderPage() {
   cardContainer.innerHTML = '';
 
   const startIndex = (currentPage - 1) * itemsPerPage;
-  listBucket(eaddr, startIndex, itemsPerPage)
+  listConversation(eaddr, startIndex, itemsPerPage)
     .then((data) => {
-      data.forEach((fileMeta) => {
-        const card = createCard(fileMeta);
+      data.forEach((conversationMeta) => {
+        const card = createCard(conversationMeta);
         cardContainer.appendChild(card);
       });
     })
-    .catch((error) => console.error("Error fetching bucket:", error));
+    .catch((error) => console.error("Error fetching conversation:", error));
 
   // Update the page number
   document.getElementById('pageNumber').innerText = `Page: ${currentPage}`;
@@ -61,23 +67,20 @@ function createCard(meta) {
   p5.textContent = meta.Owner;
   cardContent.appendChild(p5);
 
+  const p6 = document.createElement("p");
+  p6.setAttribute('data-label', 'Agent:');
+  p6.textContent = meta.Bucket;
+  cardContent.appendChild(p6);
+
   const p21 = document.createElement("p");
   p21.setAttribute('data-label', 'Creation:');
   p21.textContent = meta.CreatedAt;
   cardContent.appendChild(p21);
 
-  const p22 = document.createElement("p");
-  p22.setAttribute('data-label', 'Conversations:');
-  const conversationLink = document.createElement('a');
-  conversationLink.href = 'conversation.html?owner=' + meta.Owner + '&bucket=' + meta.Name;
-  conversationLink.textContent = '[click to show]';
-  p22.appendChild(conversationLink);
-  cardContent.appendChild(p22);
-
   const p3 = document.createElement("p");
   p3.setAttribute('data-label', 'Memories:');
   const needleLink = document.createElement('a');
-  needleLink.href = 'needle.html?owner=' + meta.Owner + '&bucket=' + meta.Name;
+  needleLink.href = 'needle.html?owner=' + meta.Owner + '&conversation=' + meta.Name;
   needleLink.textContent = '[click to show]';
   p3.appendChild(needleLink);
   cardContent.appendChild(p3);
@@ -85,8 +88,8 @@ function createCard(meta) {
   return card;
 }
 
-function listBucket(eaddr, offset, length) {
-  return fetch(`/api/listBucket?owner=${eaddr}&offset=${offset}&length=${length}`)
+function listConversation(eaddr, offset, length) {
+  return fetch(`/api/listConversation?owner=${eaddr}&bucket=${bucket}&offset=${offset}&length=${length}`)
     .then((response) => response.json())
     .then((data) => {
       return data;
@@ -96,7 +99,7 @@ function listBucket(eaddr, offset, length) {
 
 function search() {
   const searchInput = document.getElementById("searchInput").value;
-  fetch(`/api/getBucket?bucket=${searchInput}`)
+  fetch(`/api/getConversation?owner=${eaddr}&bucket=${bucket}&name=${searchInput}`)
     .then((response) => response.json())
     .then((data) => {
       displayResults(data);
