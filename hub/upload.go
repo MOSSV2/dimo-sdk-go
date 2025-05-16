@@ -364,14 +364,16 @@ func (s *Server) uploadTo() {
 				log.Printf("upload %s to %s, sha256: %s\n", fp, streamer, res.Hash)
 				log.Printf("submit %s to chain\n", res.Name)
 				// submit meta to chain
+				var terr error
 				for _, pc := range pcs {
 					txn, err := cm.AddPiece(pc)
 					if err != nil {
+						terr = err
 						break
 					}
 					s.addVolume(key, i, pc.Name, txn)
 				}
-				if err != nil {
+				if terr != nil {
 					break
 				}
 				buf := make([]byte, 8)

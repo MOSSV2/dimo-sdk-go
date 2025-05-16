@@ -13,6 +13,7 @@ import (
 	"github.com/MOSSV2/dimo-sdk-go/lib/types"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	glogger "gorm.io/gorm/logger"
 )
 
 func (s *Server) loadGORM() {
@@ -20,10 +21,23 @@ func (s *Server) loadGORM() {
 
 	os.MkdirAll(gpath, os.ModePerm)
 	gpath = filepath.Join(gpath, "gorm.db")
-	db, err := gorm.Open(sqlite.Open(gpath), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open(gpath), &gorm.Config{
+		Logger:      glogger.Default.LogMode(glogger.Silent),
+		PrepareStmt: true,
+	})
 	if err != nil {
 		panic("failed to connect database")
 	}
+
+	sqldb, err := db.DB()
+	if err != nil {
+		panic("failed to get database")
+	}
+
+	sqldb.SetMaxIdleConns(10)
+	sqldb.SetMaxOpenConns(100)
+	sqldb.SetConnMaxLifetime(time.Hour)
+
 	// Auto migrate tables
 	db.AutoMigrate(&types.Account{})
 	db.AutoMigrate(&types.Bucket{})
