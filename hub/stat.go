@@ -89,9 +89,6 @@ func (sm *StatManager) loadStats() error {
 		return err
 	}
 
-	sm.mu.Lock()
-	defer sm.mu.Unlock()
-
 	for _, record := range records {
 		day := record.Day.Format("2006-01-02")
 		sm.stats[day] = &types.Stat{
@@ -108,7 +105,7 @@ func (sm *StatManager) loadStats() error {
 	}
 
 	// Set last IDs from the most recent record
-	if len(records) > 0 {
+	if len(records) == 30 {
 		sm.lastAccountID = records[0].LastAccountID
 		sm.lastBucketID = records[0].LastBucketID
 		sm.lastNeedleID = records[0].LastNeedleID
@@ -148,7 +145,8 @@ func (sm *StatManager) Start(ctx context.Context) error {
 	}
 
 	// If no stats exist, initialize with historical data
-	if len(sm.stats) == 0 {
+	if len(sm.stats) != 30 {
+		sm.stats = make(map[string]*types.Stat)
 		now := time.Now().UTC()
 		now = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 
@@ -326,12 +324,13 @@ func (sm *StatManager) updateDailyStat(t time.Time) {
 	stat.TotalNeedles = prevDayStat.TotalNeedles + stat.DailyNeedles
 	stat.TotalVolumes = prevDayStat.TotalVolumes + stat.DailyVolumes
 
+	sm.mu.Unlock()
+
 	// Save the updated stat to database
 	if err := sm.saveStat(stat); err != nil {
 		logger.Error("Failed to save stat: ", err)
 	}
 
-	sm.mu.Unlock()
 	logger.Info("stat: ", stat)
 }
 

@@ -22,19 +22,26 @@ func (s *Server) loadGORM() {
 	os.MkdirAll(gpath, os.ModePerm)
 	gpath = filepath.Join(gpath, "gorm.db")
 	db, err := gorm.Open(sqlite.Open(gpath), &gorm.Config{
-		Logger:      glogger.Default.LogMode(glogger.Silent),
-		PrepareStmt: true,
+		Logger:                 glogger.Default.LogMode(glogger.Silent),
+		SkipDefaultTransaction: true,
+		PrepareStmt:            true,
 	})
 	if err != nil {
 		panic("failed to connect database")
 	}
+
+	_ = db.Exec("PRAGMA journal_mode=WAL;")
+	_ = db.Exec("PRAGMA synchronous = NORMAL;")
+	_ = db.Exec("PRAGMA cache_size = -128000;") // 128MB cache
+	_ = db.Exec("PRAGMA temp_store = MEMORY;")
+	_ = db.Exec("PRAGMA mmap_size = 4000000000;") // 4GB mmap
 
 	sqldb, err := db.DB()
 	if err != nil {
 		panic("failed to get database")
 	}
 
-	sqldb.SetMaxIdleConns(10)
+	sqldb.SetMaxIdleConns(20)
 	sqldb.SetMaxOpenConns(100)
 	sqldb.SetConnMaxLifetime(time.Hour)
 
@@ -45,6 +52,15 @@ func (s *Server) loadGORM() {
 	db.AutoMigrate(&types.Volume{})
 	db.AutoMigrate(&types.StatRecord{})
 	db.AutoMigrate(&types.Conversation{})
+
+	// Add indexes
+	db.Exec("CREATE INDEX IF NOT EXISTS idx_needles_owner ON needles(owner);")
+	db.Exec("CREATE INDEX IF NOT EXISTS idx_needles_bucket ON needles(bucket);")
+	db.Exec("CREATE INDEX IF NOT EXISTS idx_needles_name ON needles(name);")
+	db.Exec("CREATE INDEX IF NOT EXISTS idx_needles_owner_name ON needles(owner, name);")
+	db.Exec("CREATE INDEX IF NOT EXISTS idx_needles_owner_bucket ON needles(owner, bucket);")
+	db.Exec("CREATE INDEX IF NOT EXISTS idx_needles_owner_bucket_name ON needles(owner, bucket, name);")
+
 	s.gdb = db
 
 	// iterate all needles to update bucket
@@ -191,11 +207,16 @@ func (s *Server) addNeedle(owner, bucket, name string, findex uint64, start, len
 
 	if strings.HasSuffix(name, "_0") {
 		connName := strings.TrimSuffix(name, "_0")
-		s.gdb.Save(&types.Conversation{
-			Name:   connName,
-			Owner:  owner,
-			Bucket: bucket,
-		})
+		// check if conversation already exists
+		var conversation types.Conversation
+		result := s.gdb.Where(&types.Conversation{Name: connName, Owner: owner, Bucket: bucket}).First(&conversation)
+		if result.RowsAffected == 0 {
+			s.gdb.Save(&types.Conversation{
+				Name:   connName,
+				Owner:  owner,
+				Bucket: bucket,
+			})
+		}
 	}
 	logger.Info("create needle: ", owner)
 }
@@ -324,12 +345,31 @@ func (s *Server) getConversationDisplay(addr, bucket, name string) ([]types.Conv
 func (s *Server) listNeedleDisplayByConversation(addr, bucket, conversation string, offset, limit int) ([]types.NeedleDisplay, error) {
 	var needles []types.Needle
 	var result *gorm.DB
+
+	// 首先获取conversation_0的id
+	var firstNeedle types.Needle
+	firstQuery := s.gdb.Model(&types.Needle{
+		Owner:  addr,
+		Bucket: bucket,
+	}).Where("name = ?", conversation+"_0")
+
+	firstResult := firstQuery.First(&firstNeedle)
+
 	query := s.gdb.Model(&types.Needle{
 		Owner:  addr,
 		Bucket: bucket,
-	}).Where("name like ? and created_at >= ?",
-		conversation+"_%",
-		time.Date(2025, 3, 7, 0, 0, 0, 0, time.UTC))
+	})
+
+	// 如果找到了conversation_0记录，使用id进行优化查询
+	if firstResult.Error == nil {
+		query = query.Where("name like ? AND id >= ?",
+			conversation+"_%", firstNeedle.ID)
+	} else {
+		// 如果没有找到，使用原来的查询方式
+		query = query.Where("name like ? and created_at >= ?",
+			conversation+"_%",
+			time.Date(2025, 3, 7, 0, 0, 0, 0, time.UTC))
+	}
 
 	if bucket != "" {
 		query = query.Where("bucket = ?", bucket)
@@ -423,7 +463,7 @@ func (s *Server) getConversation(ctx context.Context, conversation, addr, bucket
 		return nil, res.Error
 	}
 	if res.RowsAffected == 0 {
-		return nil, fmt.Errorf("conversation not found: %s", conversation)
+		return []string{}, nil
 	}
 
 	var needles []types.Needle

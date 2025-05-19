@@ -101,13 +101,18 @@ function createCard(meta) {
     p3.setAttribute('data-label', 'Piece:');
     p3.textContent = meta.Piece;
     cardContent.appendChild(p3);
-  }
 
-  if (meta.TxHash) {
+    let rurl = "https://sepolia-optimism.etherscan.io/tx/"
+    if (meta.ChainType == "bnb-testnet") {
+      rurl = "https://testnet.bscscan.com/tx/"
+    } else if (meta.ChainType == "opbnb-testnet") {
+      rurl = "https://opbnb-testnet.bscscan.com/tx/"
+    }
+
     const p4 = document.createElement("p");
     p4.setAttribute('data-label', 'TxHash:');
     const link = document.createElement('a');
-    link.href = 'https://sepolia-optimism.etherscan.io/tx/' + meta.TxHash;
+    link.href = rurl + meta.TxHash;
     link.target = '_blank';
     link.textContent = meta.TxHash;
     p4.appendChild(link);
