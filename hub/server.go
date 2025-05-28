@@ -65,9 +65,18 @@ type Server struct {
 	auth types.Auth
 
 	statManager *StatManager
+
+	bucketDisplayLock sync.RWMutex
+	bucketDisplay     map[string]types.BucketDisplay
+
+	httpServer *http.Server
+
+	// Add channels for graceful shutdown
+	shutdownChan   chan struct{}
+	checkpointStop chan struct{}
 }
 
-func NewServer(rp repo.Repo) (*http.Server, error) {
+func NewServer(rp repo.Repo) (*Server, error) {
 	log.SetLogLevel("DEBUG")
 
 	gin.SetMode(gin.ReleaseMode)
@@ -92,7 +101,11 @@ func NewServer(rp repo.Repo) (*http.Server, error) {
 		ps:    piece.New(rp.MetaStore(), rp.DataStore()),
 		auth:  auth,
 
-		lfs: make(map[string]*logfs.LogFS),
+		bucketDisplay: make(map[string]types.BucketDisplay),
+		lfs:           make(map[string]*logfs.LogFS),
+
+		shutdownChan:   make(chan struct{}),
+		checkpointStop: make(chan struct{}),
 	}
 
 	err = s.register()
@@ -115,12 +128,15 @@ func NewServer(rp repo.Repo) (*http.Server, error) {
 
 	s.registRoute()
 
-	srv := &http.Server{
+	s.httpServer = &http.Server{
 		Addr:    rp.Config().API.Endpoint,
 		Handler: s.Router,
 	}
 
-	return srv, nil
+	// Setup signal handler for emergency shutdown
+	s.SetupSignalHandler()
+
+	return s, nil
 }
 
 func (s *Server) registRoute() {
@@ -146,6 +162,90 @@ func (s *Server) registRoute() {
 	s.addList(r)
 	s.addConversation(r)
 	s.addStat(r)
+}
+
+// ListenAndServe starts the HTTP server
+func (s *Server) ListenAndServe() error {
+	return s.httpServer.ListenAndServe()
+}
+
+// Shutdown gracefully shuts down both the HTTP server and persists data
+func (s *Server) Shutdown(ctx context.Context) error {
+	logger.Info("starting server shutdown...")
+
+	// Signal checkpoint routine to stop and perform final checkpoint
+	close(s.checkpointStop)
+
+	// First shutdown the HTTP server
+	if s.httpServer != nil {
+		logger.Info("shutting down HTTP server...")
+		if err := s.httpServer.Shutdown(ctx); err != nil {
+			logger.Errorf("failed to shutdown HTTP server: %v", err)
+		}
+	}
+
+	// Stop the statistics manager
+	if s.statManager != nil {
+		logger.Info("stopping statistics manager...")
+		s.statManager.Stop()
+	}
+
+	// Close all LogFS instances
+	s.Lock()
+	for addr, lfs := range s.lfs {
+		logger.Infof("closing LogFS for address: %s", addr)
+		if err := lfs.Close(); err != nil {
+			logger.Errorf("failed to close LogFS for %s: %v", addr, err)
+		}
+	}
+	s.Unlock()
+
+	// Persist database data
+	if s.gdb != nil {
+		logger.Info("persisting database data...")
+
+		// Get the underlying SQL database
+		sqlDB, err := s.gdb.DB()
+		if err != nil {
+			logger.Errorf("failed to get SQL database: %v", err)
+		} else {
+			// Execute SQLite specific commands for data persistence
+			logger.Info("executing SQLite persistence commands...")
+
+			// Force a final checkpoint to ensure WAL data is written to main database
+			if err := s.gdb.Exec("PRAGMA wal_checkpoint(FULL);").Error; err != nil {
+				logger.Errorf("failed to execute final WAL checkpoint: %v", err)
+			}
+
+			// Synchronize data to disk
+			if err := s.gdb.Exec("PRAGMA synchronous = FULL;").Error; err != nil {
+				logger.Errorf("failed to set synchronous mode: %v", err)
+			}
+
+			// Force fsync to ensure data is written to disk
+			if err := s.gdb.Exec("PRAGMA wal_checkpoint(TRUNCATE);").Error; err != nil {
+				logger.Errorf("failed to truncate WAL: %v", err)
+			}
+
+			// Close the SQL database connection
+			if err := sqlDB.Close(); err != nil {
+				logger.Errorf("failed to close SQL database: %v", err)
+			} else {
+				logger.Info("database connection closed successfully")
+			}
+		}
+	}
+
+	// Close repository resources
+	if s.rp != nil {
+		logger.Info("closing repository...")
+		if err := s.rp.Close(); err != nil {
+			logger.Errorf("failed to close repository: %v", err)
+		}
+	}
+
+	logger.Info("server shutdown completed")
+	return nil
 }
 
 func login(url string, auth types.Auth) {

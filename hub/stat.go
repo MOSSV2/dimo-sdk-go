@@ -82,12 +82,14 @@ func NewStatManager(db *gorm.DB) *StatManager {
 }
 
 // loadStats loads statistics from database
-func (sm *StatManager) loadStats() error {
+func (sm *StatManager) loadStats() (int, error) {
 	var records []types.StatRecord
 	// find the latest 30 records
 	if err := sm.db.Order("day DESC").Limit(30).Find(&records).Error; err != nil {
-		return err
+		return 0, err
 	}
+
+	logger.Infof("found %d records", len(records))
 
 	for _, record := range records {
 		day := record.Day.Format("2006-01-02")
@@ -113,7 +115,7 @@ func (sm *StatManager) loadStats() error {
 		sm.lastDay = records[0].Day
 	}
 
-	return nil
+	return len(records), nil
 }
 
 // saveStat saves a stat record to database
@@ -140,12 +142,14 @@ func (sm *StatManager) saveStat(stat *types.Stat) error {
 // Start initializes the StatManager with historical data and starts the background update routine
 func (sm *StatManager) Start(ctx context.Context) error {
 	// Load existing stats from database
-	if err := sm.loadStats(); err != nil {
+	statcount, err := sm.loadStats()
+	if err != nil {
 		return err
 	}
 
 	// If no stats exist, initialize with historical data
-	if len(sm.stats) != 30 {
+	if statcount != 30 {
+		logger.Warnf("no enough stats found, initializing with historical data")
 		sm.stats = make(map[string]*types.Stat)
 		now := time.Now().UTC()
 		now = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
@@ -167,7 +171,29 @@ func (sm *StatManager) Start(ctx context.Context) error {
 
 // Stop stops the background update routine
 func (sm *StatManager) Stop() {
+	logger.Info("stopping statistics manager...")
+
+	// Signal the background routine to stop
 	close(sm.stopChan)
+
+	// Save current statistics before shutdown
+	sm.mu.Lock()
+	defer sm.mu.Unlock()
+
+	now := time.Now().UTC()
+	now = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+
+	// Update and save current day's statistics
+	sm.updateDailyStat(now)
+
+	// Save all current statistics to database
+	for _, stat := range sm.stats {
+		if err := sm.saveStat(stat); err != nil {
+			logger.Errorf("failed to save statistics for day %s: %v", stat.Day.Format("2006-01-02"), err)
+		}
+	}
+
+	logger.Info("statistics manager stopped and data saved")
 }
 
 // run executes the background update routine
@@ -341,9 +367,6 @@ func (sm *StatManager) GetStats(count int) []types.Stat {
 
 	// Return a copy to prevent external modification
 	// sort the result by day desc
-	if count > len(sm.stats) {
-		count = len(sm.stats)
-	}
 	result := make([]types.Stat, 0, count)
 	now := time.Now().UTC()
 	now = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)

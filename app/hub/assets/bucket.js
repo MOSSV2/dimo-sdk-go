@@ -66,13 +66,67 @@ function createCard(meta) {
   p21.textContent = meta.CreatedAt;
   cardContent.appendChild(p21);
 
-  const p22 = document.createElement("p");
-  p22.setAttribute('data-label', 'Conversations:');
+  if (meta.Description) {
+    const p22 = document.createElement("p");
+    p22.setAttribute('data-label', 'Description:');
+
+    if (meta.Description.length > 40) {
+      const shortText = meta.Description.substring(0, 40);
+      const expandBtn = document.createElement("span");
+      expandBtn.textContent = "...";
+      expandBtn.style.cursor = "pointer";
+      expandBtn.style.color = "#007bff";
+      expandBtn.style.textDecoration = "underline";
+
+      p22.textContent = shortText;
+      p22.appendChild(expandBtn);
+
+      let isExpanded = false;
+      expandBtn.addEventListener('click', function () {
+        if (isExpanded) {
+          p22.textContent = shortText;
+          p22.appendChild(expandBtn);
+          isExpanded = false;
+        } else {
+          p22.textContent = meta.Description;
+          isExpanded = true;
+        }
+      });
+    } else {
+      p22.textContent = meta.Description;
+    }
+
+    cardContent.appendChild(p22);
+  }
+
+  if (meta.Transport) {
+    const p23 = document.createElement("p");
+    p23.setAttribute('data-label', 'Transport:');
+    p23.textContent = meta.Transport;
+    cardContent.appendChild(p23);
+  }
+
+  if (meta.State) {
+    const p24 = document.createElement("p");
+    p24.setAttribute('data-label', 'State:');
+    p24.textContent = meta.State;
+    cardContent.appendChild(p24);
+  }
+
+  if (meta.Last) {
+    const p25 = document.createElement("p");
+    p25.setAttribute('data-label', 'Last:');
+    p25.textContent = meta.Last;
+    cardContent.appendChild(p25);
+  }
+
+  const p4 = document.createElement("p");
+  p4.setAttribute('data-label', 'Conversations:');
   const conversationLink = document.createElement('a');
   conversationLink.href = 'conversation.html?owner=' + meta.Owner + '&bucket=' + meta.Name;
   conversationLink.textContent = '[click to show]';
-  p22.appendChild(conversationLink);
-  cardContent.appendChild(p22);
+  p4.appendChild(conversationLink);
+  cardContent.appendChild(p4);
 
   const p3 = document.createElement("p");
   p3.setAttribute('data-label', 'Memories:');

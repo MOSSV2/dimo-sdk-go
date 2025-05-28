@@ -30,20 +30,23 @@ func (s *Server) loadGORM() {
 		panic("failed to connect database")
 	}
 
+	// Enable WAL mode for better concurrency and data safety
 	_ = db.Exec("PRAGMA journal_mode=WAL;")
-	_ = db.Exec("PRAGMA synchronous = NORMAL;")
-	_ = db.Exec("PRAGMA cache_size = -128000;") // 128MB cache
+	_ = db.Exec("PRAGMA synchronous = NORMAL;") // NORMAL provides good balance of safety and performance
+	_ = db.Exec("PRAGMA cache_size = -64000;")  // 64MB cache (reduced for more frequent writes)
 	_ = db.Exec("PRAGMA temp_store = MEMORY;")
-	_ = db.Exec("PRAGMA mmap_size = 4000000000;") // 4GB mmap
+	_ = db.Exec("PRAGMA mmap_size = 4000000000;")    // 4GB mmap
+	_ = db.Exec("PRAGMA wal_autocheckpoint = 1000;") // Less frequent checkpoints to reduce lock contention
+	_ = db.Exec("PRAGMA busy_timeout = 60000;")      // Increase timeout to 60 seconds for better handling of concurrent operations
 
 	sqldb, err := db.DB()
 	if err != nil {
 		panic("failed to get database")
 	}
 
-	sqldb.SetMaxIdleConns(20)
-	sqldb.SetMaxOpenConns(100)
-	sqldb.SetConnMaxLifetime(time.Hour)
+	sqldb.SetMaxIdleConns(5)                   // Reduce idle connections to minimize lock contention
+	sqldb.SetMaxOpenConns(20)                  // Reduce max connections to prevent overwhelming SQLite
+	sqldb.SetConnMaxLifetime(15 * time.Minute) // Shorter connection lifetime for better resource management
 
 	// Auto migrate tables
 	db.AutoMigrate(&types.Account{})
@@ -62,6 +65,9 @@ func (s *Server) loadGORM() {
 	db.Exec("CREATE INDEX IF NOT EXISTS idx_needles_owner_bucket_name ON needles(owner, bucket, name);")
 
 	s.gdb = db
+
+	// Start periodic checkpoint routine for data safety
+	go s.periodicCheckpoint()
 
 	// iterate all needles to update bucket
 	ni := os.Getenv("NEED_INIT")
@@ -176,23 +182,147 @@ func (s *Server) listAccount(offset, limit int) ([]types.Account, error) {
 	return accounts, nil
 }
 
-func (s *Server) getBucket(owner, bucket string) ([]types.Bucket, error) {
+func (s *Server) getBucket(owner, bucket string) ([]types.BucketDisplay, error) {
 	var buckets []types.Bucket
 	result := s.gdb.Where(&types.Bucket{Owner: owner, Name: bucket}).Find(&buckets)
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return buckets, nil
+	res := make([]types.BucketDisplay, 0, len(buckets))
+	for _, bucket := range buckets {
+		s.bucketDisplayLock.RLock()
+		bd, ok := s.bucketDisplay[bucket.Name]
+		if ok && bucket.UpdatedAt.Equal(bd.Last) {
+			res = append(res, bd)
+			s.bucketDisplayLock.RUnlock()
+			continue
+		}
+		s.bucketDisplayLock.RUnlock()
+		if !ok {
+			bd = types.BucketDisplay{
+				Bucket: bucket,
+				Last:   bucket.UpdatedAt,
+			}
+		}
+		// read data
+		needles, err := s.getNeedleByName(bucket.Name)
+		if err == nil && len(needles) > 0 {
+			if ok && needles[0].UpdatedAt.Equal(bd.Last) {
+				res = append(res, bd)
+				continue
+			}
+			bd.Last = needles[0].UpdatedAt
+
+			var w bytes.Buffer
+			s.logFSRead(needles[0].Owner, needles[0].Name, &w)
+			if w.Len() > 0 {
+				// decode w to json
+				var mjson map[string]interface{}
+				err := json.Unmarshal(w.Bytes(), &mjson)
+				if err != nil {
+					continue
+				}
+				description, ok := mjson["content"].(string)
+				if ok {
+					bd.Description = description
+				}
+
+				meta, ok := mjson["metadata"].(map[string]interface{})
+				if ok {
+					transport, ok := meta["transport"].(string)
+					if ok {
+						bd.Transport = transport
+					}
+					typ, ok := meta["type"].(string)
+					if ok {
+						bd.Type = typ
+					}
+					state, ok := meta["state"].(string)
+					if ok {
+						bd.State = state
+					}
+				}
+			}
+		}
+		s.bucketDisplayLock.Lock()
+		s.bucketDisplay[bucket.Name] = bd
+		s.bucketDisplayLock.Unlock()
+		res = append(res, bd)
+	}
+	return res, nil
 }
 
-func (s *Server) listBucket(owner string, offset, limit int) ([]types.Bucket, error) {
+func (s *Server) listBucket(owner string, offset, limit int) ([]types.BucketDisplay, error) {
 	var buckets []types.Bucket
 	result := s.gdb.Where(&types.Bucket{Owner: owner}).Order("id desc").Limit(limit).Offset(offset).Find(&buckets)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 
-	return buckets, nil
+	res := make([]types.BucketDisplay, 0, len(buckets))
+	for _, bucket := range buckets {
+		s.bucketDisplayLock.RLock()
+		bd, ok := s.bucketDisplay[bucket.Name]
+		if ok && bucket.CreatedAt.Equal(bd.Last) {
+			res = append(res, bd)
+			s.bucketDisplayLock.RUnlock()
+			continue
+		}
+		s.bucketDisplayLock.RUnlock()
+		if !ok {
+			bd = types.BucketDisplay{
+				Bucket: bucket,
+				Last:   bucket.CreatedAt,
+			}
+		}
+		// read data
+		needles, err := s.getNeedleByName(bucket.Name)
+		if err == nil && len(needles) > 0 {
+			if ok && needles[0].UpdatedAt.Equal(bd.Last) {
+				res = append(res, bd)
+				continue
+			}
+			bd.Last = needles[0].UpdatedAt
+
+			var w bytes.Buffer
+			s.logFSRead(needles[0].Owner, needles[0].Name, &w)
+			if w.Len() > 0 {
+				// decode w to json
+				var mjson map[string]interface{}
+				err := json.Unmarshal(w.Bytes(), &mjson)
+				if err != nil {
+					continue
+				}
+				description, ok := mjson["content"].(string)
+				if ok {
+					bd.Description = description
+				}
+
+				meta, ok := mjson["metadata"].(map[string]interface{})
+				if ok {
+					transport, ok := meta["transport"].(string)
+					if ok {
+						bd.Transport = transport
+					}
+					typ, ok := meta["type"].(string)
+					if ok {
+						bd.Type = typ
+					}
+
+					state, ok := meta["state"].(string)
+					if ok {
+						bd.State = state
+					}
+				}
+			}
+		}
+		s.bucketDisplayLock.Lock()
+		s.bucketDisplay[bucket.Name] = bd
+		s.bucketDisplayLock.Unlock()
+		res = append(res, bd)
+	}
+
+	return res, nil
 }
 
 func (s *Server) addNeedle(owner, bucket, name string, findex uint64, start, length uint64) {
@@ -490,4 +620,31 @@ func (s *Server) getConversation(ctx context.Context, conversation, addr, bucket
 		conversations = append(conversations, w.String())
 	}
 	return conversations, nil
+}
+
+// periodicCheckpoint runs periodic WAL checkpoints to ensure data persistence
+func (s *Server) periodicCheckpoint() {
+	ticker := time.NewTicker(5 * time.Minute) // Checkpoint every 5 minutes to reduce lock contention
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-s.checkpointStop:
+			// Perform final checkpoint before stopping
+			if s.gdb != nil {
+				logger.Info("performing final database checkpoint...")
+				if err := s.gdb.Exec("PRAGMA wal_checkpoint(FULL);").Error; err != nil {
+					logger.Errorf("final WAL checkpoint failed: %v", err)
+				}
+			}
+			return
+		case <-ticker.C:
+			if s.gdb != nil {
+				// Execute WAL checkpoint to persist data (use RESTART for better performance)
+				if err := s.gdb.Exec("PRAGMA wal_checkpoint(RESTART);").Error; err != nil {
+					logger.Debugf("WAL checkpoint failed: %v", err)
+				}
+			}
+		}
+	}
 }

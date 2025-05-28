@@ -188,29 +188,40 @@ paths:
     get:
       consumes:
       - application/json
-      description: get bucket information for a specific bucket
+      description: Retrieve detailed information for a specific bucket including metadata,
+        storage statistics, and configuration settings. Returns bucket display information
+        with owner details, creation time, and current status.
       parameters:
-      - description: account owner address
+      - description: Account owner address (wallet address or account identifier)
         in: query
         name: owner
         type: string
-      - description: bucket name
+      - description: Bucket name (unique identifier within the owner's account)
         in: query
         name: bucket
+        required: true
         type: string
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Bucket information including metadata, statistics, and configuration
           schema:
             additionalProperties: true
             type: object
-        "599":
-          description: ""
+        "400":
+          description: Bad request - missing or invalid parameters
           schema:
             $ref: '#/definitions/error.APIError'
-      summary: get bucket information
+        "404":
+          description: Bucket not found
+          schema:
+            $ref: '#/definitions/error.APIError'
+        "599":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/error.APIError'
+      summary: Get bucket information
       tags:
       - bucket
   /api/getConversation:
@@ -379,70 +390,93 @@ paths:
     get:
       consumes:
       - application/json
-      description: get a list of buckets with pagination support
+      description: Retrieve a paginated list of buckets. If owner is specified, returns
+        buckets owned by that account. If owner is empty, returns all buckets in the
+        system. Supports pagination with configurable offset and page size. Returns
+        bucket display information including names, creation times, and basic statistics.
       parameters:
       - default: '""'
-        description: owner address
+        description: Owner address to filter buckets (leave empty to list all buckets)
         in: query
         name: owner
         type: string
       - default: 0
-        description: pagination offset
+        description: Pagination offset - number of items to skip
         in: query
+        minimum: 0
         name: offset
         type: integer
       - default: 32
-        description: number of items per page
+        description: Number of items per page (max 100)
         in: query
+        maximum: 100
+        minimum: 1
         name: length
         type: integer
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Paginated list of buckets with metadata and statistics
           schema:
             additionalProperties: true
             type: object
-        "599":
-          description: ""
+        "400":
+          description: Bad request - invalid pagination parameters
           schema:
             $ref: '#/definitions/error.APIError'
-      summary: list buckets
+        "599":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/error.APIError'
+      summary: List buckets with pagination
       tags:
       - bucket
     post:
       consumes:
-      - application/json
-      description: get a list of buckets with pagination support
+      - application/x-www-form-urlencoded
+      description: Retrieve a paginated list of buckets using POST method. If owner
+        is specified, returns buckets owned by that account. If owner is empty, returns
+        all buckets in the system. Supports pagination with configurable offset and
+        page size. Returns bucket display information including names, creation times,
+        and basic statistics. This POST variant is useful for complex filtering scenarios
+        or when URL length limits are a concern.
       parameters:
-      - description: owner address
+      - default: '""'
+        description: Owner address to filter buckets (leave empty to list all buckets)
         in: formData
         name: owner
         type: string
       - default: 0
-        description: pagination offset
+        description: Pagination offset - number of items to skip
         in: formData
+        minimum: 0
         name: offset
         type: integer
       - default: 32
-        description: number of items per page
+        description: Number of items per page (max 100)
         in: formData
+        maximum: 100
+        minimum: 1
         name: length
         type: integer
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Paginated list of buckets with metadata and statistics
           schema:
             additionalProperties: true
             type: object
-        "599":
-          description: ""
+        "400":
+          description: Bad request - invalid pagination parameters
           schema:
             $ref: '#/definitions/error.APIError'
-      summary: list buckets
+        "599":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/error.APIError'
+      summary: List buckets with pagination (POST)
       tags:
       - bucket
   /api/listConversation:

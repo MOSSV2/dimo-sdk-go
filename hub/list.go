@@ -105,19 +105,26 @@ func (s *Server) listAccountByPost(c *gin.Context) {
 
 // getBucketByGet godoc
 //
-//	@Summary		get bucket information
-//	@Description	get bucket information for a specific bucket
+//	@Summary		Get bucket information
+//	@Description	Retrieve detailed information for a specific bucket including metadata, storage statistics, and configuration settings. Returns bucket display information with owner details, creation time, and current status.
 //	@Tags			bucket
 //	@Accept			json
 //	@Produce		json
-//	@Param			owner	query		string	false	"account owner address"
-//	@Param			bucket	query		string	false	"bucket name"
-//	@Success		200		{object}	map[string]interface{}
-//	@Failure		599		{object}	lerror.APIError
+//	@Param			owner	query		string	false	"Account owner address (wallet address or account identifier)"
+//	@Param			bucket	query		string	true	"Bucket name (unique identifier within the owner's account)"
+//	@Success		200		{object}	map[string]interface{}	"Bucket information including metadata, statistics, and configuration"
+//	@Failure		400		{object}	lerror.APIError			"Bad request - missing or invalid parameters"
+//	@Failure		404		{object}	lerror.APIError			"Bucket not found"
+//	@Failure		599		{object}	lerror.APIError			"Internal server error"
 //	@Router			/api/getBucket [get]
 func (s *Server) getBucketByGet(c *gin.Context) {
 	owner := c.Query("owner")
 	bucket := c.Query("bucket")
+	if bucket == "" {
+		bucket = c.Query("name")
+	}
+
+	// result is []types.BucketDisplay containing bucket metadata, description, state, transport, type, and last update time
 	res, err := s.getBucket(owner, bucket)
 	if err != nil {
 		c.JSON(599, lerror.ToAPIError("hub", err))
@@ -129,16 +136,17 @@ func (s *Server) getBucketByGet(c *gin.Context) {
 
 // listBucketByGet godoc
 //
-//	@Summary		list buckets
-//	@Description	get a list of buckets with pagination support
+//	@Summary		List buckets with pagination
+//	@Description	Retrieve a paginated list of buckets. If owner is specified, returns buckets owned by that account. If owner is empty, returns all buckets in the system. Supports pagination with configurable offset and page size. Returns bucket display information including names, creation times, and basic statistics.
 //	@Tags			bucket
 //	@Accept			json
 //	@Produce		json
-//	@Param			owner	query		string	false	"owner address" default("")
-//	@Param			offset	query		int		false	"pagination offset" default(0)
-//	@Param			length	query		int		false	"number of items per page" default(32)
-//	@Success		200		{object}	map[string]interface{}
-//	@Failure		599		{object}	lerror.APIError
+//	@Param			owner	query		string	false	"Owner address to filter buckets (leave empty to list all buckets)" default("")
+//	@Param			offset	query		int		false	"Pagination offset - number of items to skip" default(0) minimum(0)
+//	@Param			length	query		int		false	"Number of items per page (max 100)" default(32) minimum(1) maximum(100)
+//	@Success		200		{object}	map[string]interface{}	"Paginated list of buckets with metadata and statistics"
+//	@Failure		400		{object}	lerror.APIError			"Bad request - invalid pagination parameters"
+//	@Failure		599		{object}	lerror.APIError			"Internal server error"
 //	@Router			/api/listBucket [get]
 func (s *Server) listBucketByGet(c *gin.Context) {
 	owner := c.Query("owner")
@@ -147,6 +155,7 @@ func (s *Server) listBucketByGet(c *gin.Context) {
 	if length == 0 {
 		length = 32
 	}
+	// result is []types.BucketDisplay containing bucket metadata, descriptions, states, transport info, and statistics
 	res, err := s.listBucket(owner, offset, length)
 	if err != nil {
 		c.JSON(599, lerror.ToAPIError("hub", err))
@@ -158,16 +167,17 @@ func (s *Server) listBucketByGet(c *gin.Context) {
 
 // listBucketByPost godoc
 //
-//	@Summary		list buckets
-//	@Description	get a list of buckets with pagination support
+//	@Summary		List buckets with pagination (POST)
+//	@Description	Retrieve a paginated list of buckets using POST method. If owner is specified, returns buckets owned by that account. If owner is empty, returns all buckets in the system. Supports pagination with configurable offset and page size. Returns bucket display information including names, creation times, and basic statistics. This POST variant is useful for complex filtering scenarios or when URL length limits are a concern.
 //	@Tags			bucket
-//	@Accept			json
+//	@Accept			application/x-www-form-urlencoded
 //	@Produce		json
-//	@Param			owner	formData	string	false	"owner address"
-//	@Param			offset	formData	int		false	"pagination offset" default(0)
-//	@Param			length	formData	int		false	"number of items per page" default(32)
-//	@Success		200		{object}	map[string]interface{}
-//	@Failure		599		{object}	lerror.APIError
+//	@Param			owner	formData	string	false	"Owner address to filter buckets (leave empty to list all buckets)" default("")
+//	@Param			offset	formData	int		false	"Pagination offset - number of items to skip" default(0) minimum(0)
+//	@Param			length	formData	int		false	"Number of items per page (max 100)" default(32) minimum(1) maximum(100)
+//	@Success		200		{object}	map[string]interface{}	"Paginated list of buckets with metadata and statistics"
+//	@Failure		400		{object}	lerror.APIError			"Bad request - invalid pagination parameters"
+//	@Failure		599		{object}	lerror.APIError			"Internal server error"
 //	@Router			/api/listBucket [post]
 func (s *Server) listBucketByPost(c *gin.Context) {
 	owner := c.PostForm("owner")
@@ -176,6 +186,7 @@ func (s *Server) listBucketByPost(c *gin.Context) {
 	if length == 0 {
 		length = 32
 	}
+	// result is []types.BucketDisplay containing bucket metadata, descriptions, states, transport info, and statistics
 	res, err := s.listBucket(owner, offset, length)
 	if err != nil {
 		c.JSON(599, lerror.ToAPIError("hub", err))

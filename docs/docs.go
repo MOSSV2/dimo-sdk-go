@@ -183,7 +183,7 @@ const docTemplate = `{
         },
         "/api/getBucket": {
             "get": {
-                "description": "get bucket information for a specific bucket",
+                "description": "Retrieve detailed information for a specific bucket including metadata, storage statistics, and configuration settings. Returns bucket display information with owner details, creation time, and current status.",
                 "consumes": [
                     "application/json"
                 ],
@@ -193,31 +193,44 @@ const docTemplate = `{
                 "tags": [
                     "bucket"
                 ],
-                "summary": "get bucket information",
+                "summary": "Get bucket information",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "account owner address",
+                        "description": "Account owner address (wallet address or account identifier)",
                         "name": "owner",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "bucket name",
+                        "description": "Bucket name (unique identifier within the owner's account)",
                         "name": "bucket",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Bucket information including metadata, statistics, and configuration",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
+                    "400": {
+                        "description": "Bad request - missing or invalid parameters",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Bucket not found",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
                     "599": {
-                        "description": "",
+                        "description": "Internal server error",
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
@@ -468,7 +481,7 @@ const docTemplate = `{
         },
         "/api/listBucket": {
             "get": {
-                "description": "get a list of buckets with pagination support",
+                "description": "Retrieve a paginated list of buckets. If owner is specified, returns buckets owned by that account. If owner is empty, returns all buckets in the system. Supports pagination with configurable offset and page size. Returns bucket display information including names, creation times, and basic statistics.",
                 "consumes": [
                     "application/json"
                 ],
@@ -478,40 +491,49 @@ const docTemplate = `{
                 "tags": [
                     "bucket"
                 ],
-                "summary": "list buckets",
+                "summary": "List buckets with pagination",
                 "parameters": [
                     {
                         "type": "string",
                         "default": "\"\"",
-                        "description": "owner address",
+                        "description": "Owner address to filter buckets (leave empty to list all buckets)",
                         "name": "owner",
                         "in": "query"
                     },
                     {
+                        "minimum": 0,
                         "type": "integer",
                         "default": 0,
-                        "description": "pagination offset",
+                        "description": "Pagination offset - number of items to skip",
                         "name": "offset",
                         "in": "query"
                     },
                     {
+                        "maximum": 100,
+                        "minimum": 1,
                         "type": "integer",
                         "default": 32,
-                        "description": "number of items per page",
+                        "description": "Number of items per page (max 100)",
                         "name": "length",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Paginated list of buckets with metadata and statistics",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
+                    "400": {
+                        "description": "Bad request - invalid pagination parameters",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
                     "599": {
-                        "description": "",
+                        "description": "Internal server error",
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
@@ -519,9 +541,9 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "get a list of buckets with pagination support",
+                "description": "Retrieve a paginated list of buckets using POST method. If owner is specified, returns buckets owned by that account. If owner is empty, returns all buckets in the system. Supports pagination with configurable offset and page size. Returns bucket display information including names, creation times, and basic statistics. This POST variant is useful for complex filtering scenarios or when URL length limits are a concern.",
                 "consumes": [
-                    "application/json"
+                    "application/x-www-form-urlencoded"
                 ],
                 "produces": [
                     "application/json"
@@ -529,39 +551,49 @@ const docTemplate = `{
                 "tags": [
                     "bucket"
                 ],
-                "summary": "list buckets",
+                "summary": "List buckets with pagination (POST)",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "owner address",
+                        "default": "\"\"",
+                        "description": "Owner address to filter buckets (leave empty to list all buckets)",
                         "name": "owner",
                         "in": "formData"
                     },
                     {
+                        "minimum": 0,
                         "type": "integer",
                         "default": 0,
-                        "description": "pagination offset",
+                        "description": "Pagination offset - number of items to skip",
                         "name": "offset",
                         "in": "formData"
                     },
                     {
+                        "maximum": 100,
+                        "minimum": 1,
                         "type": "integer",
                         "default": 32,
-                        "description": "number of items per page",
+                        "description": "Number of items per page (max 100)",
                         "name": "length",
                         "in": "formData"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Paginated list of buckets with metadata and statistics",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
+                    "400": {
+                        "description": "Bad request - invalid pagination parameters",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
                     "599": {
-                        "description": "",
+                        "description": "Internal server error",
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }

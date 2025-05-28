@@ -17,6 +17,15 @@ type Bucket struct {
 	Owner string
 }
 
+type BucketDisplay struct {
+	Bucket
+	Description string
+	State       string
+	Transport   string
+	Type        string
+	Last        time.Time
+}
+
 type Needle struct {
 	gorm.Model
 	Name   string
