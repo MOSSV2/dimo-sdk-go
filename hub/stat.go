@@ -2,6 +2,7 @@ package hub
 
 import (
 	"context"
+	"os"
 	"strconv"
 	"sync"
 	"time"
@@ -147,8 +148,9 @@ func (sm *StatManager) Start(ctx context.Context) error {
 		return err
 	}
 
+	initStat := os.Getenv("INIT_STAT")
 	// If no stats exist, initialize with historical data
-	if statcount != 30 {
+	if statcount != 30 || initStat != "" {
 		logger.Warnf("no enough stats found, initializing with historical data")
 		sm.stats = make(map[string]*types.Stat)
 		now := time.Now().UTC()
@@ -184,14 +186,12 @@ func (sm *StatManager) Stop() {
 	now = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 
 	// Update and save current day's statistics
-	sm.updateDailyStat(now)
-
-	// Save all current statistics to database
-	for _, stat := range sm.stats {
-		if err := sm.saveStat(stat); err != nil {
-			logger.Errorf("failed to save statistics for day %s: %v", stat.Day.Format("2006-01-02"), err)
-		}
+	if now.Day() != sm.lastDay.Day() {
+		sm.updateDailyStat(sm.lastDay)
+		sm.lastDay = now
 	}
+	// Update current day's data
+	sm.updateDailyStat(now)
 
 	logger.Info("statistics manager stopped and data saved")
 }
