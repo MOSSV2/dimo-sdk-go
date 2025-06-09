@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"math/big"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/MOSSV2/dimo-sdk-go/build"
@@ -53,8 +55,8 @@ var (
 	//https://sepolia-optimism.etherscan.io/
 	//DevChain   = "https://11155420.rpc.thirdweb.com"
 
-	DefaultGasLimit = 8_000_000
-	DefaultGasPrice = 2_000_000_000
+	DefaultGasLimit = 600_000
+	DefaultGasPrice = 100_000_000
 
 	DefaultStreamPrice  = 1e12
 	DefaultReplicaPrice = 1e11 // 1TB*100 epoch cost 10
@@ -103,6 +105,31 @@ var (
 )
 
 var logger = dlog.Logger("contract")
+
+func init() {
+	gasPrice := os.Getenv("GAS_PRICE")
+	if gasPrice != "" {
+		gasPriceInt, err := strconv.Atoi(gasPrice)
+		if err != nil {
+			logger.Warn("invalid gas price: ", gasPrice)
+		} else {
+			DefaultGasPrice = gasPriceInt
+		}
+	}
+
+	gasLimit := os.Getenv("GAS_LIMIT")
+	if gasLimit != "" {
+		gasLimitInt, err := strconv.Atoi(gasLimit)
+		if err != nil {
+			logger.Warn("invalid gas limit: ", gasLimit)
+		} else {
+			DefaultGasLimit = gasLimitInt
+		}
+	}
+
+	logger.Infof("gas price: %d", DefaultGasPrice)
+	logger.Infof("gas limit: %d", DefaultGasLimit)
+}
 
 func MakeAuth(ep string, chainID int64, hexSk string) (*bind.TransactOpts, error) {
 	sk, err := crypto.HexToECDSA(hexSk)
