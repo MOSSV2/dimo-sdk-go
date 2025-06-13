@@ -48,6 +48,10 @@ func NewContractManage(sk *ecdsa.PrivateKey, chainType string) (*ContractManage,
 		cm.BankAddr = BNBTestnetBankAddr
 		cm.TokenAddr = BNBTestnetTokenAddr
 		cm.SyncHeight = BNBTestnetSyncHeight
+		chainRPC := os.Getenv("CHAIN_RPC_97")
+		if chainRPC != "" {
+			cm.RPC = chainRPC
+		}
 	default:
 		return nil, fmt.Errorf("unsupportted chain type: %s, use 'bnb-testnet', 'op-sepolia' or 'opbnb-testnet'", chainType)
 	}
