@@ -4,16 +4,6 @@ const eaddrparam = urlParams.get("owner");
 if (eaddrparam) {
   eaddr = eaddrparam;
 }
-let bucket = ""
-const bucketparam = urlParams.get("bucket");
-if (bucketparam) {
-  bucket = bucketparam;
-}
-let conversation = ""
-const conversationparam = urlParams.get("conversation");
-if (conversationparam) {
-  conversation = conversationparam;
-}
 
 const itemsPerPage = 12;
 let currentPage = 1;
@@ -24,14 +14,14 @@ function renderPage() {
   cardContainer.innerHTML = '';
 
   const startIndex = (currentPage - 1) * itemsPerPage;
-  listNeedle(eaddr, startIndex, itemsPerPage)
+  listBucket(eaddr, startIndex, itemsPerPage)
     .then((data) => {
       data.forEach((fileMeta) => {
         const card = createCard(fileMeta);
         cardContainer.appendChild(card);
       });
     })
-    .catch((error) => console.error("Error fetching needle:", error));
+    .catch((error) => console.error("Error fetching bucket:", error));
 
   // Update the page number
   document.getElementById('pageNumber').innerText = `Page: ${currentPage}`;
@@ -71,68 +61,86 @@ function createCard(meta) {
   p5.textContent = meta.Owner;
   cardContent.appendChild(p5);
 
-  const p7 = document.createElement("p");
-  p7.setAttribute('data-label', 'Agent:');
-  p7.textContent = meta.Bucket;
-  cardContent.appendChild(p7);
-
-  const p0 = document.createElement("p");
-  p0.setAttribute('data-label', 'Volume:');
-  p0.textContent = meta.File;
-  cardContent.appendChild(p0);
-
-  const p1 = document.createElement("p");
-  p1.setAttribute('data-label', 'Start:');
-  p1.textContent = meta.Start;
-  cardContent.appendChild(p1);
-
-  const p2 = document.createElement("p");
-  p2.setAttribute('data-label', 'Size:');
-  p2.textContent = meta.Size + ' bytes';
-  cardContent.appendChild(p2);
-
   const p21 = document.createElement("p");
   p21.setAttribute('data-label', 'Creation:');
   p21.textContent = meta.CreatedAt;
   cardContent.appendChild(p21);
 
-  if (meta.TxHash) {
-    const p3 = document.createElement("p");
-    p3.setAttribute('data-label', 'Piece:');
-    p3.textContent = meta.Piece;
-    cardContent.appendChild(p3);
+  if (meta.Description) {
+    const p22 = document.createElement("p");
+    p22.setAttribute('data-label', 'Description:');
 
-    let rurl = "https://sepolia-optimism.etherscan.io/tx/"
-    if (meta.ChainType == "bnb-testnet") {
-      rurl = "https://testnet.bscscan.com/tx/"
-    } else if (meta.ChainType == "opbnb-testnet") {
-      rurl = "https://opbnb-testnet.bscscan.com/tx/"
+    if (meta.Description.length > 40) {
+      const shortText = meta.Description.substring(0, 40);
+      const expandBtn = document.createElement("span");
+      expandBtn.textContent = "...";
+      expandBtn.style.cursor = "pointer";
+      expandBtn.style.color = "#007bff";
+      expandBtn.style.textDecoration = "underline";
+
+      p22.textContent = shortText;
+      p22.appendChild(expandBtn);
+
+      let isExpanded = false;
+      expandBtn.addEventListener('click', function () {
+        if (isExpanded) {
+          p22.textContent = shortText;
+          p22.appendChild(expandBtn);
+          isExpanded = false;
+        } else {
+          p22.textContent = meta.Description;
+          isExpanded = true;
+        }
+      });
+    } else {
+      p22.textContent = meta.Description;
     }
 
-    const p4 = document.createElement("p");
-    p4.setAttribute('data-label', 'TxHash:');
-    const link = document.createElement('a');
-    link.href = rurl + meta.TxHash;
-    link.target = '_blank';
-    link.textContent = meta.TxHash;
-    p4.appendChild(link);
-    cardContent.appendChild(p4);
+    cardContent.appendChild(p22);
   }
 
-  const p6 = document.createElement("p");
-  p6.setAttribute('data-label', 'Content:');
-  const contentLink = document.createElement('a');
-  contentLink.href = 'content.html?owner=' + meta.Owner + '&name=' + meta.Name;
-  contentLink.target = '_blank';
-  contentLink.textContent = '[click to show]';
-  p6.appendChild(contentLink);
-  cardContent.appendChild(p6);
+  if (meta.Transport) {
+    const p23 = document.createElement("p");
+    p23.setAttribute('data-label', 'Transport:');
+    p23.textContent = meta.Transport;
+    cardContent.appendChild(p23);
+  }
+
+  if (meta.State) {
+    const p24 = document.createElement("p");
+    p24.setAttribute('data-label', 'State:');
+    p24.textContent = meta.State;
+    cardContent.appendChild(p24);
+  }
+
+  if (meta.Last) {
+    const p25 = document.createElement("p");
+    p25.setAttribute('data-label', 'Last:');
+    p25.textContent = meta.Last;
+    cardContent.appendChild(p25);
+  }
+
+  const p4 = document.createElement("p");
+  p4.setAttribute('data-label', 'Conversations:');
+  const conversationLink = document.createElement('a');
+  conversationLink.href = 'conversation.html?owner=' + meta.Owner + '&bucket=' + meta.Name;
+  conversationLink.textContent = '[click to show]';
+  p4.appendChild(conversationLink);
+  cardContent.appendChild(p4);
+
+  const p3 = document.createElement("p");
+  p3.setAttribute('data-label', 'Memories:');
+  const needleLink = document.createElement('a');
+  needleLink.href = 'needle.html?owner=' + meta.Owner + '&bucket=' + meta.Name;
+  needleLink.textContent = '[click to show]';
+  p3.appendChild(needleLink);
+  cardContent.appendChild(p3);
 
   return card;
 }
 
-function listNeedle(eaddr, offset, length) {
-  return fetch(`/api/listNeedle?owner=${eaddr}&bucket=${bucket}&conversation=${conversation}&offset=${offset}&length=${length}`)
+function listBucket(eaddr, offset, length) {
+  return fetch(`/api/listBucket?owner=${eaddr}&offset=${offset}&length=${length}`)
     .then((response) => response.json())
     .then((data) => {
       return data;
@@ -142,7 +150,7 @@ function listNeedle(eaddr, offset, length) {
 
 function search() {
   const searchInput = document.getElementById("searchInput").value;
-  fetch(`/api/getNeedle?owner=${eaddr}&bucket=${bucket}&conversation=${conversation}&name=${searchInput}`)
+  fetch(`/api/getBucket?bucket=${searchInput}`)
     .then((response) => response.json())
     .then((data) => {
       displayResults(data);
