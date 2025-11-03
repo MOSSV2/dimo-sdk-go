@@ -56,7 +56,7 @@ var (
 	//DevChain   = "https://11155420.rpc.thirdweb.com"
 
 	DefaultGasLimit = 600_000
-	DefaultGasPrice = 100_000_000
+	DefaultGasPrice = 1_000_000_000
 
 	DefaultStreamPrice  = 1e12
 	DefaultReplicaPrice = 1e11 // 1TB*100 epoch cost 10
@@ -97,7 +97,7 @@ var (
 var (
 	BNBTestnet           = build.BNBTestnet
 	BNBTestnetExplorer   = "https://testnet.bscscan.com/"
-	BNBTestnetChainRPC   = "https://bsc-testnet-rpc.publicnode.com"
+	BNBTestnetChainRPC   = "https://bsc-prebsc-dataseed.bnbchain.org"
 	BNBTestnetChainID    = 97
 	BNBTestnetBankAddr   = common.HexToAddress("0x5903805A3a50Fab318c8650bABC71F58900EE34e")
 	BNBTestnetTokenAddr  = common.HexToAddress("0x3259E10E857139a5C58Fa5Dc6C7fF525AaE661F8")
