@@ -7,6 +7,8 @@ import (
 	"math/big"
 	"os"
 
+	com "github.com/MOSSV2/dimo-sdk-go/contract/common"
+
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -30,24 +32,24 @@ func NewContractManage(sk *ecdsa.PrivateKey, chainType string) (*ContractManage,
 	}
 
 	switch chainType {
-	case OPSepolia:
-		cm.RPC = OPSepoliaChainRPC
-		cm.ChainID = big.NewInt(int64(OPSepoliaChainID))
-		cm.BankAddr = OPSepoliaBankAddr
-		cm.TokenAddr = OPSepoliaTokenAddr
-		cm.SyncHeight = OPSepoliaSyncHeight
-	case OPBNBTestnet:
-		cm.RPC = OPBNBTestnetChainRPC
-		cm.ChainID = big.NewInt(int64(OPBNBTestnetChainID))
-		cm.BankAddr = OPBNBTestnetBankAddr
-		cm.TokenAddr = OPBNBTestnetTokenAddr
-		cm.SyncHeight = OPBNBTestnetSyncHeight
-	case BNBTestnet:
-		cm.RPC = BNBTestnetChainRPC
-		cm.ChainID = big.NewInt(int64(BNBTestnetChainID))
-		cm.BankAddr = BNBTestnetBankAddr
-		cm.TokenAddr = BNBTestnetTokenAddr
-		cm.SyncHeight = BNBTestnetSyncHeight
+	case com.OPSepolia:
+		cm.RPC = com.OPSepoliaChainRPC
+		cm.ChainID = big.NewInt(int64(com.OPSepoliaChainID))
+		cm.BankAddr = com.OPSepoliaBankAddr
+		cm.TokenAddr = com.OPSepoliaTokenAddr
+		cm.SyncHeight = com.OPSepoliaSyncHeight
+	case com.OPBNBTestnet:
+		cm.RPC = com.OPBNBTestnetChainRPC
+		cm.ChainID = big.NewInt(int64(com.OPBNBTestnetChainID))
+		cm.BankAddr = com.OPBNBTestnetBankAddr
+		cm.TokenAddr = com.OPBNBTestnetTokenAddr
+		cm.SyncHeight = com.OPBNBTestnetSyncHeight
+	case com.BNBTestnet:
+		cm.RPC = com.BNBTestnetChainRPC
+		cm.ChainID = big.NewInt(int64(com.BNBTestnetChainID))
+		cm.BankAddr = com.BNBTestnetBankAddr
+		cm.TokenAddr = com.BNBTestnetTokenAddr
+		cm.SyncHeight = com.BNBTestnetSyncHeight
 		chainRPC := os.Getenv("CHAIN_RPC_97")
 		if chainRPC != "" {
 			cm.RPC = chainRPC
@@ -77,35 +79,35 @@ func NewContractManage(sk *ecdsa.PrivateKey, chainType string) (*ContractManage,
 		return nil, fmt.Errorf("chain id mismatch, expected %d, got %d", cm.ChainID, chainID)
 	}
 
-	logger.Info("connected to chain: ", cm.RPC)
+	com.Logger.Info("connected to chain: ", cm.RPC)
 
 	return cm, nil
 }
 
 func (c *ContractManage) MakeAuth() (*bind.TransactOpts, error) {
-	return makeAuth(c.RPC, c.ChainID, c.sk)
+	return com.MakeAuthBySk(c.RPC, c.ChainID, c.sk)
 }
 
 func (c *ContractManage) GetTransactionReceipt(hash common.Hash) (*types.Receipt, error) {
-	return getTransactionReceipt(c.RPC, hash)
+	return com.GetTransactionReceipt(c.RPC, hash)
 }
 
 func (c *ContractManage) CheckTx(txHash common.Hash) error {
-	return checkTx(c.RPC, txHash)
+	return com.CheckTx(c.RPC, txHash)
 }
 
 func (c *ContractManage) Transfer(toAddr common.Address, value *big.Int) error {
-	return transfer(c.RPC, c.sk, toAddr, value)
+	return com.Transfer(c.RPC, c.sk, toAddr, value)
 }
 
 func (c *ContractManage) TransferToken(toAddr common.Address, value *big.Int) error {
-	return transferToken(c.RPC, c.ChainID, c.sk, c.TokenAddr, toAddr, value)
+	return com.TransferToken(c.RPC, c.ChainID, c.sk, c.TokenAddr, toAddr, value)
 }
 
 func (c *ContractManage) BalanceOf(toAddr common.Address) *big.Int {
-	return balanceOf(c.RPC, toAddr)
+	return com.BalanceOf(c.RPC, toAddr)
 }
 
 func (c *ContractManage) BalanceOfToken(toAddr common.Address) *big.Int {
-	return balanceOfToken(c.RPC, c.TokenAddr, toAddr)
+	return com.BalanceOfToken(c.RPC, c.TokenAddr, toAddr)
 }

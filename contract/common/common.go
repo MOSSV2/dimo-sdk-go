@@ -1,4 +1,4 @@
-package contract
+package common
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/MOSSV2/dimo-sdk-go/build"
-	"github.com/MOSSV2/dimo-sdk-go/contract/go/token"
+	"github.com/MOSSV2/dimo-sdk-go/contract/v1/go/token"
 	dlog "github.com/MOSSV2/dimo-sdk-go/lib/log"
 	"github.com/MOSSV2/dimo-sdk-go/lib/utils"
 
@@ -80,6 +80,19 @@ var (
 	OPSepoliaBankAddr   = common.HexToAddress("0xd1B90aFa21e749f99b2d20d57B31aD96108E4CB1")
 	OPSepoliaTokenAddr  = common.HexToAddress("0x96A711D4C093e4BCa8E12653014a9A15530399A1")
 	OPSepoliaSyncHeight = 21_696_900
+
+	OPSepoliaEpochAddr   = common.HexToAddress("")
+	OPSepoliaNodeAddr    = common.HexToAddress("")
+	OPSepoliaPieceAddr   = common.HexToAddress("")
+	OPSepoliaRSProofAddr = common.HexToAddress("")
+	OPSepoliaEProofAddr  = common.HexToAddress("")
+	OPSepoliaEVerifyAddr = common.HexToAddress("")
+	OPSepoliaStatAddr    = common.HexToAddress("")
+
+	OPSepoliaRSOneAddr = common.HexToAddress("")
+	OPSepoliaKZGAddr   = common.HexToAddress("")
+	OPSepoliaAddAddr   = common.HexToAddress("")
+	OPSepoliaMulAddr   = common.HexToAddress("")
 )
 
 // opbnb-testnet
@@ -92,6 +105,19 @@ var (
 	OPBNBTestnetBankAddr   = common.HexToAddress("0x7560B3a48952A05B989C7e2956e12a7f4b534cF5")
 	OPBNBTestnetTokenAddr  = common.HexToAddress("0x1600D17EBBB5135837FCA958c1804A249716F393")
 	OPBNBTestnetSyncHeight = 48_317_500
+
+	OPBNBTestnetEpochAddr   = common.HexToAddress("")
+	OPBNBTestnetNodeAddr    = common.HexToAddress("")
+	OPBNBTestnetPieceAddr   = common.HexToAddress("")
+	OPBNBTestnetRSProofAddr = common.HexToAddress("")
+	OPBNBTestnetEProofAddr  = common.HexToAddress("")
+	OPBNBTestnetEVerifyAddr = common.HexToAddress("")
+	OPBNBTestnetStatAddr    = common.HexToAddress("")
+
+	OPBNBTestnetRSOneAddr = common.HexToAddress("")
+	OPBNBTestnetKZGAddr   = common.HexToAddress("")
+	OPBNBTestnetAddAddr   = common.HexToAddress("")
+	OPBNBTestnetMulAddr   = common.HexToAddress("")
 )
 
 var (
@@ -102,16 +128,29 @@ var (
 	BNBTestnetBankAddr   = common.HexToAddress("0x5903805A3a50Fab318c8650bABC71F58900EE34e")
 	BNBTestnetTokenAddr  = common.HexToAddress("0x3259E10E857139a5C58Fa5Dc6C7fF525AaE661F8")
 	BNBTestnetSyncHeight = 48_382_314
+
+	BNBTestnetEpochAddr   = common.HexToAddress("")
+	BNBTestnetNodeAddr    = common.HexToAddress("")
+	BNBTestnetPieceAddr   = common.HexToAddress("")
+	BNBTestnetRSProofAddr = common.HexToAddress("")
+	BNBTestnetEProofAddr  = common.HexToAddress("")
+	BNBTestnetEVerifyAddr = common.HexToAddress("")
+	BNBTestnetStatAddr    = common.HexToAddress("")
+
+	BNBTestnetRSOneAddr = common.HexToAddress("")
+	BNBTestnetKZGAddr   = common.HexToAddress("")
+	BNBTestnetAddAddr   = common.HexToAddress("")
+	BNBTestnetMulAddr   = common.HexToAddress("")
 )
 
-var logger = dlog.Logger("contract")
+var Logger = dlog.Logger("contract")
 
 func init() {
 	gasPrice := os.Getenv("GAS_PRICE")
 	if gasPrice != "" {
 		gasPriceInt, err := strconv.Atoi(gasPrice)
 		if err != nil {
-			logger.Warn("invalid gas price: ", gasPrice)
+			Logger.Warn("invalid gas price: ", gasPrice)
 		} else {
 			DefaultGasPrice = gasPriceInt
 		}
@@ -121,14 +160,14 @@ func init() {
 	if gasLimit != "" {
 		gasLimitInt, err := strconv.Atoi(gasLimit)
 		if err != nil {
-			logger.Warn("invalid gas limit: ", gasLimit)
+			Logger.Warn("invalid gas limit: ", gasLimit)
 		} else {
 			DefaultGasLimit = gasLimitInt
 		}
 	}
 
-	logger.Infof("gas price: %d", DefaultGasPrice)
-	logger.Infof("gas limit: %d", DefaultGasLimit)
+	Logger.Infof("gas price: %d", DefaultGasPrice)
+	Logger.Infof("gas limit: %d", DefaultGasLimit)
 }
 
 func MakeAuth(ep string, chainID int64, hexSk string) (*bind.TransactOpts, error) {
@@ -137,14 +176,14 @@ func MakeAuth(ep string, chainID int64, hexSk string) (*bind.TransactOpts, error
 		return nil, err
 	}
 
-	return makeAuth(ep, big.NewInt(chainID), sk)
+	return MakeAuthBySk(ep, big.NewInt(chainID), sk)
 }
 
 func CheckTx(ep string, txHash common.Hash) error {
 	return checkTx(ep, txHash)
 }
 
-func makeAuth(ep string, chainID *big.Int, sk *ecdsa.PrivateKey) (*bind.TransactOpts, error) {
+func MakeAuthBySk(ep string, chainID *big.Int, sk *ecdsa.PrivateKey) (*bind.TransactOpts, error) {
 	auth := &bind.TransactOpts{}
 	auth, err := bind.NewKeyedTransactorWithChainID(sk, chainID)
 	if err != nil {
@@ -163,7 +202,7 @@ func makeAuth(ep string, chainID *big.Int, sk *ecdsa.PrivateKey) (*bind.Transact
 	if err != nil {
 		return nil, err
 	}
-	logger.Debugf("height: %d, basefee: %d, blob: %d", header.Number, header.BaseFee, header.BlobGasUsed)
+	Logger.Debugf("height: %d, basefee: %d, blob: %d", header.Number, header.BaseFee, header.BlobGasUsed)
 
 	if header.BaseFee.BitLen() == 0 {
 		//auth.GasTipCap = big.NewInt(int64(DefaultGasPrice))
@@ -176,7 +215,7 @@ func makeAuth(ep string, chainID *big.Int, sk *ecdsa.PrivateKey) (*bind.Transact
 	return auth, nil
 }
 
-func getTransactionReceipt(endPoint string, hash common.Hash) (*types.Receipt, error) {
+func GetTransactionReceipt(endPoint string, hash common.Hash) (*types.Receipt, error) {
 	client, err := ethclient.Dial(endPoint)
 	if err != nil {
 		return nil, err
@@ -187,10 +226,10 @@ func getTransactionReceipt(endPoint string, hash common.Hash) (*types.Receipt, e
 	return client.TransactionReceipt(ctx, hash)
 }
 
-func getTransactionRetry(endpoint string, h common.Hash) (*types.Transaction, error) {
+func GetTransactionRetry(endpoint string, h common.Hash) (*types.Transaction, error) {
 	retry := 0
 	for retry < 10 {
-		tx, err := getTransaction(endpoint, h)
+		tx, err := GetTransaction(endpoint, h)
 		if err == nil {
 			return tx, nil
 		}
@@ -200,7 +239,7 @@ func getTransactionRetry(endpoint string, h common.Hash) (*types.Transaction, er
 	return nil, fmt.Errorf("fail to get tx")
 }
 
-func getTransaction(endpoint string, h common.Hash) (*types.Transaction, error) {
+func GetTransaction(endpoint string, h common.Hash) (*types.Transaction, error) {
 	client, err := ethclient.Dial(endpoint)
 	if err != nil {
 		return nil, err
@@ -213,7 +252,7 @@ func getTransaction(endpoint string, h common.Hash) (*types.Transaction, error) 
 }
 
 func checkTx(endPoint string, txHash common.Hash) error {
-	logger.Debug("check tx: ", txHash.String())
+	Logger.Debug("check tx: ", txHash.String())
 	var receipt *types.Receipt
 	var err error
 
@@ -221,7 +260,7 @@ func checkTx(endPoint string, txHash common.Hash) error {
 	for i := 0; i < 10; i++ {
 		t = 2*t + 1
 		time.Sleep(time.Duration(t) * time.Second)
-		receipt, err = getTransactionReceipt(endPoint, txHash)
+		receipt, err = GetTransactionReceipt(endPoint, txHash)
 		if err == nil {
 			break
 		}
@@ -235,9 +274,9 @@ func checkTx(endPoint string, txHash common.Hash) error {
 		for _, elog := range receipt.Logs {
 			log.Printf("Log: %v\n", elog) // 打印日志信息
 		}
-		err = analyzeTransactionFailure(endPoint, txHash)
+		err = AnalyzeTransactionFailure(endPoint, txHash)
 		if err != nil {
-			logger.Warn("tx revert: ", err)
+			Logger.Warn("tx revert: ", err)
 			return err
 		}
 
@@ -246,11 +285,11 @@ func checkTx(endPoint string, txHash common.Hash) error {
 		}
 		return fmt.Errorf("%s transaction mined but execution failed, check your input", txHash)
 	}
-	logger.Debugf("%s cost gas: %d, price: %d, blob gas: %d, price: %d", txHash.String(), receipt.GasUsed, receipt.EffectiveGasPrice, receipt.BlobGasUsed, receipt.BlobGasPrice)
+	Logger.Debugf("%s cost gas: %d, price: %d, blob gas: %d, price: %d", txHash.String(), receipt.GasUsed, receipt.EffectiveGasPrice, receipt.BlobGasUsed, receipt.BlobGasPrice)
 	return nil
 }
 
-func analyzeTransactionFailure(endPoint string, txHash common.Hash) error {
+func AnalyzeTransactionFailure(endPoint string, txHash common.Hash) error {
 	client, err := ethclient.Dial(endPoint)
 	if err != nil {
 		return err
@@ -325,7 +364,7 @@ func getFrom(tx *types.Transaction) common.Address {
 	return from
 }
 
-func transfer(ep string, sk *ecdsa.PrivateKey, toAddr common.Address, value *big.Int) error {
+func Transfer(ep string, sk *ecdsa.PrivateKey, toAddr common.Address, value *big.Int) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()
 	client, err := ethclient.DialContext(ctx, ep)
@@ -335,8 +374,8 @@ func transfer(ep string, sk *ecdsa.PrivateKey, toAddr common.Address, value *big
 	defer client.Close()
 
 	fromAddr := utils.ECDSAToAddr(sk)
-	logger.Debugf("%s from has: %d", fromAddr, balanceOf(ep, fromAddr))
-	logger.Debugf("%s to has: %d", toAddr, balanceOf(ep, toAddr))
+	Logger.Debugf("%s from has: %d", fromAddr, BalanceOf(ep, fromAddr))
+	Logger.Debugf("%s to has: %d", toAddr, BalanceOf(ep, toAddr))
 
 	nonce, err := client.PendingNonceAt(ctx, fromAddr)
 	if err != nil {
@@ -371,11 +410,11 @@ func transfer(ep string, sk *ecdsa.PrivateKey, toAddr common.Address, value *big
 	if err != nil {
 		return err
 	}
-	logger.Debugf("%s to has: %d", toAddr, balanceOf(ep, toAddr))
+	Logger.Debugf("%s to has: %d", toAddr, BalanceOf(ep, toAddr))
 	return nil
 }
 
-func balanceOf(ep string, addr common.Address) *big.Int {
+func BalanceOf(ep string, addr common.Address) *big.Int {
 	client, err := rpc.Dial(ep)
 	if err != nil {
 		return big.NewInt(0)
@@ -395,7 +434,7 @@ func balanceOf(ep string, addr common.Address) *big.Int {
 	return val
 }
 
-func transferToken(ep string, chainID *big.Int, sk *ecdsa.PrivateKey, tokenAddr, toaddr common.Address, val *big.Int) error {
+func TransferToken(ep string, chainID *big.Int, sk *ecdsa.PrivateKey, tokenAddr, toaddr common.Address, val *big.Int) error {
 	ctx, cancle := context.WithTimeout(context.TODO(), 1*time.Minute)
 	defer cancle()
 	client, err := ethclient.DialContext(ctx, ep)
@@ -407,7 +446,7 @@ func transferToken(ep string, chainID *big.Int, sk *ecdsa.PrivateKey, tokenAddr,
 	if err != nil {
 		return err
 	}
-	au, err := makeAuth(ep, chainID, sk)
+	au, err := MakeAuthBySk(ep, chainID, sk)
 	if err != nil {
 		return err
 	}
@@ -415,13 +454,13 @@ func transferToken(ep string, chainID *big.Int, sk *ecdsa.PrivateKey, tokenAddr,
 	if err != nil {
 		return err
 	}
-	logger.Debugf("%s from has token: %d", au.From, hasval)
+	Logger.Debugf("%s from has token: %d", au.From, hasval)
 
 	hasval, err = ti.BalanceOf(&bind.CallOpts{From: Base}, toaddr)
 	if err != nil {
 		return err
 	}
-	logger.Debugf("%s to has token: %d", toaddr, hasval)
+	Logger.Debugf("%s to has token: %d", toaddr, hasval)
 
 	tx, err := ti.Transfer(au, toaddr, val)
 	if err != nil {
@@ -436,11 +475,11 @@ func transferToken(ep string, chainID *big.Int, sk *ecdsa.PrivateKey, tokenAddr,
 	if err != nil {
 		return err
 	}
-	logger.Debugf("%s to has token: %d", toaddr, hasval)
+	Logger.Debugf("%s to has token: %d", toaddr, hasval)
 	return nil
 }
 
-func balanceOfToken(ep string, tokenaddr, addr common.Address) *big.Int {
+func BalanceOfToken(ep string, tokenaddr, addr common.Address) *big.Int {
 	ctx, cancle := context.WithTimeout(context.TODO(), 10*time.Second)
 	defer cancle()
 
@@ -459,6 +498,6 @@ func balanceOfToken(ep string, tokenaddr, addr common.Address) *big.Int {
 	if err != nil {
 		return big.NewInt(0)
 	}
-	logger.Debugf("%s to has token: %d", addr, hasval)
+	Logger.Debugf("%s to has token: %d", addr, hasval)
 	return hasval
 }
