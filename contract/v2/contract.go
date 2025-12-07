@@ -107,6 +107,25 @@ func NewContractManage(sk *ecdsa.PrivateKey, chainType string) (*ContractManage,
 		if chainRPC != "" {
 			cm.RPC = chainRPC
 		}
+	case com.LocalAnvil:
+		cm.RPC = com.LocalAnvilChainRPC
+		cm.ChainID = big.NewInt(int64(com.LocalAnvilChainID))
+		cm.SyncHeight = com.LocalAnvilSyncHeight
+
+		cm.TokenAddr = com.LocalAnvilTokenAddr
+
+		cm.EpochAddr = com.LocalAnvilEpochAddr
+		cm.NodeAddr = com.LocalAnvilNodeAddr
+		cm.PieceAddr = com.LocalAnvilPieceAddr
+		cm.RSProofAddr = com.LocalAnvilRSProofAddr
+		cm.EProofAddr = com.LocalAnvilEProofAddr
+		cm.EVerifyAddr = com.LocalAnvilEVerifyAddr
+		cm.StatAddr = com.LocalAnvilStatAddr
+
+		cm.RSOneAddr = com.LocalAnvilRSOneAddr
+		cm.KZGAddr = com.LocalAnvilKZGAddr
+		cm.AddAddr = com.LocalAnvilAddAddr
+		cm.MulAddr = com.LocalAnvilMulAddr
 	default:
 		return nil, fmt.Errorf("unsupportted chain type: %s, use 'bnb-testnet', 'op-sepolia' or 'opbnb-testnet'", chainType)
 	}

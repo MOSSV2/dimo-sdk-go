@@ -27,7 +27,7 @@ var (
 
 // V2 deployment configuration
 var (
-	slots        = uint64(16000)       // Epoch slots
+	slots        = uint64(16000)       // Epoch slots, 2h, blockInterval:450ms
 	delay        = uint64(7)           // Piece delay in epochs
 	minStore     = uint64(1200)        // Minimum storage time
 	maxStore     = uint64(12000)       // Maximum storage time

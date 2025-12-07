@@ -55,7 +55,7 @@ var (
 	//https://sepolia-optimism.etherscan.io/
 	//DevChain   = "https://11155420.rpc.thirdweb.com"
 
-	DefaultGasLimit = 600_000
+	DefaultGasLimit = 600_000 // test deploy 1400_000_000
 	DefaultGasPrice = 1_000_000_000
 
 	DefaultStreamPrice  = 1e12
@@ -69,6 +69,29 @@ var (
 	DefaultPenalty = 1e18
 
 	Base = common.HexToAddress("0x61Ea24745A3F7Bcbb67eD95B674fEcfbb331ABd0")
+)
+
+// local-anvil
+var (
+	LocalAnvil           = build.LocalAnvil
+	LocalAnvilChainRPC   = "http://127.0.0.1:8545"
+	LocalAnvilChainID    = 56
+	LocalAnvilTokenAddr  = common.HexToAddress("0x5FbDB2315678afecb367f032d93F642f64180aa3")
+	LocalAnvilSyncHeight = 0_000_000
+
+	// use proxy contract address
+	LocalAnvilEpochAddr   = common.HexToAddress("0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e")
+	LocalAnvilNodeAddr    = common.HexToAddress("0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0")
+	LocalAnvilPieceAddr   = common.HexToAddress("0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82")
+	LocalAnvilRSProofAddr = common.HexToAddress("0x9A676e781A523b5d0C0e43731313A708CB607508")
+	LocalAnvilEProofAddr  = common.HexToAddress("0xc6e7DF5E7b4f2A278906862b61205850344D4e7d")
+	LocalAnvilEVerifyAddr = common.HexToAddress("0x3Aa5ebB10DC797CAC828524e59A333d0A371443c")
+	LocalAnvilStatAddr    = common.HexToAddress("")
+
+	LocalAnvilRSOneAddr = common.HexToAddress("0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512")
+	LocalAnvilKZGAddr   = common.HexToAddress("0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9")
+	LocalAnvilAddAddr   = common.HexToAddress("0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0")
+	LocalAnvilMulAddr   = common.HexToAddress("0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9")
 )
 
 // op-sepolia
