@@ -6,8 +6,8 @@
       "chain_id": 97,
       "deployments": {
         "AddVerifier": "0x37222C0a687079968a039874748218e0C43BFf65",
-        "EProof": "0xbe157E9DE0C714f984D86E1B0Cb324056CC39eFE",
-        "EProofProxy": "0xa0371230A1493f29854E729111403A74B7567126",
+        "EProof": "0x3d0d443105dF86aaE1E90eA38fD2A42DcB919157",
+        "EProofProxy": "0xba0F80B3395c8e0722FF92A04aF315ab14Ee5C60",
         "EVerify": "0xBF6435c54bff7B8E66eBc1948fAa5E169795dD20",
         "EVerifyProxy": "0xBFFfD0708Ef5CE588622F2961B30D4BA8baD3072",
         "Epoch": "0x5cE774F80CEc2A86CD760c7641AD47B8625171DD",
@@ -19,8 +19,8 @@
         "Piece": "0xe252F4bcc9fB291b8C0aA868090e5a9a038fbfc2",
         "PieceProxy": "0x00CDaB61bc0bd8055D27E770A6Ee9149BCbd4fb7",
         "RSOneVerifier": "0x8f8aA4BcC6f8A5eA36E8DFB8fCB14efEab5460d9",
-        "RSProof": "0x7Fcce7fF6B2BbfcA1CAA249141F8F2aa2dc6B7DC",
-        "RSProofProxy": "0x8535751d5a818526Ba4B0a471E85af2e800A26f8"
+        "RSProof": "0xFd7a5eeF6243243aBA119Dd201A8E6fa74A6C76D",
+        "RSProofProxy": "0xdB8C0bf2B8510f729ce17b7048F98B0F8F757c7A"
       }
     }
   ]

@@ -156,8 +156,8 @@ var (
 	BNBTestnetEpochAddr   = common.HexToAddress("0xf80Ff1FE31ac5872D0366aCAAF2BDa8a28AE2cA8")
 	BNBTestnetNodeAddr    = common.HexToAddress("0x16c2A3634E71eC14e09cafbe67c6aBC06AE06Eb8")
 	BNBTestnetPieceAddr   = common.HexToAddress("0x00CDaB61bc0bd8055D27E770A6Ee9149BCbd4fb7")
-	BNBTestnetRSProofAddr = common.HexToAddress("0x8535751d5a818526Ba4B0a471E85af2e800A26f8")
-	BNBTestnetEProofAddr  = common.HexToAddress("0xa0371230A1493f29854E729111403A74B7567126")
+	BNBTestnetRSProofAddr = common.HexToAddress("0xdB8C0bf2B8510f729ce17b7048F98B0F8F757c7A")
+	BNBTestnetEProofAddr  = common.HexToAddress("0xba0F80B3395c8e0722FF92A04aF315ab14Ee5C60")
 	BNBTestnetEVerifyAddr = common.HexToAddress("0xBFFfD0708Ef5CE588622F2961B30D4BA8baD3072")
 	BNBTestnetStatAddr    = common.HexToAddress("")
 
