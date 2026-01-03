@@ -60,7 +60,7 @@ var (
 
 	DefaultStreamPrice  = 1e12
 	DefaultReplicaPrice = 1e11 // 1TB*100 epoch cost 10
-	DefaultStoreEpoch   = 301  // slight larger than minEpoch
+	DefaultStoreEpoch   = 1201 // slight larger than minEpoch
 	DelaySubmit         = 7
 
 	DefaultSpacePrice = 1e10
@@ -73,11 +73,12 @@ var (
 
 // local-anvil
 var (
-	LocalAnvil           = build.LocalAnvil
-	LocalAnvilChainRPC   = "http://127.0.0.1:8545"
-	LocalAnvilChainID    = 56
-	LocalAnvilTokenAddr  = common.HexToAddress("0x5FbDB2315678afecb367f032d93F642f64180aa3")
-	LocalAnvilSyncHeight = 0_000_000
+	LocalAnvil                     = build.LocalAnvil
+	LocalAnvilChainRPC             = "http://127.0.0.1:8545"
+	LocalAnvilChainRPCForFilterLog = "http://127.0.0.1:8545"
+	LocalAnvilChainID              = 56
+	LocalAnvilTokenAddr            = common.HexToAddress("0x5FbDB2315678afecb367f032d93F642f64180aa3")
+	LocalAnvilSyncHeight           = 0_000_000
 
 	// use proxy contract address
 	LocalAnvilEpochAddr   = common.HexToAddress("0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e")
@@ -96,13 +97,14 @@ var (
 
 // op-sepolia
 var (
-	OPSepolia           = build.OPSepolia
-	OPSepoliaExplorer   = "https://sepolia-optimism.etherscan.io/"
-	OPSepoliaChainRPC   = "https://optimism-sepolia-rpc.publicnode.com"
-	OPSepoliaChainID    = 11155420
-	OPSepoliaBankAddr   = common.HexToAddress("0xd1B90aFa21e749f99b2d20d57B31aD96108E4CB1")
-	OPSepoliaTokenAddr  = common.HexToAddress("0x96A711D4C093e4BCa8E12653014a9A15530399A1")
-	OPSepoliaSyncHeight = 21_696_900
+	OPSepolia                     = build.OPSepolia
+	OPSepoliaExplorer             = "https://sepolia-optimism.etherscan.io/"
+	OPSepoliaChainRPC             = "https://optimism-sepolia-rpc.publicnode.com"
+	OPSepoliaChainRPCForFilterLog = "https://optimism-sepolia-rpc.publicnode.com"
+	OPSepoliaChainID              = 11155420
+	OPSepoliaBankAddr             = common.HexToAddress("0xd1B90aFa21e749f99b2d20d57B31aD96108E4CB1")
+	OPSepoliaTokenAddr            = common.HexToAddress("0x96A711D4C093e4BCa8E12653014a9A15530399A1")
+	OPSepoliaSyncHeight           = 21_696_900
 
 	OPSepoliaEpochAddr   = common.HexToAddress("")
 	OPSepoliaNodeAddr    = common.HexToAddress("")
@@ -121,13 +123,14 @@ var (
 // opbnb-testnet
 var (
 	//https://opbnb-testnet-rpc.bnbchain.org
-	OPBNBTestnet           = build.OPBNBTestnet
-	OPBNBTestnetExplorer   = "https://opbnb-testnet.bscscan.com/"
-	OPBNBTestnetChainRPC   = "https://opbnb-testnet-rpc.publicnode.com"
-	OPBNBTestnetChainID    = 5611
-	OPBNBTestnetBankAddr   = common.HexToAddress("0x7560B3a48952A05B989C7e2956e12a7f4b534cF5")
-	OPBNBTestnetTokenAddr  = common.HexToAddress("0x1600D17EBBB5135837FCA958c1804A249716F393")
-	OPBNBTestnetSyncHeight = 48_317_500
+	OPBNBTestnet                     = build.OPBNBTestnet
+	OPBNBTestnetExplorer             = "https://opbnb-testnet.bscscan.com/"
+	OPBNBTestnetChainRPC             = "https://opbnb-testnet-rpc.publicnode.com"
+	OPBNBTestnetChainRPCForFilterLog = "https://opbnb-testnet-rpc.publicnode.com"
+	OPBNBTestnetChainID              = 5611
+	OPBNBTestnetBankAddr             = common.HexToAddress("0x7560B3a48952A05B989C7e2956e12a7f4b534cF5")
+	OPBNBTestnetTokenAddr            = common.HexToAddress("0x1600D17EBBB5135837FCA958c1804A249716F393")
+	OPBNBTestnetSyncHeight           = 48_317_500
 
 	OPBNBTestnetEpochAddr   = common.HexToAddress("")
 	OPBNBTestnetNodeAddr    = common.HexToAddress("")
@@ -145,13 +148,14 @@ var (
 
 // bnb-testnet
 var (
-	BNBTestnet           = build.BNBTestnet
-	BNBTestnetExplorer   = "https://testnet.bscscan.com/"
-	BNBTestnetChainRPC   = "https://bsc-testnet-dataseed.bnbchain.org"
-	BNBTestnetChainID    = int64(97)
-	BNBTestnetBankAddr   = common.HexToAddress("0x5903805A3a50Fab318c8650bABC71F58900EE34e")
-	BNBTestnetTokenAddr  = common.HexToAddress("0xC488F83A897E8AFF387D4124D46a63Dd33cb9c97")
-	BNBTestnetSyncHeight = 48_382_314
+	BNBTestnet                     = build.BNBTestnet
+	BNBTestnetExplorer             = "https://testnet.bscscan.com/"
+	BNBTestnetChainRPC             = "https://bsc-testnet-dataseed.bnbchain.org"
+	BNBTestnetChainRPCForFilterLog = "https://bsc-prebsc-dataseed.bnbchain.org"
+	BNBTestnetChainID              = int64(97)
+	BNBTestnetBankAddr             = common.HexToAddress("0x5903805A3a50Fab318c8650bABC71F58900EE34e")
+	BNBTestnetTokenAddr            = common.HexToAddress("0xC488F83A897E8AFF387D4124D46a63Dd33cb9c97")
+	BNBTestnetSyncHeight           = 79_221_078
 
 	BNBTestnetEpochAddr   = common.HexToAddress("0xf80Ff1FE31ac5872D0366aCAAF2BDa8a28AE2cA8")
 	BNBTestnetNodeAddr    = common.HexToAddress("0x16c2A3634E71eC14e09cafbe67c6aBC06AE06Eb8")
