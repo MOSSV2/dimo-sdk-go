@@ -86,7 +86,7 @@ func NewContractManage(sk *ecdsa.PrivateKey, chainType string) (*ContractManage,
 		cm.KZGAddr = com.OPBNBTestnetKZGAddr
 		cm.AddAddr = com.OPBNBTestnetAddAddr
 		cm.MulAddr = com.OPBNBTestnetMulAddr
-	case com.BNBTestnet:
+	case com.BNBTestnetV2:
 		cm.RPC = com.BNBTestnetChainRPC
 		cm.RPCForFilterLog = com.BNBTestnetChainRPCForFilterLog
 		cm.ChainID = big.NewInt(int64(com.BNBTestnetChainID))
@@ -132,7 +132,7 @@ func NewContractManage(sk *ecdsa.PrivateKey, chainType string) (*ContractManage,
 		cm.AddAddr = com.LocalAnvilAddAddr
 		cm.MulAddr = com.LocalAnvilMulAddr
 	default:
-		return nil, fmt.Errorf("unsupportted chain type: %s, use 'bnb-testnet', 'op-sepolia' or 'opbnb-testnet'", chainType)
+		return nil, fmt.Errorf("unsupportted chain type: %s, use 'bnb-testnet-v2', 'op-sepolia' or 'opbnb-testnet'", chainType)
 	}
 
 	chainRPC := os.Getenv("CHAIN_RPC")

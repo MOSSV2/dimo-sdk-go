@@ -146,16 +146,16 @@ var (
 	OPBNBTestnetMulAddr   = common.HexToAddress("")
 )
 
-// bnb-testnet
+// bnb-testnet-v2
 var (
-	BNBTestnet                     = build.BNBTestnet
+	BNBTestnetV2                   = build.BNBTestnetV2
 	BNBTestnetExplorer             = "https://testnet.bscscan.com/"
 	BNBTestnetChainRPC             = "https://bsc-testnet-dataseed.bnbchain.org"
 	BNBTestnetChainRPCForFilterLog = "https://bsc-prebsc-dataseed.bnbchain.org"
 	BNBTestnetChainID              = int64(97)
 	BNBTestnetBankAddr             = common.HexToAddress("0x5903805A3a50Fab318c8650bABC71F58900EE34e")
 	BNBTestnetTokenAddr            = common.HexToAddress("0xC488F83A897E8AFF387D4124D46a63Dd33cb9c97")
-	BNBTestnetSyncHeight           = 79_221_078
+	BNBTestnetSyncHeight           = 80_542_700
 
 	BNBTestnetEpochAddr   = common.HexToAddress("0xf80Ff1FE31ac5872D0366aCAAF2BDa8a28AE2cA8")
 	BNBTestnetNodeAddr    = common.HexToAddress("0x16c2A3634E71eC14e09cafbe67c6aBC06AE06Eb8")

@@ -86,7 +86,7 @@ func NewStatManager(db *gorm.DB) *StatManager {
 func (sm *StatManager) loadStats() (int, error) {
 	var records []types.StatRecord
 	// find the latest 30 records
-	if err := sm.db.Order("day DESC").Limit(30).Find(&records).Error; err != nil {
+	if err := sm.db.Order("id desc").Limit(30).Find(&records).Error; err != nil {
 		return 0, err
 	}
 
