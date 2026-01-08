@@ -90,7 +90,7 @@ func (sm *StatManager) loadStats() (int, error) {
 	now = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 
 	recordCount := 0
-	for i := 30; i >= 1; i-- {
+	for i := 30; i >= 0; i-- {
 		var record types.StatRecord
 		daytime := now.AddDate(0, 0, -i)
 		err := sm.db.Order("id desc").Where("day = ?", daytime).First(&record).Error
