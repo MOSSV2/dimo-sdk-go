@@ -22,6 +22,29 @@
         "RSProof": "0xFd7a5eeF6243243aBA119Dd201A8E6fa74A6C76D",
         "RSProofProxy": "0xdB8C0bf2B8510f729ce17b7048F98B0F8F757c7A"
       }
+    },
+    {
+      "timestamp": "2026-03-08 20:47:39",
+      "chain_url": "https://bsc-testnet-dataseed.bnbchain.org",
+      "chain_id": 97,
+      "deployments": {
+        "AddVerifier": "0x761f3239cf6f9eA1901bA990CF4A5797279037B2",
+        "EProof": "0xDCd62BA38415Ec075Bd45f561FeC97d1A3170aD7",
+        "EProofProxy": "0xC9791A8c1Ea9b4d0981E60D8c8bA2a2E66b86555",
+        "EVerify": "0x292d187C3FFAa53333965784B07fFDA209ad82F2",
+        "EVerifyProxy": "0xE2afb94A23e89e1A3e259F1A21eAED762DE564b5",
+        "Epoch": "0x27873567dD34132B4C915f1E4679DA8F64e7DDdD",
+        "EpochProxy": "0x4bB86A4548f2AC351C3702f7ee6c5725FEC3c18c",
+        "KzgVerifier": "0xE590d9AB935d7a9673cF722F7e5581fE2d33D8b8",
+        "MulVerifier": "0x24a741792ce0726Ea42e865cbfb889CA3c83B41A",
+        "Node": "0x9a536C6D31A02d398B708bB1d4C6e8Ff0efD578D",
+        "NodeProxy": "0xd367D63Ea753Bd3FA57D09fA0a9d5abc9Ca3F9d1",
+        "Piece": "0x20283Cc366E1Ac6e212E16d497088A440Ecb7791",
+        "PieceProxy": "0x035d06BeF74311D7b2BD51b47a9aFcE9Fc892b33",
+        "RSOneVerifier": "0x140A84C338829BE2E2f0768DaC97e6EE568035d9",
+        "RSProof": "0xF1Ce3EFAcd90eADd2156081ac4Df2f336eA27C9A",
+        "RSProofProxy": "0x58F72ecF3fdDa79BE097417F55e33AB376F9F685"
+      }
     }
   ]
 }
