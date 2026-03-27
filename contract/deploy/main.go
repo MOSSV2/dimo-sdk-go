@@ -36,10 +36,11 @@ var (
 	maxSize  = uint64(33554432) // 32MB
 	// minPrice     = big.NewInt(1e11)    // Minimum price per unit, per epoch*MB
 	// streamPrice  = big.NewInt(1e12)    // Streaming price, per replica
-	minPrice     = big.NewInt(1e8)     // just for test
-	streamPrice  = big.NewInt(1e9)     // just for test
-	minProveTime = big.NewInt(8000)    // Minimum prove time for RS/E proofs, 1 hour
-	minPledgeMap = map[uint8]*big.Int{ // Node type -> minimum pledge mapping
+	minPrice        = big.NewInt(1e8)     // just for test
+	streamPrice     = big.NewInt(1e9)     // just for test
+	minProveTime    = big.NewInt(8000)    // Minimum prove time for RS/E proofs, 1 hour
+	challengeWindow = uint64(7)           // Challenge window in epochs for EProof
+	minPledgeMap    = map[uint8]*big.Int{ // Node type -> minimum pledge mapping
 		// 1: new(big.Int).Mul(big.NewInt(1e18), big.NewInt(10)), // 10 tokens for type 1
 		// 2: new(big.Int).Mul(big.NewInt(1e18), big.NewInt(10)), // 10 tokens for type 2
 		// 3: new(big.Int).Mul(big.NewInt(1e18), big.NewInt(10)), // 10 tokens for type 3
@@ -396,13 +397,14 @@ func deployall_v2(client *ethclient.Client, sk string) {
 
 	// Deploy EProof proxy with init params
 	eproofInitParams := eproof.IEProofInitParams{
-		Epoch:        epochProxy,
-		Node:         nodeProxy,
-		Piece:        pieceProxy,
-		Token:        tokenAddr,
-		Everify:      everifyProxy,
-		Base:         baseAddr,
-		MinProveTime: minProveTime,
+		Epoch:           epochProxy,
+		Node:            nodeProxy,
+		Piece:           pieceProxy,
+		Token:           tokenAddr,
+		Everify:         everifyProxy,
+		Base:            baseAddr,
+		ChallengeWindow: challengeWindow,
+		MinProveTime:    minProveTime,
 	}
 	eproofProxy, err := DeployEProofProxy(client, sk, eproofImpl, eproofInitParams, owner)
 	if err != nil {
