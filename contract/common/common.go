@@ -55,7 +55,7 @@ var (
 	//https://sepolia-optimism.etherscan.io/
 	//DevChain   = "https://11155420.rpc.thirdweb.com"
 
-	DefaultGasLimit = 1_000_000
+	DefaultGasLimit = 10_000_000
 	DefaultGasPrice = 100_000_000 // 0.1gwei
 
 	DefaultStreamPrice  = 1e12
