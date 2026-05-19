@@ -36,11 +36,11 @@ var (
 	maxSize  = uint64(33554432) // 32MB
 	// minPrice     = big.NewInt(1e11)    // Minimum price per unit, per epoch*MB
 	// streamPrice  = big.NewInt(1e12)    // Streaming price, per replica
-	minPrice        = big.NewInt(1e8)     // just for test
-	streamPrice     = big.NewInt(1e9)     // just for test
-	minProveTime    = big.NewInt(8000)    // Minimum prove time for RS/E proofs, 1 hour
-	challengeWindow = uint64(7)           // Challenge window in epochs for EProof
-	minPledgeMap    = map[uint8]*big.Int{ // Node type -> minimum pledge mapping
+	minPrice        = big.NewInt(1e8)  // just for test
+	streamPrice     = big.NewInt(1e9)  // just for test
+	minProveTime    = big.NewInt(8000) // Minimum prove time for RS/E proofs, 1 hour
+	challengeWindow = uint64(7)        // Challenge window in epochs for EProof
+	minPledgeMap    = map[uint8]*big.Int{
 		// 1: new(big.Int).Mul(big.NewInt(1e18), big.NewInt(10)), // 10 tokens for type 1
 		// 2: new(big.Int).Mul(big.NewInt(1e18), big.NewInt(10)), // 10 tokens for type 2
 		// 3: new(big.Int).Mul(big.NewInt(1e18), big.NewInt(10)), // 10 tokens for type 3
@@ -50,6 +50,18 @@ var (
 	}
 
 	baseAddr = common.HexToAddress("0xE0AD379735ba88B323298D091ff3b67Dd6C79852")
+)
+
+// DAO governance configuration
+var (
+	daoTokenName         = "Unibase DAO Governance Token"
+	daoTokenSymbol       = "UNIDAOT"
+	daoTokenSupply       = new(big.Int).Mul(big.NewInt(1e18), big.NewInt(1_000_000_000)) // 1B tokens
+	daoVotingDelay       = big.NewInt(1)                                                  // 1 block
+	daoVotingPeriod      = uint32(24_000)                                                 // ~3h at ~450ms block time on BSC
+	daoProposalThreshold = new(big.Int).Mul(big.NewInt(1e18), big.NewInt(2_500_000))      // 2.5M tokens (~0.25%)
+	daoQuorumFraction    = big.NewInt(4)                                                  // 4%
+	daoTimelockDelay     = big.NewInt(0)                                                  // no delay for testnet
 )
 
 func init() {
@@ -445,4 +457,9 @@ func deployall_v2(client *ethclient.Client, sk string) {
 	log.Printf("  RSProofProxy: %s\n", rsproofProxy.Hex())
 	log.Printf("  EVerifyProxy: %s\n", everifyProxy.Hex())
 	log.Printf("  EProofProxy: %s\n", eproofProxy.Hex())
+
+	// Phase 2: DAO governance
+	log.Println("")
+	log.Println("=== Phase 2: DAO Governance Deployment ===")
+	deployDAO(client, sk, owner, epochProxy, nodeProxy, pieceProxy, rsproofProxy, everifyProxy, eproofProxy)
 }

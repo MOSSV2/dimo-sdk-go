@@ -111,6 +111,26 @@ func NewContractManage(sk *ecdsa.PrivateKey, chainType string) (*ContractManage,
 		if chainRPC != "" {
 			cm.RPC = chainRPC
 		}
+	case com.BNBTestnetDAO:
+		cm.RPC = com.BNBTestnetDAOChainRPC
+		cm.RPCForFilterLog = com.BNBTestnetDAOChainRPCForFilterLog
+		cm.ChainID = big.NewInt(int64(com.BNBTestnetDAOChainID))
+		cm.SyncHeight = com.BNBTestnetDAOSyncHeight
+
+		cm.TokenAddr = com.BNBTestnetDAOTokenAddr
+
+		cm.EpochAddr = com.BNBTestnetDAOEpochAddr
+		cm.NodeAddr = com.BNBTestnetDAONodeAddr
+		cm.PieceAddr = com.BNBTestnetDAOPieceAddr
+		cm.RSProofAddr = com.BNBTestnetDAORSProofAddr
+		cm.EProofAddr = com.BNBTestnetDAOEProofAddr
+		cm.EVerifyAddr = com.BNBTestnetDAOEVerifyAddr
+		cm.StatAddr = com.BNBTestnetDAOStatAddr
+
+		cm.RSOneAddr = com.BNBTestnetDAORSOneAddr
+		cm.KZGAddr = com.BNBTestnetDAOKZGAddr
+		cm.AddAddr = com.BNBTestnetDAOAddAddr
+		cm.MulAddr = com.BNBTestnetDAOMulAddr
 	case com.LocalAnvil:
 		cm.RPC = com.LocalAnvilChainRPC
 		cm.RPCForFilterLog = com.LocalAnvilChainRPCForFilterLog
