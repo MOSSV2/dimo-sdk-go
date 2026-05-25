@@ -33,7 +33,7 @@ import (
 )
 
 var logger = log.Logger("sdk")
-var ChainType = build.BNBTestnetV2
+var ChainType = build.BNBTestnetDAO
 var chaintype = ""
 
 func init() {
