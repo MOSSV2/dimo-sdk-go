@@ -180,7 +180,7 @@ var (
 	BNBTestnetDAOChainID              = int64(97)
 	BNBTestnetDAOBankAddr             = common.HexToAddress("0x5903805A3a50Fab318c8650bABC71F58900EE34e")
 	BNBTestnetDAOTokenAddr            = common.HexToAddress("0x7c5AC49563d7046906333AC2CA28E602327CFe1A")
-	BNBTestnetDAOSyncHeight           = 80_542_700
+	BNBTestnetDAOSyncHeight           = 108_347_000
 
 	BNBTestnetDAOEpochAddr   = common.HexToAddress("0xfBF8CbDCFb200eD20e69e4F89b39CbC7A18855E6")
 	BNBTestnetDAONodeAddr    = common.HexToAddress("0xAF83D927C968eDC0E50232536Aac2245b4E048d9")
